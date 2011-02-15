@@ -1,4 +1,4 @@
-// $Id: SIMPoisson2D.C,v 1.3 2010-09-05 12:44:18 kmo Exp $
+// $Id$
 //==============================================================================
 //!
 //! \file SIMPoisson2D.C
@@ -14,21 +14,8 @@
 #include "SIMPoisson2D.h"
 #include "AnalyticSolutions.h"
 #include "Utilities.h"
+#include "AnaSol.h"
 #include <string.h>
-
-
-SIMPoisson2D::SIMPoisson2D () : SIM2D(1), poPrb(2)
-{
-  myProblem = &poPrb;
-  asol = 0;
-}
-
-
-SIMPoisson2D::~SIMPoisson2D ()
-{
-  myProblem = 0;
-  if (asol) delete asol;
-}
 
 
 bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
@@ -45,9 +32,10 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
       double kappa = atof(strtok(NULL," "));
       std::cout <<"\tMaterial code "<< code <<":"<< kappa << std::endl;
       if (code == 0)
-	poPrb.setMaterial(kappa);
-      else for (unsigned int j = 0; j < myProps.size(); j++)
-	if (myProps[j].pindx == code && myProps[j].pcode == Property::UNDEFINED)
+	prob.setMaterial(kappa);
+      else for (size_t j = 0; j < myProps.size(); j++)
+	if (myProps[j].pindx == (size_t)code &&
+	    myProps[j].pcode == Property::UNDEFINED)
 	{
 	  myProps[j].pindx = mVec.size();
 	  myProps[j].pcode = Property::MATERIAL;
@@ -64,7 +52,7 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     {
       double L = atof(strtok(NULL," "));
       std::cout <<"\nHeat source function: Square L="<< L << std::endl;
-      poPrb.setSource(new Square2DHeat(L));
+      prob.setSource(new Square2DHeat(L));
     }
     else
       std::cerr <<"  ** SIMPoisson2D::parse: Unknown source function "
@@ -78,26 +66,26 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     {
       double L = atof(strtok(NULL," "));
       std::cout <<"\nAnalytical solution: Square L="<< L << std::endl;
-      asol = new Square2D(L);
+      mySol = new AnaSol(NULL,new Square2D(L));
     }
     else if (!strncasecmp(cline,"LSHAPE",6))
     {
-      asol = new LshapePoisson();
+      mySol = new AnaSol(NULL,new LshapePoisson());
       std::cout <<"\nAnalytical solution: Lshape"<< std::endl;
     }
     else
+    {
       std::cerr <<"  ** SIMPoisson2D::parse: Unknown analytical solution "
-		<< cline << std::endl;
+		<< cline <<" (ignored)"<< std::endl;
+      return true;
+    }
 
     // Define the analytical boundary traction field
     int code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
-    if (code > 0 && asol)
+    if (code > 0 && mySol->getScalarSecSol())
     {
-      for (unsigned int j = 0; j < myProps.size(); j++)
-	if (myProps[j].pindx == code && myProps[j].pcode == Property::UNDEFINED)
-	  myProps[j].pcode = Property::NEUMANN;
-
-      myVectors[code] = asol;
+      this->setPropertyType(code,Property::NEUMANN);
+      myVectors[code] = mySol->getScalarSecSol();
     }
   }
 
@@ -117,7 +105,7 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
 	if (!strncasecmp(cline,"ALL",3))
         {
 	  std::cout <<"\tMaterial for all patches: "<< kappa << std::endl;
-	  poPrb.setMaterial(kappa);
+	  prob.setMaterial(kappa);
 	}
 	else
         {
@@ -162,11 +150,11 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
 	return false;
       }
 
-      if (asol)
+      if (mySol && mySol->getScalarSecSol())
       {
 	std::cout <<"\tNeumann integral on P"<< neum.patch
 		  <<" E"<< (int)neum.lindx << std::endl;
-	myVectors[1+i] = asol;
+	myVectors[1+i] = mySol->getScalarSecSol();
       }
 
       myProps.push_back(neum);
@@ -184,7 +172,7 @@ bool SIMPoisson2D::initMaterial (size_t propInd)
 {
   if (propInd >= mVec.size()) return false;
 
-  poPrb.setMaterial(mVec[propInd]);
+  prob.setMaterial(mVec[propInd]);
   return true;
 }
 
@@ -194,6 +182,6 @@ bool SIMPoisson2D::initNeumann (size_t propInd)
   VecFuncMap::const_iterator tit = myVectors.find(propInd);
   if (tit == myVectors.end()) return false;
 
-  poPrb.setTraction(tit->second);
+  prob.setTraction(tit->second);
   return true;
 }

@@ -1,4 +1,4 @@
-// $Id: main_Poisson3D.C,v 1.3 2011-02-05 18:32:25 kmo Exp $
+// $Id$
 //==============================================================================
 //!
 //! \file main_Poisson3D.C
@@ -22,7 +22,7 @@
 
 
 /*!
-  \brief Main program for the NURBS-based isogeometric linear elasticity solver.
+  \brief Main program for the NURBS-based isogeometric Poisson equation solver.
 
   The input to the program is specified through the following
   command-line arguments. The arguments may be given in arbitrary order.
@@ -30,7 +30,7 @@
   \arg \a input-file : Input file with model definition
   \arg -dense :   Use the dense LAPACK matrix equation solver
   \arg -spr :     Use the SPR direct equation solver
-  \arg -superlu : Use the sparse superLU equation solver
+  \arg -superlu : Use the sparse SuperLU equation solver
   \arg -samg :    Use the sparse algebraic multi-grid equation solver
   \arg -petsc :   Use equation solver from PETSc library
   \arg -nGauss \a n : Number of Gauss points over a knot-span in each direction
@@ -164,8 +164,8 @@ int main (int argc, char** argv)
   // Boundary conditions can be ignored only in generalized eigenvalue analysis
   if (iop != 4 && iop != 6) SIMbase::ignoreDirichlet = false;
 
-  std::cout <<"\n >>> Spline FEM Linear Elasticity solver <<<"
-	    <<"\n ===========================================\n"
+  std::cout <<"\n >>> Spline FEM Poisson equation solver <<<"
+	    <<"\n ==========================================\n"
 	    <<"\nInput file: "<< infile
 	    <<"\nEquation solver: "<< solver
 	    <<"\nNumber of Gauss points: "<< nGauss
@@ -244,11 +244,11 @@ int main (int argc, char** argv)
     model->setMode(SIM::RECOVERY);
     if (!model->solutionNorms(Vectors(1,displ),eNorm,gNorm))
       return 4;
-    std::cout <<"Energy norm |u^| = a(u^h,u^h)^0.5 : "<< gNorm(1);
+    std::cout <<"Energy norm |u^h| = a(u^h,u^h)^0.5 : "<< gNorm(1);
     if (gNorm.size() > 1)
-      std::cout <<"\nExact norm  |u|  = a(u,u)^0.5     : "<< gNorm(2);
+      std::cout <<"\nExact norm  |u|   = a(u,u)^0.5     : "<< gNorm(2);
     if (gNorm.size() > 2)
-      std::cout <<"\nExact error a(e,e)^0.5, e=u-u^h   : "<< gNorm(3)
+      std::cout <<"\nExact error a(e,e)^0.5, e=u-u^h    : "<< gNorm(3)
 		<<"\nExact relative error (%) : "<< gNorm(3)/gNorm(2)*100.0;
     std::cout << std::endl;
 
@@ -302,5 +302,6 @@ int main (int argc, char** argv)
   model->closeGlv();
 
   utl::profiler->stop("Postprocessing");
+  delete model;
   return 0;
 }
