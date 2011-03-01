@@ -94,7 +94,7 @@ bool SIMPoisson3D::parse (char* keyWord, std::istream& is)
     for (int i = 0; i < nmat && (cline = utl::readLine(is)); i++)
     {
       double kappa = atof(strtok(cline," "));
-      while (cline = strtok(NULL," "))
+      while ((cline = strtok(NULL," ")))
 	if (!strncasecmp(cline,"ALL",3))
         {
 	  std::cout <<"\tMaterial for all patches: "<< kappa << std::endl;
@@ -103,7 +103,7 @@ bool SIMPoisson3D::parse (char* keyWord, std::istream& is)
 	else
         {
 	  int patch = atoi(cline);
-	  if (patch < 1 || patch > myModel.size())
+	  if (patch < 1 || (size_t)patch > myModel.size())
 	  {
 	    std::cerr <<" *** SIMPoisson3D::parse: Invalid patch index "
 		      << patch << std::endl;
