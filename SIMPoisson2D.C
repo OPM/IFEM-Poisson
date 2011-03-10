@@ -22,25 +22,18 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
 {
   char* cline = 0;
 
-  if (!strncasecmp(keyWord,"ISOTROPHIC",10))
+  if (!strncasecmp(keyWord,"ISOTROPIC",9))
   {
     int nmat = atoi(keyWord+10);
-    std::cout <<"\nNumber of isotrophic materials: "<< nmat << std::endl;
+    std::cout <<"\nNumber of isotropic materials: "<< nmat << std::endl;
     for (int i = 0; i < nmat && (cline = utl::readLine(is)); i++)
     {
       int    code  = atoi(strtok(cline," "));
       double kappa = atof(strtok(NULL," "));
-      std::cout <<"\tMaterial code "<< code <<":"<< kappa << std::endl;
+      std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
       if (code == 0)
 	prob.setMaterial(kappa);
-      else for (size_t j = 0; j < myProps.size(); j++)
-	if (myProps[j].pindx == (size_t)code &&
-	    myProps[j].pcode == Property::UNDEFINED)
-	{
-	  myProps[j].pindx = mVec.size();
-	  myProps[j].pcode = Property::MATERIAL;
-	}
-      if (code > 0)
+      else if (this->setPropertyType(code,Property::MATERIAL,mVec.size()))
 	mVec.push_back(kappa);
     }
   }
@@ -86,78 +79,6 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     {
       this->setPropertyType(code,Property::NEUMANN);
       myVectors[code] = mySol->getScalarSecSol();
-    }
-  }
-
-
-  // The remaining keywords are retained for backward compatibility with the
-  // prototype version. They enable direct specification of properties onto
-  // the topological entities (blocks and faces) of the model.
-
-  else if (!strncasecmp(keyWord,"MATERIAL",8))
-  {
-    int nmat = atoi(keyWord+8);
-    std::cout <<"\nNumber of materials: "<< nmat << std::endl;
-    for (int i = 0; i < nmat && (cline = utl::readLine(is)); i++)
-    {
-      double kappa = atof(strtok(cline," "));
-      while ((cline = strtok(NULL," ")))
-	if (!strncasecmp(cline,"ALL",3))
-        {
-	  std::cout <<"\tMaterial for all patches: "<< kappa << std::endl;
-	  prob.setMaterial(kappa);
-	}
-	else
-        {
-	  int patch = atoi(cline);
-	  if (patch < 1 || (size_t)patch > myModel.size())
-	  {
-	    std::cerr <<" *** SIMPoisson2D::parse: Invalid patch index "
-		      << patch << std::endl;
-	    return false;
-	  }
-	  std::cout <<"\tMaterial for P"<< patch <<": "<< kappa << std::endl;
-	  myProps.push_back(Property(Property::MATERIAL,mVec.size(),patch,2));
-	  mVec.push_back(kappa);
-	}
-    }
-  }
-
-  else if (!strncasecmp(keyWord,"EXNEUMANN",9))
-  {
-    Property neum;
-    neum.pcode = Property::NEUMANN;
-    neum.ldim = 1;
-
-    int npres = atoi(keyWord+9);
-    std::cout <<"\nNumber of Neumann integrals: "<< npres << std::endl;
-    for (int i = 0; i < npres && (cline = utl::readLine(is)); i++)
-    {
-      neum.pindx = 1+i;
-      neum.patch = atoi(strtok(cline," "));
-      if (neum.patch < 1 || neum.patch > myModel.size())
-      {
-	std::cerr <<" *** SIMPoisson2D::parse: Invalid patch index "
-		  << neum.patch << std::endl;
-	return false;
-      }
-
-      neum.lindx = atoi(strtok(NULL," "));
-      if (neum.lindx < 1 || neum.lindx > 4)
-      {
-	std::cerr <<" *** SIMPoisson2D::parse: Invalid edge index "
-		  << (int)neum.lindx << std::endl;
-	return false;
-      }
-
-      if (mySol && mySol->getScalarSecSol())
-      {
-	std::cout <<"\tNeumann integral on P"<< neum.patch
-		  <<" E"<< (int)neum.lindx << std::endl;
-	myVectors[1+i] = mySol->getScalarSecSol();
-      }
-
-      myProps.push_back(neum);
     }
   }
 
