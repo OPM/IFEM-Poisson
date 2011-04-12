@@ -18,6 +18,14 @@
 #include <string.h>
 
 
+SIMPoisson1D::~SIMPoisson1D ()
+{
+  myProblem = 0;
+  // To avoid that that SIMbase tries to delete already deleted functions
+  if (myAFcode > 0) myVectors.erase(myAFcode);
+}
+
+
 bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
 {
   char* cline = 0;
@@ -48,7 +56,7 @@ bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
       prob.setSource(new PoissonLineSource(L));
     }
     else
-      std::cerr <<"  ** SIMPoisson2D::parse: Unknown source function "
+      std::cerr <<"  ** SIMPoisson1D::parse: Unknown source function "
 		<< cline << std::endl;
   }
 
@@ -63,7 +71,7 @@ bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
     }
     else
     {
-      std::cerr <<"  ** SIMPoisson2D::parse: Unknown analytical solution "
+      std::cerr <<"  ** SIMPoisson1D::parse: Unknown analytical solution "
 		<< cline <<" (ignored)"<< std::endl;
       return true;
     }
@@ -74,6 +82,7 @@ bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
     {
       this->setPropertyType(code,Property::NEUMANN);
       myVectors[code] = mySol->getScalarSecSol();
+      myAFcode = code;
     }
   }
 

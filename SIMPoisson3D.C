@@ -18,6 +18,14 @@
 #include <string.h>
 
 
+SIMPoisson3D::~SIMPoisson3D ()
+{
+  myProblem = 0;
+  // To avoid that that SIMbase tries to delete already deleted functions
+  if (myAFcode > 0) myVectors.erase(myAFcode);
+}
+
+
 bool SIMPoisson3D::parse (char* keyWord, std::istream& is)
 {
   char* cline = 0;
@@ -72,6 +80,7 @@ bool SIMPoisson3D::parse (char* keyWord, std::istream& is)
     {
       this->setPropertyType(code,Property::NEUMANN);
       myVectors[code] = mySol->getScalarSecSol();
+      myAFcode = code;
     }
   }
 
