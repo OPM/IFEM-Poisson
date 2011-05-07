@@ -15,6 +15,8 @@
 #include "SIMPoisson2D.h"
 #include "SIMPoisson1D.h"
 #include "LinAlgInit.h"
+#include "HDF5Writer.h"
+#include "XMLWriter.h"
 #include "Profiler.h"
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +36,7 @@
   \arg -samg :    Use the sparse algebraic multi-grid equation solver
   \arg -petsc :   Use equation solver from PETSc library
   \arg -nGauss \a n : Number of Gauss points over a knot-span in each direction
-  \arg -vtf \a format : VTF-file format (0=ASCII, 1=BINARY)
+  \arg -vtf \a format : VTF-file format (-1=NONE, 0=ASCII, 1=BINARY)
   \arg -nviz \a nviz : Number of visualization points over each knot-span
   \arg -nu \a nu : Number of visualization points per knot-span in u-direction
   \arg -nv \a nv : Number of visualization points per knot-span in v-direction
@@ -62,7 +64,7 @@ int main (int argc, char** argv)
 
   SystemMatrix::Type solver = SystemMatrix::SPARSE;
   int nGauss = 4;
-  int format = 0;
+  int format = -1;
   int n[3] = { 2, 2, 2 };
   std::vector<int> ignoredPatches;
   int iop = 0;
@@ -72,11 +74,11 @@ int main (int argc, char** argv)
   bool checkRHS = false;
   bool vizRHS = false;
   bool fixDup = false;
-  bool oneD = false;
-  bool twoD = false;
+  bool dumpHDF5 = false;
+  char ndim = 3;
   char* infile = 0;
 
-  LinAlgInit::Init(argc,argv);
+  LinAlgInit& linalg = LinAlgInit::Init(argc,argv);
 
   for (int i = 1; i < argc; i++)
     if (!strcmp(argv[i],"-dense"))
@@ -93,6 +95,8 @@ int main (int argc, char** argv)
       nGauss = atoi(argv[++i]);
     else if (!strcmp(argv[i],"-vtf") && i < argc-1)
       format = atoi(argv[++i]);
+    else if (!strcmp(argv[i],"-hdf5"))
+      dumpHDF5 = true;
     else if (!strcmp(argv[i],"-nviz") && i < argc-1)
       n[0] = n[1] = n[2] = atoi(argv[++i]);
     else if (!strcmp(argv[i],"-nu") && i < argc-1)
@@ -131,9 +135,9 @@ int main (int argc, char** argv)
     else if (!strcmp(argv[i],"-fixDup"))
       fixDup = true;
     else if (!strcmp(argv[i],"-1D"))
-      oneD = true;
+      ndim = 1;
     else if (!strcmp(argv[i],"-2D"))
-      twoD = true;
+      ndim = 2;
     else if (!strncmp(argv[i],"-lag",4))
       SIMbase::discretization = SIMbase::Lagrange;
     else if (!strncmp(argv[i],"-spec",5))
@@ -157,61 +161,61 @@ int main (int argc, char** argv)
   }
 
   // Load vector visualization is not available when using additional viz-points
-  if (n[0] > 2) vizRHS = false;
-  if (n[1] > 2 && !oneD) vizRHS = false;
-  if (n[2] > 2 && !oneD && !twoD) vizRHS = false;
+  for (int d = 0; d < 3; d++)
+    if (d >= ndim)
+      n[d] = 1;
+    else if (n[d] > 2)
+      vizRHS = false;
 
   // Boundary conditions can be ignored only in generalized eigenvalue analysis
   if (iop != 4 && iop != 6) SIMbase::ignoreDirichlet = false;
 
-  std::cout <<"\n >>> Spline FEM Poisson equation solver <<<"
-	    <<"\n ==========================================\n"
-	    <<"\nInput file: "<< infile
-	    <<"\nEquation solver: "<< solver
-	    <<"\nNumber of Gauss points: "<< nGauss
-	    <<"\nVTF file format: "<< (format ? "BINARY":"ASCII")
-	    <<"\nNumber of visualization points: "<< n[0];
-  if (oneD)
-    n[1] = n[2] = 1;
-  else if (twoD)
+  if (linalg.myPid == 0)
   {
-    n[2] = 1;
-    std::cout <<" "<< n[1];
-  }
-  else
-    std::cout <<" "<< n[1] <<" "<< n[2];
+    std::cout <<"\n >>> Spline FEM Poisson equation solver <<<"
+	      <<"\n ==========================================\n"
+	      <<"\nInput file: "<< infile
+	      <<"\nEquation solver: "<< solver
+	      <<"\nNumber of Gauss points: "<< nGauss;
+    if (format >= 0)
+    {
+      std::cout <<"\nVTF file format: "<< (format ? "BINARY":"ASCII")
+		<<"\nNumber of visualization points: "<< n[0];
+      if (ndim > 1) std::cout <<" "<< n[1];
+      if (ndim > 2) std::cout <<" "<< n[2];
+    }
 
-  if (iop > 0 && iop < 100)
-    std::cout <<"\nEigenproblem solver: "<< iop
-	      <<"\nNumber of eigenvalues: "<< nev
-	      <<"\nNumber of Arnoldi vectors: "<< ncv
-	      <<"\nShift value: "<< shf;
-  if (SIMbase::discretization == SIMbase::Lagrange)
-    std::cout <<"\nLagrangian basis functions are used";
-  else if (SIMbase::discretization == SIMbase::Spectral)
-    std::cout <<"\nSpectral basis functions are used";
-  if (SIMbase::ignoreDirichlet)
-    std::cout <<"\nSpecified boundary conditions are ignored";
-  if (fixDup)
-    std::cout <<"\nCo-located nodes will be merged";
-  if (checkRHS)
-    std::cout <<"\nChecking that each patch has a right-hand coordinate system";
-  if (!ignoredPatches.empty())
-  {
-    std::cout <<"\nIgnored patches:";
-    for (size_t i = 0; i < ignoredPatches.size(); i++)
-      std::cout <<" "<< ignoredPatches[i];
+    if (iop > 0 && iop < 100)
+      std::cout <<"\nEigenproblem solver: "<< iop
+		<<"\nNumber of eigenvalues: "<< nev
+		<<"\nNumber of Arnoldi vectors: "<< ncv
+		<<"\nShift value: "<< shf;
+    if (SIMbase::discretization == SIMbase::Lagrange)
+      std::cout <<"\nLagrangian basis functions are used";
+    else if (SIMbase::discretization == SIMbase::Spectral)
+      std::cout <<"\nSpectral basis functions are used";
+    if (SIMbase::ignoreDirichlet)
+      std::cout <<"\nSpecified boundary conditions are ignored";
+    if (fixDup)
+      std::cout <<"\nCo-located nodes will be merged";
+    if (checkRHS)
+      std::cout <<"\nCheck that each patch has a right-hand coordinate system";
+    if (!ignoredPatches.empty())
+    {
+      std::cout <<"\nIgnored patches:";
+      for (size_t i = 0; i < ignoredPatches.size(); i++)
+	std::cout <<" "<< ignoredPatches[i];
+    }
+    std::cout << std::endl;
   }
-  std::cout << std::endl;
-
   utl::profiler->stop("Initialization");
   utl::profiler->start("Model input");
 
-  // Read in model definitions and establish the FE structures
+  // Read in model definitions and establish the FE data structures
   SIMbase* model;
-  if (oneD)
+  if (ndim == 1)
     model = new SIMPoisson1D();
-  else if (twoD)
+  else if (ndim == 2)
     model = new SIMPoisson2D();
   else
     model = new SIMPoisson3D(checkRHS);
@@ -219,8 +223,9 @@ int main (int argc, char** argv)
   if (!model->read(infile) || !model->preprocess(ignoredPatches,fixDup))
     return 1;
 
-  model->setQuadratureRule(nGauss);
   utl::profiler->stop("Model input");
+
+  model->setQuadratureRule(nGauss);
 
   Matrix eNorm;
   Vector gNorm, displ, load;
@@ -244,19 +249,23 @@ int main (int argc, char** argv)
     model->setMode(SIM::RECOVERY);
     if (!model->solutionNorms(Vectors(1,displ),eNorm,gNorm))
       return 4;
-    std::cout <<"Energy norm |u^h| = a(u^h,u^h)^0.5 : "<< gNorm(1);
-    if (gNorm.size() > 1)
-      std::cout <<"\nExact norm  |u|   = a(u,u)^0.5     : "<< gNorm(2);
-    if (gNorm.size() > 2)
-      std::cout <<"\nExact error a(e,e)^0.5, e=u-u^h    : "<< gNorm(3)
-		<<"\nExact relative error (%) : "<< gNorm(3)/gNorm(2)*100.0;
-    std::cout << std::endl;
+
+    if (linalg.myPid == 0)
+    {
+      std::cout <<"Energy norm |u^h| = a(u^h,u^h)^0.5 : "<< gNorm(1);
+      if (gNorm.size() > 1)
+	std::cout <<"\nExact norm  |u|   = a(u,u)^0.5     : "<< gNorm(2);
+      if (gNorm.size() > 2)
+	std::cout <<"\nExact error a(e,e)^0.5, e=u-u^h    : "<< gNorm(3)
+		  <<"\nExact relative error (%) : "<< gNorm(3)/gNorm(2)*100.0;
+      std::cout << std::endl;
+    }
 
   case 100:
     break; // Model check
 
   default:
-    // Free vibration: Assemble [Km] and [M]
+    // Free vibration: Assemble coefficient matrix [K]
     model->setMode(SIM::VIBRATION);
     model->initSystem(solver,1,0);
     if (!model->assembleSystem())
@@ -268,38 +277,53 @@ int main (int argc, char** argv)
 
   utl::profiler->start("Postprocessing");
 
-  // Write VTF-file with model geometry
-  int iStep = 1, nBlock = 0;
-  if (!model->writeGlv(infile,n,format))
-    return 7;
+  strtok(infile,".");
+  if (dumpHDF5) {
+    if (linalg.myPid == 0)
+      std::cout <<"\nWriting HDF5 file "<< infile <<".hdf5"<< std::endl;
+    DataExporter exporter(true);
+    exporter.registerField("u","heat",DataExporter::SIM,0);
+    exporter.setFieldValue("u",model,&displ);
+    exporter.registerWriter(new HDF5Writer(infile));
+    exporter.registerWriter(new XMLWriter(infile));
+    exporter.dumpTimeLevel();
+  }
 
-  // Write boundary tractions, if any
-  if (!model->writeGlvT(iStep,nBlock))
-    return 8;
+  if (format >= 0)
+  {
+    // Write VTF-file with model geometry
+    int iStep = 1, nBlock = 0;
+    if (!model->writeGlv(infile,n,format))
+      return 7;
 
-  // Write Dirichlet boundary conditions
-  if (!model->writeGlvBC(n,nBlock))
-    return 8;
+    // Write boundary tractions, if any
+    if (!model->writeGlvT(iStep,nBlock))
+      return 8;
 
-  // Write load vector to VTF-file
-  if (!model->writeGlvV(load,"Load vector",n,iStep,nBlock))
-    return 9;
+    // Write Dirichlet boundary conditions
+    if (!model->writeGlvBC(n,nBlock))
+      return 8;
 
-  // Write solution fields to VTF-file
-  if (!model->writeGlvS(displ,n,iStep,nBlock))
-    return 10;
+    // Write load vector to VTF-file
+    if (!model->writeGlvV(load,"Load vector",n,iStep,nBlock))
+      return 9;
 
-  // Write eigenmodes
-  for (size_t j = 0; j < modes.size(); j++)
-    if (!model->writeGlvM(modes[j], iop==3 || iop==4 || iop==6, n, nBlock))
-      return 11;
+    // Write solution fields to VTF-file
+    if (!model->writeGlvS(displ,n,iStep,nBlock))
+      return 10;
 
-  // Write element norms (only when no additional visualization points are used)
-  if (n[0] == 2 && n[1] <= 2 && n[2] <= 2)
-    if (!model->writeGlvN(eNorm,iStep,nBlock))
-      return 12;
+    // Write eigenmodes
+    for (size_t j = 0; j < modes.size(); j++)
+      if (!model->writeGlvM(modes[j], iop==3 || iop==4 || iop==6, n, nBlock))
+	return 11;
 
-  model->closeGlv();
+    // Write element norms (when no additional visualization points are used)
+    if (n[0] == 2 && n[1] <= 2 && n[2] <= 2)
+      if (!model->writeGlvN(eNorm,iStep,nBlock))
+	return 12;
+
+    model->closeGlv();
+  }
 
   utl::profiler->stop("Postprocessing");
   delete model;
