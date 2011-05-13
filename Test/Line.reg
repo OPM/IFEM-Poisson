@@ -5,7 +5,7 @@ Number of nodes       11
 Number of dofs        11
 Number of unknowns    11
 L2-norm            : 2.8297e+15
-Max displacement   : 2.8297e+15 node 2
+Max displacement   : 2.8297e+15
 Energy norm |u^h| = a(u^h,u^h)^0.5 : 3.93276
 Exact norm  |u|   = a(u,u)^0.5     : 1.5708
 Exact error a(e,e)^0.5, e=u-u^h    : 3.9038
