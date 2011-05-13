@@ -3,10 +3,10 @@ Square.inp -2D
 Number of elements    64
 Number of nodes       121
 Number of dofs        121
-Number of unknowns    121
-L2-norm            : 0.936507
-Max displacement   : 2.34766 node 6
-Energy norm |u^h| = a(u^h,u^h)^0.5 : 4.9953
+Number of unknowns    81
+L2-norm            : 0.479127
+Max displacement   : 1.58984
+Energy norm |u^h| = a(u^h,u^h)^0.5 : 3.44657
 Exact norm  |u|   = a(u,u)^0.5     : 5.32155
-Exact error a(e,e)^0.5, e=u-u^h    : 0.796535
-Exact relative error (%) : 14.9681
+Exact error a(e,e)^0.5, e=u-u^h    : 4.05464
+Exact relative error (%) : 76.1927
