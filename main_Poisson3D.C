@@ -142,6 +142,8 @@ int main (int argc, char** argv)
       SIMbase::discretization = SIMbase::Lagrange;
     else if (!strncmp(argv[i],"-spec",5))
       SIMbase::discretization = SIMbase::Spectral;
+    else if (!strncmp(argv[i],"-LR",3))
+      SIMbase::discretization = SIMbase::LRSpline;
     else if (!infile)
       infile = argv[i];
     else
@@ -151,7 +153,7 @@ int main (int argc, char** argv)
   {
     std::cout <<"usage: "<< argv[0]
 	      <<" <inputfile> [-dense|-spr|-superlu|-samg|-petsc]\n"
-	      <<"       [-free] [-lag] [-spec] [-1D] [-2D] [-nGauss <n>]\n"
+	      <<"       [-free] [-lag|-spec|-LR] [-1D] [-2D] [-nGauss <n>]\n"
 	      <<"       [-vtf <format>] [-nviz <nviz>]"
 	      <<" [-nu <nu>] [-nv <nv>] [-nw <nw>]\n"
 	      <<"       [-eig <iop>] [-nev <nev>] [-ncv <ncv] [-shift <shf>]\n"

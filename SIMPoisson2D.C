@@ -17,6 +17,10 @@
 #include "AnaSol.h"
 #include <string.h>
 
+#ifdef HAS_LRSPLINE
+#include "LR/ASMu2D.h"
+#endif
+#include "Profiler.h"
 
 SIMPoisson2D::~SIMPoisson2D ()
 {
@@ -46,6 +50,34 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     }
   }
 
+#ifdef HAS_LRSPLINE
+  else if (!strncasecmp(keyWord,"LRREFINE",8))
+  {
+    PROFILE("LR refinement");
+    cline = strtok(keyWord+8," ");
+    int nRef;
+    ASMu2D *patch = static_cast<ASMu2D*>(myModel[0]);
+    if (!strncasecmp(cline,"UNIFORM",7))
+    {
+      nRef = atoi(strtok(NULL," "));
+      std::cout <<"\nLR refinement UNIFORM : "<< nRef << std::endl;
+      patch->uniformRefine(nRef);
+    }
+    else if(!strncasecmp(cline,"CORNER",6))
+    {
+      nRef = atoi(strtok(NULL," "));
+      std::cout <<"\nLR refinement CORNER : "<< nRef << std::endl;
+      patch->cornerRefine(nRef);
+    }
+    else if(!strncasecmp(cline,"DIAGONAL",8))
+    {
+      nRef = atoi(strtok(NULL," "));
+      std::cout <<"\nLR refinement DIAGONAL : "<< nRef << std::endl;
+      patch->diagonalRefine(nRef);
+    }
+  }
+#endif
+
   else if (!strncasecmp(keyWord,"SOURCE",6))
   {
     cline = strtok(keyWord+6," ");
@@ -73,6 +105,13 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     {
       mySol = new AnaSol(NULL,new LshapePoisson());
       std::cout <<"\nAnalytical solution: Lshape"<< std::endl;
+    }
+    else if (!strncasecmp(cline,"SINUSSQUARE",11))
+    {
+      std::cout <<"\nAnalytical solution: SquareSinus"<< std::endl;
+      std::cout <<"\nHeat source function: SquareSinus source " << std::endl;
+      mySol = new AnaSol(NULL,new SquareSinus());
+      prob.setSource(new SquareSinusSource());
     }
     else
     {
