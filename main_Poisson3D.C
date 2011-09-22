@@ -14,9 +14,11 @@
 #include "SIMPoisson3D.h"
 #include "SIMPoisson2D.h"
 #include "SIMPoisson1D.h"
+#include "AdaptiveSIM.h"
 #include "LinAlgInit.h"
 #include "HDF5Writer.h"
 #include "XMLWriter.h"
+#include "Utilities.h"
 #include "Profiler.h"
 #include <stdlib.h>
 #include <string.h>
@@ -35,12 +37,16 @@
   \arg -superlu : Use the sparse SuperLU equation solver
   \arg -samg :    Use the sparse algebraic multi-grid equation solver
   \arg -petsc :   Use equation solver from PETSc library
+  \arg -lag : Use Lagrangian basis functions instead of splines/NURBS
+  \arg -spec : Use Spectral basis functions instead of splines/NURBS
+  \arg -LR : Use LR-spline basis functions instead of tensorial splines/NURBS
   \arg -nGauss \a n : Number of Gauss points over a knot-span in each direction
   \arg -vtf \a format : VTF-file format (-1=NONE, 0=ASCII, 1=BINARY)
   \arg -nviz \a nviz : Number of visualization points over each knot-span
   \arg -nu \a nu : Number of visualization points per knot-span in u-direction
   \arg -nv \a nv : Number of visualization points per knot-span in v-direction
   \arg -nw \a nw : Number of visualization points per knot-span in w-direction
+  \arg -hdf5 : Write primary and projected secondary solution to HDF5 file
   \arg -ignore \a p1, \a p2, ... : Ignore these patches in the analysis
   \arg -eig \a iop : Eigenproblem solver to use (1...6)
   \arg -nev \a nev : Number of eigenvalues to compute
@@ -53,8 +59,7 @@
   \arg -fixDup : Resolve co-located nodes by merging them into a single node
   \arg -1D : Use one-parametric simulation driver
   \arg -2D : Use two-parametric simulation driver
-  \arg -lag : Use Lagrangian basis functions instead of splines/NURBS
-  \arg -spec : Use Spectral basis functions instead of splines/NURBS
+  \arg -adap : Use adaptive simulation driver
 */
 
 int main (int argc, char** argv)
@@ -107,15 +112,7 @@ int main (int argc, char** argv)
       n[2] = atoi(argv[++i]);
     else if (!strcmp(argv[i],"-ignore"))
       while (i < argc-1 && isdigit(argv[i+1][0]))
-      {
-	char* endp = 0;
-	int endVal = 0;
-	ignoredPatches.push_back(strtol(argv[++i],&endp,10));
-	if (endp && *endp == ':')
-	  endVal = strtol(endp+1,&endp,10);
-	while (ignoredPatches.back() < endVal)
-	  ignoredPatches.push_back(ignoredPatches.back()+1);
-      }
+	utl::parseIntegers(ignoredPatches,argv[++i]);
     else if (!strcmp(argv[i],"-eig") && i < argc-1)
       iop = atoi(argv[++i]);
     else if (!strcmp(argv[i],"-nev") && i < argc-1)
@@ -138,6 +135,8 @@ int main (int argc, char** argv)
       ndim = 1;
     else if (!strcmp(argv[i],"-2D"))
       ndim = 2;
+    else if (!strncmp(argv[i],"-adap",5))
+      iop = 10;
     else if (!strncmp(argv[i],"-lag",4))
       SIMbase::discretization = SIMbase::Lagrange;
     else if (!strncmp(argv[i],"-spec",5))
@@ -152,10 +151,10 @@ int main (int argc, char** argv)
   if (!infile)
   {
     std::cout <<"usage: "<< argv[0]
-	      <<" <inputfile> [-dense|-spr|-superlu|-samg|-petsc]\n"
-	      <<"       [-free] [-lag|-spec|-LR] [-1D] [-2D] [-nGauss <n>]\n"
+	      <<" <inputfile> [-dense|-spr|-superlu|-samg|-petsc]\n      "
+	      <<" [-free] [-lag|-spec|-LR] [-1D|-2D] [-adap] [-nGauss <n>]\n"
 	      <<"       [-vtf <format>] [-nviz <nviz>]"
-	      <<" [-nu <nu>] [-nv <nv>] [-nw <nw>]\n"
+	      <<" [-nu <nu>] [-nv <nv>] [-nw <nw>] [-hdf5]\n"
 	      <<"       [-eig <iop>] [-nev <nev>] [-ncv <ncv] [-shift <shf>]\n"
 	      <<"       [-ignore <p1> <p2> ...] [-fixDup]"
 	      <<" [-checkRHS] [-check]\n";
@@ -187,7 +186,7 @@ int main (int argc, char** argv)
       if (ndim > 2) std::cout <<" "<< n[2];
     }
 
-    if (iop > 0 && iop < 100)
+    if (iop > 0 && iop < 10)
       std::cout <<"\nEigenproblem solver: "<< iop
 		<<"\nNumber of eigenvalues: "<< nev
 		<<"\nNumber of Arnoldi vectors: "<< ncv
@@ -196,6 +195,8 @@ int main (int argc, char** argv)
       std::cout <<"\nLagrangian basis functions are used";
     else if (SIMbase::discretization == SIMbase::Spectral)
       std::cout <<"\nSpectral basis functions are used";
+    else if (SIMbase::discretization == SIMbase::LRSpline)
+      std::cout <<"\nLR-spline basis functions are used";
     if (SIMbase::ignoreDirichlet)
       std::cout <<"\nSpecified boundary conditions are ignored";
     if (fixDup)
@@ -222,7 +223,12 @@ int main (int argc, char** argv)
   else
     model = new SIMPoisson3D(checkRHS);
 
-  if (!model->read(infile) || !model->preprocess(ignoredPatches,fixDup))
+  SIMinput* theSim = model;
+  AdaptiveSIM* aSim = 0;
+  if (iop == 10)
+    theSim = aSim = new AdaptiveSIM(model);
+
+  if (!theSim->read(infile) || !model->preprocess(ignoredPatches,fixDup))
     return 1;
 
   utl::profiler->stop("Model input");
@@ -253,15 +259,16 @@ int main (int argc, char** argv)
       return 4;
 
     if (linalg.myPid == 0)
-    {
-      std::cout <<"Energy norm |u^h| = a(u^h,u^h)^0.5 : "<< gNorm(1);
-      if (gNorm.size() > 1)
-	std::cout <<"\nExact norm  |u|   = a(u,u)^0.5     : "<< gNorm(2);
-      if (gNorm.size() > 2)
-	std::cout <<"\nExact error a(e,e)^0.5, e=u-u^h    : "<< gNorm(3)
-		  <<"\nExact relative error (%) : "<< gNorm(3)/gNorm(2)*100.0;
-      std::cout << std::endl;
-    }
+      AdaptiveSIM::printNorms(gNorm,std::cout);
+    break;
+
+  case 10:
+    // Adaptive simulation
+    for (int iStep = 1;; iStep++)
+      if (!aSim->solveStep(infile,solver,iStep))
+	return false;
+      else if (!aSim->adaptMesh(iStep))
+	break;
 
   case 100:
     break; // Model check
