@@ -113,6 +113,25 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
       mySol = new AnaSol(NULL,new SquareSinus());
       prob.setSource(new SquareSinusSource());
     }
+    else if (!strncasecmp(cline,"INTERIORLAYER",13))
+    {
+      std::cout <<"\nAnalytical solution: InteriorLayer"<< std::endl;
+      std::cout <<"\nHeat source function: InteriorLayer source " << std::endl;
+      mySol        = new AnaSol(new PoissonInteriorLayerSol(), new PoissonInteriorLayer());
+      prob.setSource(new PoissonInteriorLayerSource());
+
+      size_t code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      if (code <= 0 ) 
+      {
+        std::cerr << "\nSpecify boundary code > 0 for inhomogenous DIRICHLET boundary\n";
+        return false;
+      }
+      for (size_t j = 0; j < myProps.size(); j++)
+        if (myProps[j].pindx == code && myProps[j].pcode == Property::UNDEFINED)
+          myProps[j].pcode = Property::DIRICHLET_INHOM;
+        myScalars[code] = new PoissonInteriorLayerSol();
+
+    }
     else
     {
       std::cerr <<"  ** SIMPoisson2D::parse: Unknown analytical solution "
