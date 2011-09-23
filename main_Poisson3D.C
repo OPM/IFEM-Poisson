@@ -287,11 +287,13 @@ int main (int argc, char** argv)
   utl::profiler->start("Postprocessing");
 
   strtok(infile,".");
-  if (dumpHDF5) {
+  if (dumpHDF5)
+  {
     if (linalg.myPid == 0)
       std::cout <<"\nWriting HDF5 file "<< infile <<".hdf5"<< std::endl;
     DataExporter exporter(true);
-    exporter.registerField("u","heat",DataExporter::SIM,DataExporter::PRIMARY|DataExporter::NORMS);
+    exporter.registerField("u","heat",DataExporter::SIM,
+			   DataExporter::PRIMARY|DataExporter::NORMS);
     exporter.setFieldValue("u",model,&displ);
     exporter.registerWriter(new HDF5Writer(infile));
     exporter.registerWriter(new XMLWriter(infile));
@@ -326,16 +328,15 @@ int main (int argc, char** argv)
       if (!model->writeGlvM(modes[j], iop==3 || iop==4 || iop==6, n, nBlock))
 	return 11;
 
-    // Write element norms (when no additional visualization points are used)
-    if (n[0] == 2 && n[1] <= 2 && n[2] <= 2)
-      if (!model->writeGlvN(eNorm,iStep,nBlock))
-	return 12;
+    // Write element norms
+    if (!model->writeGlvN(eNorm,iStep,nBlock))
+      return 12;
 
     model->writeGlvStep(1,0,1);
     model->closeGlv();
   }
 
   utl::profiler->stop("Postprocessing");
-  delete model;
+  delete theSim;
   return 0;
 }
