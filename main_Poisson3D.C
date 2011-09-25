@@ -24,52 +24,6 @@
 #include <string.h>
 #include <ctype.h>
 
-int writeToVTF(SIMbase* model, int iStep, int& nBlock,
-               const Vector& load, const Vector& displ,
-               const std::vector<Mode>& modes, const Matrix& eNorm,
-               const char* infile, int format, const int* n, int iop)
-{
-  static bool fileOpened=false;
-  if (format >= 0)
-  {
-    if (!fileOpened) {
-//     Write VTF-file with model geometry
-      if (!model->writeGlv(infile,n,format))
-        return 7;
-      fileOpened = true;
-    } else
-      model->writeGlvG(iStep,n,nBlock);
-
-    // Write boundary tractions, if any
-    if (!model->writeGlvT(iStep,nBlock))
-      return 8;
-
-    // Write Dirichlet boundary conditions
-    if (!model->writeGlvBC(n,nBlock))
-      return 8;
-
-    // Write load vector to VTF-file
-    if (!model->writeGlvV(load,"Load vector",n,iStep,nBlock))
-      return 9;
-
-    // Write solution fields to VTF-file
-    if (!model->writeGlvS(displ,n,iStep,nBlock))
-      return 10;
-
-    // Write eigenmodes
-    for (size_t j = 0; j < modes.size(); j++)
-      if (!model->writeGlvM(modes[j], iop==3 || iop==4 || iop==6, n, nBlock))
-	return 11;
-
-    // Write element norms
-    if (!model->writeGlvN(eNorm,iStep,nBlock))
-      return 12;
-
-    model->writeGlvStep(iStep,iStep,1);
-  }
-  return 0;
-}
-
 
 /*!
   \brief Main program for the NURBS-based isogeometric Poisson equation solver.
@@ -282,8 +236,9 @@ int main (int argc, char** argv)
   model->setQuadratureRule(nGauss);
 
   Matrix eNorm;
-  Vector gNorm, displ, load;
+  Vector gNorm, sol, load;
   std::vector<Mode> modes;
+  int iStep = 1, nBlock = 0;
 
   switch (iop) {
   case 0:
@@ -296,12 +251,12 @@ int main (int argc, char** argv)
       model->extractLoadVec(load);
 
     // Solve the linear system of equations
-    if (!model->solveSystem(displ,1))
+    if (!model->solveSystem(sol,1))
       return 3;
 
     // Evaluate solution norms
     model->setMode(SIM::RECOVERY);
-    if (!model->solutionNorms(Vectors(1,displ),eNorm,gNorm))
+    if (!model->solutionNorms(Vectors(1,sol),eNorm,gNorm))
       return 4;
 
     if (linalg.myPid == 0)
@@ -309,23 +264,14 @@ int main (int argc, char** argv)
     break;
 
   case 10:
-    {
-      // Adaptive simulation
-      int nBlock=0;
-      for (int iStep = 1;; iStep++) {
-        if (!aSim->solveStep(infile,solver,iStep))
-          return false;
-        int ret = writeToVTF(model,iStep,nBlock,load,
-                             aSim->getSolution(),modes,
-                             aSim->getElementNorms(),
-                             infile,format,n,iop);
-        if (ret)
-          return ret;
-        if (!aSim->adaptMesh(iStep))
-          break;
-      }
-      model->closeGlv();
-    }
+    // Adaptive simulation
+    while (true)
+      if (!aSim->solveStep(infile,solver,iStep))
+	return 5;
+      else if (!aSim->writeGlv(infile,format,n,iStep,nBlock))
+	return 6;
+      else if (!aSim->adaptMesh(++iStep))
+	break;
 
   case 100:
     break; // Model check
@@ -343,25 +289,52 @@ int main (int argc, char** argv)
 
   utl::profiler->start("Postprocessing");
 
-  strtok(infile,".");
   if (dumpHDF5)
   {
+    strtok(infile,".");
     if (linalg.myPid == 0)
       std::cout <<"\nWriting HDF5 file "<< infile <<".hdf5"<< std::endl;
     DataExporter exporter(true);
     exporter.registerField("u","heat",DataExporter::SIM,
 			   DataExporter::PRIMARY|DataExporter::NORMS);
-    exporter.setFieldValue("u",model,&displ);
+    exporter.setFieldValue("u",model,&sol);
     exporter.registerWriter(new HDF5Writer(infile));
     exporter.registerWriter(new XMLWriter(infile));
     exporter.dumpTimeLevel();
   }
 
-  int iStep = 1, nBlock = 0;
-  if (iop != 10) {
-    int ret;
-    if ((ret = writeToVTF(model,iStep,nBlock,load,displ,modes,eNorm,infile,format,n,iop)))
-      return ret;
+  if (iop != 10 && format >= 0)
+  {
+    // Write VTF-file with model geometry
+    if (!model->writeGlv(infile,n,format))
+      return 7;
+
+    // Write boundary tractions, if any
+    if (!model->writeGlvT(iStep,++nBlock))
+      return 8;
+
+    // Write Dirichlet boundary conditions
+    if (!model->writeGlvBC(n,nBlock))
+      return 8;
+
+    // Write load vector to VTF-file
+    if (!model->writeGlvV(load,"Load vector",n,iStep,nBlock))
+      return 9;
+
+    // Write solution fields to VTF-file
+    if (!model->writeGlvS(sol,n,iStep,nBlock))
+      return 10;
+
+    // Write eigenmodes
+    for (size_t j = 0; j < modes.size(); j++)
+      if (!model->writeGlvM(modes[j], iop==3 || iop==4 || iop==6, n, nBlock))
+	return 11;
+
+    // Write element norms
+    if (!model->writeGlvN(eNorm,iStep,nBlock))
+      return 12;
+
+    model->writeGlvStep(1,0.0,1);
   }
   model->closeGlv();
 
