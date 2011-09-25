@@ -12,15 +12,16 @@
 //==============================================================================
 
 #include "SIMPoisson2D.h"
-#include "AnalyticSolutions.h"
+#include "PoissonSolutions.h"
 #include "Utilities.h"
 #include "AnaSol.h"
 #include <string.h>
 
 #ifdef HAS_LRSPLINE
 #include "LR/ASMu2D.h"
-#endif
 #include "Profiler.h"
+#endif
+
 
 SIMPoisson2D::~SIMPoisson2D ()
 {
@@ -51,12 +52,13 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
   }
 
 #ifdef HAS_LRSPLINE
+  // Test code, move to SIM2D maybe?)
   else if (!strncasecmp(keyWord,"LRREFINE",8))
   {
     PROFILE("LR refinement");
     cline = strtok(keyWord+8," ");
     int nRef;
-    ASMu2D *patch = static_cast<ASMu2D*>(myModel[0]);
+    ASMu2D* patch = static_cast<ASMu2D*>(myModel.front());
     if (!strncasecmp(cline,"UNIFORM",7))
     {
       nRef = atoi(strtok(NULL," "));
@@ -103,34 +105,36 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     }
     else if (!strncasecmp(cline,"LSHAPE",6))
     {
-      mySol = new AnaSol(NULL,new LshapePoisson());
       std::cout <<"\nAnalytical solution: Lshape"<< std::endl;
+      mySol = new AnaSol(NULL,new LshapePoisson());
     }
     else if (!strncasecmp(cline,"SINUSSQUARE",11))
     {
-      std::cout <<"\nAnalytical solution: SquareSinus"<< std::endl;
-      std::cout <<"\nHeat source function: SquareSinus source " << std::endl;
+      std::cout <<"\nAnalytical solution: SquareSinus"
+		<<"\nHeat source function: SquareSinusSource"<< std::endl;
       mySol = new AnaSol(NULL,new SquareSinus());
       prob.setSource(new SquareSinusSource());
     }
     else if (!strncasecmp(cline,"INTERIORLAYER",13))
     {
-      std::cout <<"\nAnalytical solution: InteriorLayer"<< std::endl;
-      std::cout <<"\nHeat source function: InteriorLayer source " << std::endl;
-      mySol        = new AnaSol(new PoissonInteriorLayerSol(), new PoissonInteriorLayer());
+      std::cout <<"\nAnalytical solution: InteriorLayer"
+		<<"\nHeat source function: InteriorLayerSource"<< std::endl;
+      mySol = new AnaSol(new PoissonInteriorLayerSol(),
+			 new PoissonInteriorLayer());
       prob.setSource(new PoissonInteriorLayerSource());
 
+      // Define the Dirichlet boundary condition from the analytical solution
       size_t code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
-      if (code <= 0 ) 
+      if (code < 1)
       {
-        std::cerr << "\nSpecify boundary code > 0 for inhomogenous DIRICHLET boundary\n";
+        std::cerr <<"  ** SIMPoisson2D::parse: Specify code > 0 for the"
+		  <<" inhomogenous DIRICHLET boundary on InteriorLayer\n";
         return false;
       }
       for (size_t j = 0; j < myProps.size(); j++)
         if (myProps[j].pindx == code && myProps[j].pcode == Property::UNDEFINED)
           myProps[j].pcode = Property::DIRICHLET_INHOM;
-        myScalars[code] = new PoissonInteriorLayerSol();
-
+      myScalars[code] = new PoissonInteriorLayerSol();
     }
     else
     {

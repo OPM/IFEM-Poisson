@@ -12,7 +12,7 @@
 //==============================================================================
 
 #include "SIMPoisson1D.h"
-#include "AnalyticSolutions.h"
+#include "PoissonSolutions.h"
 #include "Utilities.h"
 #include "AnaSol.h"
 #include <string.h>
