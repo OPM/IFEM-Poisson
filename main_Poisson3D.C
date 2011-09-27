@@ -240,6 +240,22 @@ int main (int argc, char** argv)
   std::vector<Mode> modes;
   int iStep = 1, nBlock = 0;
 
+  DataExporter* exporter=NULL;
+  if (dumpHDF5)
+  {
+    std::string foo = infile;
+    size_t pos = foo.find_last_of('.');
+    foo = foo.substr(0,pos);
+    if (linalg.myPid == 0)
+      std::cout <<"\nWriting HDF5 file "<< foo <<".hdf5"<< std::endl;
+    exporter = new DataExporter(true);
+    exporter->registerField("u","heat",DataExporter::SIM,
+			   DataExporter::PRIMARY);
+    exporter->setFieldValue("u",model,&sol);
+    exporter->registerWriter(new HDF5Writer(foo));
+    exporter->registerWriter(new XMLWriter(foo));
+  }
+
   switch (iop) {
   case 0:
     model->setMode(SIM::STATIC);
@@ -265,13 +281,16 @@ int main (int argc, char** argv)
 
   case 10:
     // Adaptive simulation
-    while (true)
+    while (true) {
       if (!aSim->solveStep(infile,solver,iStep))
 	return 5;
       else if (!aSim->writeGlv(infile,format,n,iStep,nBlock))
 	return 6;
-      else if (!aSim->adaptMesh(++iStep))
+      else if (dumpHDF5)
+        exporter->dumpTimeLevel(NULL,true);
+      if (!aSim->adaptMesh(++iStep))
 	break;
+    }
 
   case 100:
     break; // Model check
@@ -288,20 +307,6 @@ int main (int argc, char** argv)
   }
 
   utl::profiler->start("Postprocessing");
-
-  if (dumpHDF5)
-  {
-    strtok(infile,".");
-    if (linalg.myPid == 0)
-      std::cout <<"\nWriting HDF5 file "<< infile <<".hdf5"<< std::endl;
-    DataExporter exporter(true);
-    exporter.registerField("u","heat",DataExporter::SIM,
-			   DataExporter::PRIMARY|DataExporter::NORMS);
-    exporter.setFieldValue("u",model,&sol);
-    exporter.registerWriter(new HDF5Writer(infile));
-    exporter.registerWriter(new XMLWriter(infile));
-    exporter.dumpTimeLevel();
-  }
 
   if (iop != 10 && format >= 0)
   {
@@ -337,8 +342,11 @@ int main (int argc, char** argv)
     model->writeGlvStep(1,0.0,1);
   }
   model->closeGlv();
+  if (dumpHDF5 && iop != 10)
+    exporter->dumpTimeLevel();
 
   utl::profiler->stop("Postprocessing");
   delete theSim;
+  delete exporter;
   return 0;
 }
