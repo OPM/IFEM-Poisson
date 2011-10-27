@@ -138,11 +138,11 @@ int main (int argc, char** argv)
     else if (!strncmp(argv[i],"-adap",5))
       iop = 10;
     else if (!strncmp(argv[i],"-lag",4))
-      SIMbase::discretization = SIMbase::Lagrange;
+      SIMbase::discretization = ASM::Lagrange;
     else if (!strncmp(argv[i],"-spec",5))
-      SIMbase::discretization = SIMbase::Spectral;
+      SIMbase::discretization = ASM::Spectral;
     else if (!strncmp(argv[i],"-LR",3))
-      SIMbase::discretization = SIMbase::LRSpline;
+      SIMbase::discretization = ASM::LRSpline;
     else if (!infile)
       infile = argv[i];
     else
@@ -191,11 +191,11 @@ int main (int argc, char** argv)
 		<<"\nNumber of eigenvalues: "<< nev
 		<<"\nNumber of Arnoldi vectors: "<< ncv
 		<<"\nShift value: "<< shf;
-    if (SIMbase::discretization == SIMbase::Lagrange)
+    if (SIMbase::discretization == ASM::Lagrange)
       std::cout <<"\nLagrangian basis functions are used";
-    else if (SIMbase::discretization == SIMbase::Spectral)
+    else if (SIMbase::discretization == ASM::Spectral)
       std::cout <<"\nSpectral basis functions are used";
-    else if (SIMbase::discretization == SIMbase::LRSpline)
+    else if (SIMbase::discretization == ASM::LRSpline)
       std::cout <<"\nLR-spline basis functions are used";
     if (SIMbase::ignoreDirichlet)
       std::cout <<"\nSpecified boundary conditions are ignored";

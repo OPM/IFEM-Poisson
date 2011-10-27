@@ -15,12 +15,11 @@
 #include "PoissonSolutions.h"
 #include "Utilities.h"
 #include "AnaSol.h"
-#include <string.h>
-
 #ifdef HAS_LRSPLINE
 #include "LR/ASMu2D.h"
 #include "Profiler.h"
 #endif
+#include <string.h>
 
 
 SIMPoisson2D::~SIMPoisson2D ()
@@ -51,34 +50,38 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     }
   }
 
-#ifdef HAS_LRSPLINE
   // Test code, move to SIM2D maybe?)
   else if (!strncasecmp(keyWord,"LRREFINE",8))
   {
-    PROFILE("LR refinement");
-    cline = strtok(keyWord+8," ");
-    int nRef;
-    ASMu2D* patch = static_cast<ASMu2D*>(myModel.front());
-    if (!strncasecmp(cline,"UNIFORM",7))
+#ifdef HAS_LRSPLINE
+    ASMu2D* patch = dynamic_cast<ASMu2D*>(myModel.front());
+    if (patch)
     {
-      nRef = atoi(strtok(NULL," "));
-      std::cout <<"\nLR refinement UNIFORM : "<< nRef << std::endl;
-      patch->uniformRefine(nRef);
+      cline = strtok(keyWord+8," ");
+      if (!strncasecmp(cline,"UNIFORM",7))
+      {
+	PROFILE("LR refinement");
+	int nRef = atoi(strtok(NULL," "));
+	std::cout <<"\nLR refinement UNIFORM : "<< nRef << std::endl;
+	patch->uniformRefine(nRef);
+      }
+      else if (!strncasecmp(cline,"CORNER",6))
+      {
+	PROFILE("LR refinement");
+	int nRef = atoi(strtok(NULL," "));
+	std::cout <<"\nLR refinement CORNER : "<< nRef << std::endl;
+	patch->cornerRefine(nRef);
+      }
+      else if (!strncasecmp(cline,"DIAGONAL",8))
+      {
+	PROFILE("LR refinement");
+	int nRef = atoi(strtok(NULL," "));
+	std::cout <<"\nLR refinement DIAGONAL : "<< nRef << std::endl;
+	patch->diagonalRefine(nRef);
+      }
     }
-    else if(!strncasecmp(cline,"CORNER",6))
-    {
-      nRef = atoi(strtok(NULL," "));
-      std::cout <<"\nLR refinement CORNER : "<< nRef << std::endl;
-      patch->cornerRefine(nRef);
-    }
-    else if(!strncasecmp(cline,"DIAGONAL",8))
-    {
-      nRef = atoi(strtok(NULL," "));
-      std::cout <<"\nLR refinement DIAGONAL : "<< nRef << std::endl;
-      patch->diagonalRefine(nRef);
-    }
-  }
 #endif
+  }
 
   else if (!strncasecmp(keyWord,"SOURCE",6))
   {
