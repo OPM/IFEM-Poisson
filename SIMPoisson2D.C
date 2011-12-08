@@ -22,6 +22,8 @@
 #include <string.h>
 #include "Functions.h"
 
+#include "tinyxml.h"
+
 
 SIMPoisson2D::~SIMPoisson2D ()
 {
@@ -206,6 +208,170 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     return this->SIM2D::parse(keyWord,is);
 
   return true;
+}
+
+bool SIMPoisson2D::parse (const TiXmlElement* elem)
+{
+  if (strcasecmp(elem->Value(),"poisson"))
+    return SIM2D::parse(elem);
+
+  std::vector<const TiXmlElement*> parsed = handlePriorityTags(elem);
+  const TiXmlElement* child = elem->FirstChildElement();
+  while (child) {
+    if (find(parsed.begin(),parsed.end(),child) != parsed.end()) {
+      child = child->NextSiblingElement();
+      continue;
+    }
+    if (!strcasecmp(child->Value(),"isotropic")) {
+      int code = 0;
+      if (child->Attribute("code"))
+        code = atoi(child->Attribute("code"));
+      double kappa=1000.f;
+      if (child->Attribute("kappa"))
+        kappa = atof(child->Attribute("kappa"));
+      if (code == 0)
+        prob.setMaterial(kappa);
+      else if (setPropertyType(code,Property::MATERIAL,mVec.size()))
+        mVec.push_back(kappa);
+    }
+    else if (!strcasecmp(child->Value(),"source")) {
+      if (child->Attribute("type") &&
+          !strcasecmp(child->Attribute("type"),"square")) {
+        double L=0;
+        if (child->Attribute("L"))
+          L = atof(child->Attribute("L"));
+        std::cout <<"\nHeat source function: Square L="<< L << std::endl;
+        prob.setSource(new Square2DHeat(L));
+      } else if (child->Attribute("type") &&
+          !strcasecmp(child->Attribute("type"),"expression")) {
+        if (child->FirstChild() && child->FirstChild()->Value()) {
+          std::cout << "\nHeat source function: " 
+                    << child->FirstChild()->Value() << std::endl;
+          prob.setSource(new EvalFunction(child->FirstChild()->Value()));
+        }
+      } else
+        std::cerr <<"  ** SIMPoisson2D::parse: Unknown source function "
+                  << (child->Attribute("type")?child->Attribute("type"):"") << std::endl;
+    } else if (!strcasecmp(child->Value(),"anasol")) {
+      if (child->Attribute("type") &&
+          !strcasecmp(child->Attribute("type"),"square")) {
+        double L=0;
+        if (child->Attribute("L"))
+          L = atof(child->Attribute("L"));
+        std::cout <<"\nAnalytical solution: Square L="<< L << std::endl;
+        mySol = new AnaSol(NULL,new Square2D(L));
+      } else if (child->Attribute("type") &&
+                 !strcasecmp(child->Attribute("type"),"lshape")) {
+        std::cout <<"\nAnalytical solution: Lshape"<< std::endl;
+        mySol = new AnaSol(NULL,new LshapePoisson());
+      } else if (child->Attribute("type") &&
+                 !strcasecmp(child->Attribute("type"),"sinussquare")) {
+        std::cout <<"\nAnalytical solution: SquareSinus"
+                  <<"\nHeat source function: SquareSinusSource"<< std::endl;
+        mySol = new AnaSol(NULL,new SquareSinus());
+        prob.setSource(new SquareSinusSource());
+      } else if (child->Attribute("type") &&
+                 !strcasecmp(child->Attribute("type"),"interiorlayer")) {
+        std::cout <<"\nAnalytical solution: InteriorLayer"
+          <<"\nHeat source function: InteriorLayerSource"<< std::endl;
+        mySol = new AnaSol(new PoissonInteriorLayerSol(),
+            new PoissonInteriorLayer());
+        prob.setSource(new PoissonInteriorLayerSource());
+
+        // Define the Dirichlet boundary condition from the analytical solution
+        size_t code=0;
+        if (child->Attribute("code"))
+          code = atoi(child->Attribute("code"));
+        if (code < 1)
+        {
+          std::cerr <<"  ** SIMPoisson2D::parse: Specify code > 0 for the"
+            <<" inhomogenous DIRICHLET boundary on InteriorLayer\n";
+          return false;
+        }
+        for (size_t j = 0; j < myProps.size(); j++)
+          if (myProps[j].pindx == code && myProps[j].pcode == Property::UNDEFINED)
+            myProps[j].pcode = Property::DIRICHLET_INHOM;
+        myScalars[code] = new PoissonInteriorLayerSol();
+      } else if (child->Attribute("type") &&
+                 !strcasecmp(child->Attribute("type"),"expression")) {
+        std::string variables, primary, secondary;
+        const TiXmlElement* var = child->FirstChildElement("variables");
+        if (var && var->FirstChild() && var->FirstChild()->Value()) {
+          variables = var->FirstChild()->Value();
+          if (variables[variables.size()-1] != ';')
+            variables += ";";
+        }
+        const TiXmlElement* prim = child->FirstChildElement("primary");
+        RealFunc* s = NULL;
+        VecFunc* v = NULL;
+        if (prim && prim->FirstChild() && prim->FirstChild()->Value()) {
+          primary = prim->FirstChild()->Value();
+          s = new EvalFunction((variables+primary).c_str());
+        }
+        const TiXmlElement* sec = child->FirstChildElement("secondary");
+        if (sec && sec->FirstChild() && sec->FirstChild()->Value()) {
+          secondary = sec->FirstChild()->Value();
+          v = new VecFuncExpr(secondary,variables);
+        }
+        std::cout <<"\nAnalytical solution:" << std::endl;
+        if (!variables.empty())
+          std::cout << "\t Variables=" << variables << std::endl;
+        if (s)
+          std::cout << "\t Primary=" << primary << std::endl;
+        if (v)
+          std::cout << "\t Secondary=" << secondary << std::endl;
+        mySol = new AnaSol(s, v);
+      } else
+        std::cerr <<"  ** SIMPoisson2D::parse: Unknown analytical solution "
+          << (child->Attribute("type")?child->Attribute("type"):"") << std::endl;
+
+        // Define the analytical boundary traction field
+        size_t code=0;
+        if (child->Attribute("code"))
+          code = atoi(child->Attribute("code"));
+        if (code > 0 && mySol && mySol->getScalarSecSol())
+        {
+          setPropertyType(code,Property::NEUMANN);
+          myVectors[code] = mySol->getScalarSecSol();
+          myAFcode = code;
+        }
+      }
+      else
+        SIM2D::parse(child);
+
+      child = child->NextSiblingElement();
+    }
+
+  return true;
+
+#if 0
+  // Test code, move to SIM2D maybe?)
+  else if (!strncasecmp(keyWord,"LRREFINE",8))
+  {
+    PROFILE("LR refinement");
+    cline = strtok(keyWord+8," ");
+    int nRef;
+    ASMu2D* patch = static_cast<ASMu2D*>(myModel.front());
+    if (!strncasecmp(cline,"UNIFORM",7))
+    {
+      nRef = atoi(strtok(NULL," "));
+      std::cout <<"\nLR refinement UNIFORM : "<< nRef << std::endl;
+      patch->uniformRefine(nRef);
+    }
+    else if(!strncasecmp(cline,"CORNER",6))
+    {
+      nRef = atoi(strtok(NULL," "));
+      std::cout <<"\nLR refinement CORNER : "<< nRef << std::endl;
+      patch->cornerRefine(nRef);
+    }
+    else if(!strncasecmp(cline,"DIAGONAL",8))
+    {
+      nRef = atoi(strtok(NULL," "));
+      std::cout <<"\nLR refinement DIAGONAL : "<< nRef << std::endl;
+      patch->diagonalRefine(nRef);
+    }
+  }
+#endif
 }
 
 

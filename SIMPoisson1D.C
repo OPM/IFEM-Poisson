@@ -18,6 +18,8 @@
 #include <string.h>
 #include "Functions.h"
 
+#include "tinyxml.h"
+
 
 SIMPoisson1D::~SIMPoisson1D ()
 {
@@ -134,6 +136,110 @@ bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
 
   else
     return this->SIM1D::parse(keyWord,is);
+
+  return true;
+}
+
+
+bool SIMPoisson1D::parse (const TiXmlElement* elem)
+{
+  if (strcasecmp(elem->Value(),"poisson"))
+    return SIM1D::parse(elem);
+
+  std::vector<const TiXmlElement*> parsed = handlePriorityTags(elem);
+  const TiXmlElement* child = elem->FirstChildElement();
+  while (child) {
+    if (find(parsed.begin(),parsed.end(),child) != parsed.end()) {
+      child = child->NextSiblingElement();
+      continue;
+    }
+    if (!strcasecmp(child->Value(),"isotropic")) {
+      int code = 0;
+      if (child->Attribute("code"))
+        code = atoi(child->Attribute("code"));
+      double kappa=1000.f;
+      if (child->Attribute("kappa"))
+        kappa = atof(child->Attribute("kappa"));
+      if (code == 0)
+        prob.setMaterial(kappa);
+      else if (setPropertyType(code,Property::MATERIAL,mVec.size()))
+        mVec.push_back(kappa);
+    }
+    else if (!strcasecmp(child->Value(),"source")) {
+      if (child->Attribute("type") &&
+          !strcasecmp(child->Attribute("type"),"line")) {
+        double L=0;
+        if (child->Attribute("L"))
+          L = atof(child->Attribute("L"));
+        std::cout <<"\nHeat source function: Line L="<< L << std::endl;
+        prob.setSource(new PoissonLineSource(L));
+      } else if (child->Attribute("type") &&
+          !strcasecmp(child->Attribute("type"),"expression")) {
+        if (child->FirstChild() && child->FirstChild()->Value()) {
+          std::cout << "\nHeat source function: " 
+                    << child->FirstChild()->Value() << std::endl;
+          prob.setSource(new EvalFunction(child->FirstChild()->Value()));
+        }
+      } else
+        std::cerr <<"  ** SIMPoisson1D::parse: Unknown source function "
+                  << (child->Attribute("type")?child->Attribute("type"):"") << std::endl;
+    } else if (!strcasecmp(child->Value(),"anasol")) {
+      if (child->Attribute("type") &&
+          !strcasecmp(child->Attribute("type"),"line")) {
+        double L=0;
+        if (child->Attribute("L"))
+          L = atof(child->Attribute("L"));
+        std::cout <<"\nAnalytical solution: Line L="<< L << std::endl;
+        mySol = new AnaSol(NULL,new PoissonLine(L));
+      } else if (child->Attribute("type") &&
+                 !strcasecmp(child->Attribute("type"),"expression")) {
+        std::string variables, primary, secondary;
+        const TiXmlElement* var = child->FirstChildElement("variables");
+        if (var && var->FirstChild() && var->FirstChild()->Value()) {
+          variables = var->FirstChild()->Value();
+          if (variables[variables.size()-1] != ';')
+            variables += ";";
+        }
+        const TiXmlElement* prim = child->FirstChildElement("primary");
+        RealFunc* s = NULL;
+        VecFunc* v = NULL;
+        if (prim && prim->FirstChild() && prim->FirstChild()->Value()) {
+          primary = prim->FirstChild()->Value();
+          s = new EvalFunction((variables+primary).c_str());
+        }
+        const TiXmlElement* sec = child->FirstChildElement("secondary");
+        if (sec && sec->FirstChild() && sec->FirstChild()->Value()) {
+          secondary = sec->FirstChild()->Value();
+          v = new VecFuncExpr(secondary,variables);
+        }
+        std::cout <<"\nAnalytical solution:" << std::endl;
+        if (!variables.empty())
+          std::cout << "\t Variables=" << variables << std::endl;
+        if (s)
+          std::cout << "\t Primary=" << primary << std::endl;
+        if (v)
+          std::cout << "\t Secondary=" << secondary << std::endl;
+        mySol = new AnaSol(s, v);
+      } else
+        std::cerr <<"  ** SIMPoisson1D::parse: Unknown analytical solution "
+          << (child->Attribute("type")?child->Attribute("type"):"") << std::endl;
+
+        // Define the analytical boundary traction field
+        size_t code=0;
+        if (child->Attribute("code"))
+          code = atoi(child->Attribute("code"));
+        if (code > 0 && mySol && mySol->getScalarSecSol())
+        {
+          setPropertyType(code,Property::NEUMANN);
+          myVectors[code] = mySol->getScalarSecSol();
+          myAFcode = code;
+        }
+      }
+      else
+        SIM1D::parse(child);
+
+      child = child->NextSiblingElement();
+    }
 
   return true;
 }

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<simulation>
+    <!-- General - geometry definitions !-->
+    <geometry>
+      <patchfile type="bsplines">line1D.g2</patchfile>
+      <raiseorder patch="1" u="2"/>
+      <refine type="uniform" patch="1" u="7"/>
+    </geometry>
+    <!-- General - boundary conditions !-->
+    <boundaryconditions>
+      <propertycodes>
+        <code value="1">
+          <patch index="1" vertex="1"/>
+        </code>
+        <code value="2">
+          <patch index="1" vertex="2"/>
+        </code>
+      </propertycodes>    
+      <dirichlet code="1"/>
+    </boundaryconditions>
+    <!-- General - linear solver parameters !-->
+    <linearsolver>
+      <type>cg</type>
+      <pc>ilu</pc>
+      <package>petsc</package>
+      <levels>2</levels>
+      <atol>1.0e-12</atol>
+      <rtol>1.0e-12</rtol>
+      <dtol>1.0e6</dtol>
+      <maxits>5000</maxits>
+    </linearsolver>
+    <!-- App specific block !-->
+    <poisson>
+      <anasol type="expression" code="2">
+        <primary>-sin(x*PI/2)</primary>
+        <secondary>-PI/2*cos(x*PI/2)</secondary>
+      </anasol>
+      <source type="expression">PI*PI/(2*2)*sin(PI*x/2)</source>
+    </poisson>
+</simulation>
