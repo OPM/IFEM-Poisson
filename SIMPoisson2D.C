@@ -20,6 +20,7 @@
 #include "Profiler.h"
 #endif
 #include <string.h>
+#include "Functions.h"
 
 
 SIMPoisson2D::~SIMPoisson2D ()
@@ -92,6 +93,12 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
       std::cout <<"\nHeat source function: Square L="<< L << std::endl;
       prob.setSource(new Square2DHeat(L));
     }
+    else if (!strncasecmp(cline,"EXPRESSION",10))
+    {
+      cline = strtok(NULL," ");
+      std::cout <<"\nHeat source function: " << cline << std::endl;
+      prob.setSource(new EvalFunction(cline));
+    }
     else
       std::cerr <<"  ** SIMPoisson2D::parse: Unknown source function "
 		<< cline << std::endl;
@@ -100,11 +107,49 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
   else if (!strncasecmp(keyWord,"ANASOL",6))
   {
     cline = strtok(keyWord+6," ");
+    int code=-1;
     if (!strncasecmp(cline,"SQUARE",6))
     {
       double L = atof(strtok(NULL," "));
       std::cout <<"\nAnalytical solution: Square L="<< L << std::endl;
       mySol = new AnaSol(NULL,new Square2D(L));
+    }
+    else if (!strncasecmp(cline,"EXPRESSION",10))
+    {
+      std::string primary, secondary, variables;
+      int lines = atoi(strtok(NULL, " "));
+      char* c = strtok(NULL, " ");
+      if (c)
+        code = atoi(c);
+      else
+        code = 0;
+      RealFunc* s=NULL;
+      VecFunc* v=NULL;
+      for (int i = 0; i < lines; i++) {
+        std::string function = utl::readLine(is);
+        size_t pos;
+        if ((pos = function.find("Variables=")) != std::string::npos) {
+          variables = function.substr(pos+10);
+          if (variables[variables.size()-1] != ';')
+            variables += ";";
+        }
+        if ((pos = function.find("Primary=")) != std::string::npos) {
+          primary = function.substr(pos+8);
+          s = new EvalFunction((variables+primary).c_str());
+        }
+        if ((pos = function.find("Secondary=")) != std::string::npos) {
+          secondary = function.substr(pos+10);
+          v = new EvalMultiFunction<VecFunc,Vec3,Vec3>(secondary,2,variables);
+        }
+      }
+      std::cout <<"\nAnalytical solution:" << std::endl;
+      if (!variables.empty())
+        std::cout << "\t Variables=" << variables << std::endl;
+      if (s)
+        std::cout << "\t Primary=" << primary << std::endl;
+      if (v)
+        std::cout << "\t Secondary=" << secondary << std::endl;
+      mySol = new AnaSol(s, v);
     }
     else if (!strncasecmp(cline,"LSHAPE",6))
     {
@@ -147,7 +192,8 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     }
 
     // Define the analytical boundary traction field
-    int code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+    if (code == -1)
+      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
     if (code > 0 && mySol->getScalarSecSol())
     {
       this->setPropertyType(code,Property::NEUMANN);
