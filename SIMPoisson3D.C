@@ -90,7 +90,7 @@ bool SIMPoisson3D::parse (char* keyWord, std::istream& is)
         std::string function = utl::readLine(is);
         size_t pos;
         if ((pos = function.find("Variables=")) != std::string::npos) {
-          variables = function.substr(pos+10);
+          variables += function.substr(pos+10);
           if (variables[variables.size()-1] != ';')
             variables += ";";
         }
@@ -100,7 +100,7 @@ bool SIMPoisson3D::parse (char* keyWord, std::istream& is)
         }
         if ((pos = function.find("Secondary=")) != std::string::npos) {
           secondary = function.substr(pos+10);
-          v = new EvalMultiFunction<VecFunc,Vec3,Vec3>(secondary,3,variables);
+          v = new VecFuncExpr(secondary,variables);
         }
       }
       std::cout <<"\nAnalytical solution:" << std::endl;
