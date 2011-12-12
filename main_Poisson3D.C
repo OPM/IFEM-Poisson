@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
 
 /*!
@@ -240,6 +241,11 @@ int main (int argc, char** argv)
   std::vector<Mode> modes;
   int iStep = 1, nBlock = 0;
 
+  double RMS_norm = 0;
+  double avg_norm = 0;
+  double min_err = 10000000;
+  double max_err  = 0;
+
   DataExporter* exporter=NULL;
   if (dumpHDF5)
   {
@@ -275,21 +281,44 @@ int main (int argc, char** argv)
     if (!model->solutionNorms(Vectors(1,sol),eNorm,gNorm))
       return 4;
 
+    // hard coding in the evaluation of the root-mean square of the error
+    for(size_t i=1; i<=eNorm.cols(); i++) {
+      avg_norm += eNorm(4,i);
+      min_err = (min_err < eNorm(4,i)) ? min_err : eNorm(4,i);
+      max_err = (max_err > eNorm(4,i)) ? max_err : eNorm(4,i);
+    }
+    avg_norm  /= eNorm.cols();
+    for(size_t i=1; i<=eNorm.cols(); i++)
+      RMS_norm += pow(eNorm(4,i)-avg_norm,2);
+    RMS_norm = sqrt(RMS_norm/eNorm.cols())/avg_norm;
+    gNorm.push_back(RMS_norm);
+    gNorm.push_back(min_err);
+    gNorm.push_back(max_err);
+    gNorm.push_back(avg_norm);
+
     if (linalg.myPid == 0)
       AdaptiveSIM::printNorms(gNorm,std::cout);
     break;
 
+
   case 10:
     // Adaptive simulation
     while (true) {
+      char iterationTag[256];
+      sprintf(iterationTag, "Adaptive step #%03d", iStep);
+      utl::profiler->start(iterationTag);
       if (!aSim->solveStep(infile,solver,iStep))
 	return 5;
       else if (!aSim->writeGlv(infile,format,n,iStep,nBlock))
 	return 6;
       else if (dumpHDF5)
         exporter->dumpTimeLevel(NULL,true);
+      utl::profiler->stop(iterationTag);
+      sprintf(iterationTag, "Refinement step #%03d", iStep);
+      utl::profiler->start(iterationTag);
       if (!aSim->adaptMesh(++iStep))
 	break;
+      utl::profiler->stop(iterationTag);
     }
 
   case 100:
