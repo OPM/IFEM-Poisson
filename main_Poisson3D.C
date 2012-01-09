@@ -174,7 +174,7 @@ int main (int argc, char** argv)
 
   if (linalg.myPid == 0)
   {
-    std::cout <<"\n >>> Spline FEM Poisson equation solver <<<"
+    std::cout <<"\n >>> IFEM Poisson equation solver <<<"
 	      <<"\n ==========================================\n"
 	      <<"\nInput file: "<< infile
 	      <<"\nEquation solver: "<< solver
