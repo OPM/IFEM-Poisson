@@ -383,12 +383,17 @@ int main (int argc, char** argv)
     if (!model->writeGlvS(sol,n,iStep,nBlock))
       return 10;
 
+    const char* prefix[pOpt.size()+1];
+    prefix[pOpt.size()] = 0;
+
     // Write projected solution fields to VTF-file
     size_t i = 0;
     for (pit = pOpt.begin(); pit != pOpt.end(); pit++, i++)
       if (!model->writeGlvP(projs[i],n,iStep,nBlock,0.0,100+10*i,
 			    pit->second.c_str()))
         return 11;
+      else
+	prefix[i] = pit->second.c_str();
 
     // Write eigenmodes
     for (i = 0; i < modes.size(); i++)
@@ -396,7 +401,8 @@ int main (int argc, char** argv)
 	return 11;
 
     // Write element norms
-    if (!model->writeGlvN(eNorm,iStep,nBlock))
+    if (!model->writeGlvN(eNorm,iStep,nBlock,prefix,
+			  model->haveAnaSol() ? 3 : 2))
       return 12;
 
     model->writeGlvStep(1,0.0,1);
