@@ -61,6 +61,9 @@
   \arg -1D : Use one-parametric simulation driver
   \arg -2D : Use two-parametric simulation driver
   \arg -adap : Use adaptive simulation driver
+  \arg -DGL2 : Estimate error using discrete global L2 projection
+  \arg -CGL2 : Estimate error using continuous global L2 projection
+  \arg -SCR : Estimate error using Superconvergent recovery at Greville points
 */
 
 int main (int argc, char** argv)
@@ -85,6 +88,8 @@ int main (int argc, char** argv)
   char* infile = 0;
 
   LinAlgInit& linalg = LinAlgInit::Init(argc,argv);
+  std::map<SIMbase::ProjectionMethod,std::string> pOpt;
+  std::map<SIMbase::ProjectionMethod,std::string>::const_iterator pit;
 
   for (int i = 1; i < argc; i++)
     if (!strcmp(argv[i],"-dense"))
@@ -144,6 +149,12 @@ int main (int argc, char** argv)
       SIMbase::discretization = ASM::Spectral;
     else if (!strncmp(argv[i],"-LR",3))
       SIMbase::discretization = ASM::LRSpline;
+    else if (!strcasecmp(argv[i],"-dgl2"))
+      pOpt[SIMbase::DGL2] = "Discrete global L2 projection";
+    else if (!strcasecmp(argv[i],"-cgl2"))
+      pOpt[SIMbase::CGL2] = "Continuous global L2 projection";
+    else if (!strcasecmp(argv[i],"-scr"))
+      pOpt[SIMbase::SCR]  = "Superconvergent recovery";
     else if (!infile)
       infile = argv[i];
     else
@@ -156,6 +167,7 @@ int main (int argc, char** argv)
 	      <<" [-free] [-lag|-spec|-LR] [-1D|-2D] [-adap] [-nGauss <n>]\n"
 	      <<"       [-vtf <format>] [-nviz <nviz>]"
 	      <<" [-nu <nu>] [-nv <nv>] [-nw <nw>] [-hdf5]\n"
+	      <<"       [-DGL2] [-CGL2] [-SCR]\n"
 	      <<"       [-eig <iop>] [-nev <nev>] [-ncv <ncv] [-shift <shf>]\n"
 	      <<"       [-ignore <p1> <p2> ...] [-fixDup]"
 	      <<" [-checkRHS] [-check]\n";
@@ -175,7 +187,7 @@ int main (int argc, char** argv)
   if (linalg.myPid == 0)
   {
     std::cout <<"\n >>> IFEM Poisson equation solver <<<"
-	      <<"\n ==========================================\n"
+	      <<"\n ====================================\n"
 	      <<"\nInput file: "<< infile
 	      <<"\nEquation solver: "<< solver
 	      <<"\nNumber of Gauss points: "<< nGauss;
@@ -236,15 +248,12 @@ int main (int argc, char** argv)
 
   model->setQuadratureRule(nGauss);
 
-  Matrix eNorm;
+  Matrix eNorm, ssol;
   Vector gNorm, sol, load;
+  Vectors projs;
   std::vector<Mode> modes;
   int iStep = 1, nBlock = 0;
-
-  double RMS_norm = 0;
-  double avg_norm = 0;
-  double min_err = 10000000;
-  double max_err  = 0;
+  bool iterate = true;
 
   DataExporter* exporter=NULL;
   if (dumpHDF5)
@@ -276,34 +285,50 @@ int main (int argc, char** argv)
     if (!model->solveSystem(sol,1))
       return 3;
 
-    // Evaluate solution norms
+    if (SIMbase::discretization == ASM::Spline ||
+	SIMbase::discretization == ASM::SplineC1)
+      pOpt[SIMbase::GLOBAL] = "Greville point projection";
+    else
+      pOpt.clear();
+
+    // Project the FE stresses onto the splines basis
     model->setMode(SIM::RECOVERY);
-    if (!model->solutionNorms(Vectors(1,sol),eNorm,gNorm))
+    for (pit = pOpt.begin(); pit != pOpt.end(); pit++)
+      if (!model->project(ssol,sol,pit->first))
+	return 4;
+      else
+	projs.push_back(ssol);
+
+    if (linalg.myPid == 0 && !pOpt.empty())
+      std::cout << std::endl;
+
+    // Evaluate solution norms
+    if (!model->solutionNorms(Vectors(1,sol),projs,eNorm,gNorm))
       return 4;
 
-    // hard coding in the evaluation of the root-mean square of the error
-    for(size_t i=1; i<=eNorm.cols(); i++) {
-      avg_norm += eNorm(4,i);
-      min_err = (min_err < eNorm(4,i)) ? min_err : eNorm(4,i);
-      max_err = (max_err > eNorm(4,i)) ? max_err : eNorm(4,i);
-    }
-    avg_norm  /= eNorm.cols();
-    for(size_t i=1; i<=eNorm.cols(); i++)
-      RMS_norm += pow(eNorm(4,i)-avg_norm,2);
-    RMS_norm = sqrt(RMS_norm/eNorm.cols())/avg_norm;
-    gNorm.push_back(RMS_norm);
-    gNorm.push_back(min_err);
-    gNorm.push_back(max_err);
-    gNorm.push_back(avg_norm);
-
     if (linalg.myPid == 0)
-      AdaptiveSIM::printNorms(gNorm,std::cout);
+    {
+      AdaptiveSIM::printNorms(gNorm,eNorm,std::cout);
+      size_t j = model->haveAnaSol() ? 5 : 3;
+      for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++)
+      {
+	std::cout <<"\n>>> Error estimates based on "<< pit->second <<" <<<";
+	std::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm(j++);
+	std::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(j++);
+	std::cout <<"\n- relative error (% of |u^r|) : "
+		  << gNorm(j-1)/gNorm(j-2)*100.0;
+	if (model->haveAnaSol() && j++ <= gNorm.size())
+	  std::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(j-1)
+		    <<"\n- relative error (% of |u|)   : "
+		    << gNorm(j-1)/gNorm(3)*100.0;
+        std::cout << std::endl;
+      }
+    }
     break;
-
 
   case 10:
     // Adaptive simulation
-    while (true) {
+    while (iterate) {
       char iterationTag[256];
       sprintf(iterationTag, "Adaptive step #%03d", iStep);
       utl::profiler->start(iterationTag);
@@ -316,8 +341,7 @@ int main (int argc, char** argv)
       utl::profiler->stop(iterationTag);
       sprintf(iterationTag, "Refinement step #%03d", iStep);
       utl::profiler->start(iterationTag);
-      if (!aSim->adaptMesh(++iStep))
-	break;
+      iterate = aSim->adaptMesh(++iStep);
       utl::profiler->stop(iterationTag);
     }
 
