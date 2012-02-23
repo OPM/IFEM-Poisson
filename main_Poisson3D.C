@@ -383,9 +383,16 @@ int main (int argc, char** argv)
     if (!model->writeGlvS(sol,n,iStep,nBlock))
       return 10;
 
+    // Write projected solution fields to VTF-file
+    size_t i = 0;
+    for (pit = pOpt.begin(); pit != pOpt.end(); pit++, i++)
+      if (!model->writeGlvP(projs[i],n,iStep,nBlock,0.0,100+10*i,
+			    pit->second.c_str()))
+        return 11;
+
     // Write eigenmodes
-    for (size_t j = 0; j < modes.size(); j++)
-      if (!model->writeGlvM(modes[j], iop==3 || iop==4 || iop==6, n, nBlock))
+    for (i = 0; i < modes.size(); i++)
+      if (!model->writeGlvM(modes[i], iop==3 || iop==4 || iop==6, n, nBlock))
 	return 11;
 
     // Write element norms
