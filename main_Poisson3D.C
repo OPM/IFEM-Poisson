@@ -401,8 +401,7 @@ int main (int argc, char** argv)
 	return 11;
 
     // Write element norms
-    if (!model->writeGlvN(eNorm,iStep,nBlock,prefix,
-			  model->haveAnaSol() ? 3 : 2))
+    if (!model->writeGlvN(eNorm,iStep,nBlock,prefix,3))
       return 12;
 
     model->writeGlvStep(1,0.0,1);
