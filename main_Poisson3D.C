@@ -265,8 +265,12 @@ int main (int argc, char** argv)
       std::cout <<"\nWriting HDF5 file "<< foo <<".hdf5"<< std::endl;
     exporter = new DataExporter(true);
     exporter->registerField("u","heat",DataExporter::SIM,
-			   DataExporter::PRIMARY);
-    exporter->setFieldValue("u",model,&sol);
+			   DataExporter::PRIMARY|DataExporter::SECONDARY|
+                           DataExporter::NORMS);
+    if (aSim)
+      exporter->setFieldValue("u",model,&aSim->getSolution());
+    else
+      exporter->setFieldValue("u",model,&sol);
     exporter->registerWriter(new HDF5Writer(foo));
     exporter->registerWriter(new XMLWriter(foo));
   }
