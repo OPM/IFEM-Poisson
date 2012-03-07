@@ -285,7 +285,8 @@ int main (int argc, char** argv)
     if (!model->solveSystem(sol,1))
       return 3;
 
-    if (SIMbase::discretization == ASM::Spline ||
+    if (SIMbase::discretization == ASM::Spline   ||
+        SIMbase::discretization == ASM::LRSpline ||
 	SIMbase::discretization == ASM::SplineC1)
       pOpt[SIMbase::GLOBAL] = "Greville point projection";
     else
