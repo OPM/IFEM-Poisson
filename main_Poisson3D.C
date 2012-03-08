@@ -76,6 +76,7 @@ int main (int argc, char** argv)
   int format = -1;
   int n[3] = { 2, 2, 2 };
   std::vector<int> ignoredPatches;
+  size_t adaptor = 0;
   int iop = 0;
   int nev = 10;
   int ncv = 20;
@@ -142,7 +143,12 @@ int main (int argc, char** argv)
     else if (!strcmp(argv[i],"-2D"))
       ndim = 2;
     else if (!strncmp(argv[i],"-adap",5))
+    {
       iop = 10;
+      if (strlen(argv[i]) > 5)
+        adaptor = atoi(argv[i]+5);
+      SIMbase::discretization = ASM::LRSpline;
+    }
     else if (!strncmp(argv[i],"-lag",4))
       SIMbase::discretization = ASM::Lagrange;
     else if (!strncmp(argv[i],"-spec",5))
@@ -246,6 +252,11 @@ int main (int argc, char** argv)
 
   utl::profiler->stop("Model input");
 
+  if (SIMbase::discretization >= ASM::Spline)
+    pOpt[SIMbase::GLOBAL] = "Greville point projection";
+  else
+    pOpt.clear();
+
   model->setQuadratureRule(nGauss);
 
   Matrix eNorm, ssol;
@@ -255,8 +266,8 @@ int main (int argc, char** argv)
   int iStep = 1, nBlock = 0;
   bool iterate = true;
 
-  DataExporter* exporter=NULL;
-  if (dumpHDF5)
+  DataExporter* exporter = NULL;
+  if (dumpHDF5 && (iop == 0 || iop == 10))
   {
     std::string foo = infile;
     size_t pos = foo.find_last_of('.');
@@ -265,12 +276,10 @@ int main (int argc, char** argv)
       std::cout <<"\nWriting HDF5 file "<< foo <<".hdf5"<< std::endl;
     exporter = new DataExporter(true);
     exporter->registerField("u","heat",DataExporter::SIM,
-			   DataExporter::PRIMARY|DataExporter::SECONDARY|
-                           DataExporter::NORMS);
-    if (aSim)
-      exporter->setFieldValue("u",model,&aSim->getSolution());
-    else
-      exporter->setFieldValue("u",model,&sol);
+                            DataExporter::PRIMARY |
+                            DataExporter::SECONDARY |
+                            DataExporter::NORMS);
+    exporter->setFieldValue("u",model, aSim ? &aSim->getSolution() : &sol);
     exporter->registerWriter(new HDF5Writer(foo));
     exporter->registerWriter(new XMLWriter(foo));
   }
@@ -288,13 +297,6 @@ int main (int argc, char** argv)
     // Solve the linear system of equations
     if (!model->solveSystem(sol,1))
       return 3;
-
-    if (SIMbase::discretization == ASM::Spline   ||
-        SIMbase::discretization == ASM::LRSpline ||
-	SIMbase::discretization == ASM::SplineC1)
-      pOpt[SIMbase::GLOBAL] = "Greville point projection";
-    else
-      pOpt.clear();
 
     // Project the FE stresses onto the splines basis
     model->setMode(SIM::RECOVERY);
@@ -333,11 +335,35 @@ int main (int argc, char** argv)
 
   case 10:
     // Adaptive simulation
+    pit = pOpt.begin();
+    for (size_t j = 1; pit != pOpt.end(); pit++, j++)
+      if (j == adaptor)
+      {
+	// Compute the index into eNorm for the error indicator to adapt on
+	adaptor = model->haveAnaSol() ? 5+3*(j-1) : 3+2*(j-1);
+	break;
+      }
+
+    std::cout <<"\n\n >>> Starting adaptive simulation based on";
+    if (pit != pOpt.end())
+      std::cout <<"\n     "<< pit->second <<" error estimates (index="
+		<< adaptor <<") <<<\n";
+    else if (model->haveAnaSol())
+    {
+      std::cout <<"exact errors <<<\n";
+      adaptor = 4;
+    }
+    else
+    {
+      std::cout <<"- nothing, bailing out ...\n";
+      break;
+    }
+
     while (iterate) {
       char iterationTag[256];
       sprintf(iterationTag, "Adaptive step #%03d", iStep);
       utl::profiler->start(iterationTag);
-      if (!aSim->solveStep(infile,solver,iStep))
+      if (!aSim->solveStep(infile,solver,pOpt,adaptor,iStep))
 	return 5;
       else if (!aSim->writeGlv(infile,format,n,iStep,nBlock))
 	return 6;
@@ -346,7 +372,7 @@ int main (int argc, char** argv)
       utl::profiler->stop(iterationTag);
       sprintf(iterationTag, "Refinement step #%03d", iStep);
       utl::profiler->start(iterationTag);
-      iterate = aSim->adaptMesh(++iStep);
+      iterate = aSim->adaptMesh(adaptor,++iStep);
       utl::profiler->stop(iterationTag);
     }
 
