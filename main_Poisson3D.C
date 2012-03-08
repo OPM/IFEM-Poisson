@@ -316,7 +316,7 @@ int main (int argc, char** argv)
     if (linalg.myPid == 0)
     {
       AdaptiveSIM::printNorms(gNorm,eNorm,std::cout);
-      size_t j = model->haveAnaSol() ? 5 : 3;
+      size_t j = model->haveAnaSol() ? 6 : 4;
       for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++)
       {
 	std::cout <<"\n>>> Error estimates based on "<< pit->second <<" <<<";
@@ -432,7 +432,7 @@ int main (int argc, char** argv)
 	return 11;
 
     // Write element norms
-    if (!model->writeGlvN(eNorm,iStep,nBlock,prefix,3))
+    if (!model->writeGlvN(eNorm,iStep,nBlock,prefix,4))
       return 12;
 
     model->writeGlvStep(1,0.0,1);
