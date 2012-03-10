@@ -60,10 +60,13 @@
   \arg -fixDup : Resolve co-located nodes by merging them into a single node
   \arg -1D : Use one-parametric simulation driver
   \arg -2D : Use two-parametric simulation driver
-  \arg -adap : Use adaptive simulation driver
+  \arg -adap : Use adaptive simulation driver with LR-splines discretization
   \arg -DGL2 : Estimate error using discrete global L2 projection
   \arg -CGL2 : Estimate error using continuous global L2 projection
   \arg -SCR : Estimate error using Superconvergent recovery at Greville points
+  \arg -VDSA: Estimate error using Variational Diminishing Spline Approximations
+  \arg -LSQ : Estimate error using through Least Square projections
+  \arg -QUASI : Estimate error using Quasi-interpolation projections
 */
 
 int main (int argc, char** argv)
@@ -88,7 +91,7 @@ int main (int argc, char** argv)
   char ndim = 3;
   char* infile = 0;
 
-  LinAlgInit& linalg = LinAlgInit::Init(argc,argv);
+  const LinAlgInit& linalg = LinAlgInit::Init(argc,argv);
   std::map<SIMbase::ProjectionMethod,std::string> pOpt;
   std::map<SIMbase::ProjectionMethod,std::string>::const_iterator pit;
 
@@ -194,7 +197,9 @@ int main (int argc, char** argv)
   {
     std::cout <<"\n >>> IFEM Poisson equation solver <<<"
 	      <<"\n ====================================\n"
-	      <<"\nInput file: "<< infile
+	      <<"\n Executing command:\n";
+    for (int i = 0; i < argc; i++) std::cout <<" "<< argv[i];
+    std::cout <<"\n\nInput file: "<< infile
 	      <<"\nEquation solver: "<< solver
 	      <<"\nNumber of Gauss points: "<< nGauss;
     if (format >= 0)
@@ -247,10 +252,13 @@ int main (int argc, char** argv)
   if (iop == 10)
     theSim = aSim = new AdaptiveSIM(model);
 
-  if (!theSim->read(infile) || !model->preprocess(ignoredPatches,fixDup))
+  if (!theSim->read(infile))
     return 1;
 
   utl::profiler->stop("Model input");
+
+  if (!model->preprocess(ignoredPatches,fixDup))
+    return 1;
 
   if (SIMbase::discretization >= ASM::Spline)
     pOpt[SIMbase::GLOBAL] = "Greville point projection";
@@ -274,6 +282,7 @@ int main (int argc, char** argv)
     foo = foo.substr(0,pos);
     if (linalg.myPid == 0)
       std::cout <<"\nWriting HDF5 file "<< foo <<".hdf5"<< std::endl;
+
     exporter = new DataExporter(true);
     exporter->registerField("u","heat",DataExporter::SIM,
                             DataExporter::PRIMARY |
@@ -316,7 +325,7 @@ int main (int argc, char** argv)
     if (linalg.myPid == 0)
     {
       AdaptiveSIM::printNorms(gNorm,eNorm,std::cout);
-      size_t j = model->haveAnaSol() ? 6 : 4;
+      size_t j = model->haveAnaSol() ? 5 : 3;
       for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++)
       {
 	std::cout <<"\n>>> Error estimates based on "<< pit->second <<" <<<";
@@ -324,10 +333,15 @@ int main (int argc, char** argv)
 	std::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(j++);
 	std::cout <<"\n- relative error (% of |u^r|) : "
 		  << gNorm(j-1)/gNorm(j-2)*100.0;
-	if (model->haveAnaSol() && j++ <= gNorm.size())
-	  std::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(j-1)
+	if (model->haveAnaSol() && j <= gNorm.size())
+	{
+	  std::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(j)
 		    <<"\n- relative error (% of |u|)   : "
-		    << gNorm(j-1)/gNorm(3)*100.0;
+		    << gNorm(j)/gNorm(3)*100.0;
+	  std::cout <<"\nEffectivity index             : "
+		    << gNorm(j)/gNorm(4);
+	  j += 2; // because of the local effectivity index calculation
+	}
         std::cout << std::endl;
       }
     }
@@ -340,7 +354,7 @@ int main (int argc, char** argv)
       if (j == adaptor)
       {
 	// Compute the index into eNorm for the error indicator to adapt on
-	adaptor = model->haveAnaSol() ? 5+3*(j-1) : 3+2*(j-1);
+	adaptor = model->haveAnaSol() ? 6+4*(j-1) : 4+2*(j-1);
 	break;
       }
 
@@ -350,12 +364,12 @@ int main (int argc, char** argv)
 		<< adaptor <<") <<<\n";
     else if (model->haveAnaSol())
     {
-      std::cout <<"exact errors <<<\n";
+      std::cout <<" exact errors <<<\n";
       adaptor = 4;
     }
     else
     {
-      std::cout <<"- nothing, bailing out ...\n";
+      std::cout <<" nothing, bailing out ...\n";
       break;
     }
 
@@ -364,9 +378,9 @@ int main (int argc, char** argv)
       sprintf(iterationTag, "Adaptive step #%03d", iStep);
       utl::profiler->start(iterationTag);
       if (!aSim->solveStep(infile,solver,pOpt,adaptor,iStep))
-	return 5;
+        return 5;
       else if (!aSim->writeGlv(infile,format,n,iStep,nBlock))
-	return 6;
+        return 6;
       else if (dumpHDF5)
         exporter->dumpTimeLevel(NULL,true);
       utl::profiler->stop(iterationTag);
