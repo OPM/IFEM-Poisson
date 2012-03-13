@@ -349,7 +349,7 @@ int main (int argc, char** argv)
       utl::profiler->start(iterationTag);
       if (!aSim->solveStep(infile,iStep))
         return 5;
-      else if (!aSim->writeGlv(infile,iStep,nBlock))
+      else if (!aSim->writeGlv(infile,iStep,nBlock,2))
         return 6;
       else if (exporter)
         exporter->dumpTimeLevel(NULL,true);
