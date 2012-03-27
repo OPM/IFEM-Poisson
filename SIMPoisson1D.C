@@ -190,9 +190,15 @@ bool SIMPoisson1D::initMaterial (size_t propInd)
 
 bool SIMPoisson1D::initNeumann (size_t propInd)
 {
-  VecFuncMap::const_iterator tit = myVectors.find(propInd);
-  if (tit == myVectors.end()) return false;
+  SclFuncMap::const_iterator sit = myScalars.find(propInd);
+  VecFuncMap::const_iterator vit = myVectors.find(propInd);
 
-  prob.setTraction(tit->second);
+  if (sit != myScalars.end())
+    prob.setTraction(sit->second);
+  else if (vit != myVectors.end())
+    prob.setTraction(vit->second);
+  else
+    return false;
+
   return true;
 }
