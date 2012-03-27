@@ -1,41 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
 <simulation>
-    <!-- General - geometry definitions !-->
-    <geometry>
-      <patchfile type="bsplines">square2D.g2</patchfile>
-      <raiseorder patch="1" u="2" v="2"/>
-      <refine type="uniform" patch="1" u="7" v="7"/>
-    </geometry>
-    <!-- General - boundary conditions !-->
-    <boundaryconditions>
-      <propertycodes>
-        <code value="1">
-          <patch index="1" edge="4"/>
-        </code>
-        <code value="2">
-          <patch index="1" edge="3"/>
-        </code>
-      </propertycodes>    
-      <dirichlet code="1"/>
-    </boundaryconditions>
-    <!-- General - linear solver parameters !-->
-    <linearsolver>
-      <type>cg</type>
-      <pc>ilu</pc>
-      <package>petsc</package>
-      <levels>2</levels>
-      <atol>1.0e-12</atol>
-      <rtol>1.0e-12</rtol>
-      <dtol>1.0e6</dtol>
-      <maxits>5000</maxits>
-    </linearsolver>
-    <!-- App specific block !-->
-    <poisson>
-      <anasol type="expression" code="2">
-        <secondary>-PI*sin(PI*x)*(2-y)|
-                   -cos(PI*x)
-        </secondary>
-      </anasol>
-      <source type="expression">-PI*PI*cos(PI*x)*(2-y)</source>
-    </poisson>
+
+  <!-- General - geometry definitions !-->
+  <geometry>
+    <patchfile type="bsplines">square2D.g2</patchfile>
+    <raiseorder patch="1" u="2" v="2"/>
+    <refine type="uniform" patch="1" u="7" v="7"/>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <propertycodes>
+      <code value="1">
+        <patch index="1" edge="4"/>
+      </code>
+      <code value="2">
+        <patch index="1" edge="3"/>
+      </code>
+    </propertycodes>
+    <dirichlet code="1"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">PI*PI*cos(PI*x)*(2-y)</source>
+    <anasol type="expression" code="2">
+      <primary>cos(PI*x)*(2-y)</primary>
+      <secondary>PI*sin(PI*x)*(2-y)|cos(PI*x)</secondary>
+    </anasol>
+  </poisson>
+
 </simulation>
