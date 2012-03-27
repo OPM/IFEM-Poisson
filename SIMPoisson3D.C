@@ -112,14 +112,10 @@ bool SIMPoisson3D::parse (const TiXmlElement* elem)
   if (strcasecmp(elem->Value(),"poisson"))
     return this->SIM3D::parse(elem);
 
-  std::vector<const TiXmlElement*> parsed = handlePriorityTags(elem);
-
   const TiXmlElement* child = elem->FirstChildElement();
-  while (child) {
-    if (find(parsed.begin(),parsed.end(),child) != parsed.end())
-      ;
+  for (; child; child = child->NextSiblingElement())
 
-    else if (!strcasecmp(child->Value(),"isotropic")) {
+    if (!strcasecmp(child->Value(),"isotropic")) {
       int code = 0;
       double kappa = 1000.0;
       utl::getAttribute(child,"code",code);
@@ -172,9 +168,6 @@ bool SIMPoisson3D::parse (const TiXmlElement* elem)
           myAFcode = code;
         }
     }
-
-    child = child->NextSiblingElement();
-  }
 
   return true;
 }
