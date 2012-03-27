@@ -26,9 +26,22 @@
 
 SIMPoisson2D::~SIMPoisson2D ()
 {
-  myProblem = 0;
-  // To avoid that that SIMbase tries to delete already deleted functions
+  myProblem = NULL; // Because it is not dynamically allocated
+  // To prevent the SIMbase destructor try to delete already deleted functions
   if (myAFcode > 0) myVectors.erase(myAFcode);
+}
+
+
+void SIMPoisson2D::clearProperties ()
+{
+  // To prevent SIMbase::clearProperties deleting the analytical solution
+  if (myAFcode > 0) myVectors.erase(myAFcode);
+
+  mVec.clear();
+  prob.setSource(NULL);
+  prob.setTraction((RealFunc*)NULL);
+  prob.setTraction((VecFunc*)NULL);
+  this->SIMbase::clearProperties();
 }
 
 
@@ -46,9 +59,9 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
       double kappa = atof(strtok(NULL," "));
       std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
       if (code == 0)
-	prob.setMaterial(kappa);
+        prob.setMaterial(kappa);
       else if (this->setPropertyType(code,Property::MATERIAL,mVec.size()))
-	mVec.push_back(kappa);
+        mVec.push_back(kappa);
     }
   }
 
@@ -87,22 +100,39 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
 
   else if (!strncasecmp(keyWord,"SOURCE",6))
   {
+    int code = -1; // Reserve negative code(s) for the source term function
+    while (myScalars.find(code) != myScalars.end()) --code;
+
     cline = strtok(keyWord+6," ");
     if (!strncasecmp(cline,"SQUARE",6))
     {
       double L = atof(strtok(NULL," "));
       std::cout <<"\nHeat source function: Square L="<< L << std::endl;
-      prob.setSource(new Square2DHeat(L));
+      myScalars[code] = new Square2DHeat(L);
+    }
+    else if (!strncasecmp(cline,"SINUSSQUARE",11))
+    {
+      std::cout <<"\nHeat source function: SquareSinus"<< std::endl;
+      myScalars[code] = new SquareSinusSource();
+    }
+    else if (!strncasecmp(cline,"INTERIORLAYER",13))
+    {
+      std::cout <<"\nHeat source function: InteriorLayer"<< std::endl;
+      myScalars[code] = new PoissonInteriorLayerSource();
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(NULL," ");
       std::cout <<"\nHeat source function: " << cline << std::endl;
-      prob.setSource(new EvalFunction(cline));
+      myScalars[code] = new EvalFunction(cline);
     }
     else
-      std::cerr <<"  ** SIMPoisson2D::parse: Unknown source function "
-		<< cline << std::endl;
+    {
+      std::cerr <<"  ** SIMPoisson2D::parse: Invalid source function "
+                << cline <<" (ignored)"<< std::endl;
+      return true;
+    }
+    prob.setSource(myScalars[code]);
   }
 
   else if (!strncasecmp(keyWord,"ANASOL",6))
@@ -113,34 +143,34 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
     {
       double L = atof(strtok(NULL," "));
       std::cout <<"\nAnalytical solution: Square L="<< L << std::endl;
-      mySol = new AnaSol(NULL,new Square2D(L));
+      if (!mySol)
+        mySol = new AnaSol(NULL,new Square2D(L));
     }
     else if (!strncasecmp(cline,"LSHAPE",6))
     {
       std::cout <<"\nAnalytical solution: Lshape"<< std::endl;
-      mySol = new AnaSol(NULL,new LshapePoisson());
+      if (!mySol)
+        mySol = new AnaSol(NULL,new LshapePoisson());
     }
     else if (!strncasecmp(cline,"SINUSSQUARE",11))
     {
-      std::cout <<"\nAnalytical solution: SquareSinus"
-		<<"\nHeat source function: SquareSinusSource"<< std::endl;
-      mySol = new AnaSol(NULL,new SquareSinus());
-      prob.setSource(new SquareSinusSource());
+      std::cout <<"\nAnalytical solution: SquareSinus"<< std::endl;
+      if (!mySol)
+        mySol = new AnaSol(NULL,new SquareSinus());
     }
     else if (!strncasecmp(cline,"INTERIORLAYER",13))
     {
-      std::cout <<"\nAnalytical solution: InteriorLayer"
-		<<"\nHeat source function: InteriorLayerSource"<< std::endl;
-      mySol = new AnaSol(new PoissonInteriorLayerSol(),
-			 new PoissonInteriorLayer());
-      prob.setSource(new PoissonInteriorLayerSource());
+      std::cout <<"\nAnalytical solution: InteriorLayer"<< std::endl;
+      if (!mySol)
+        mySol = new AnaSol(new PoissonInteriorLayerSol(),
+                           new PoissonInteriorLayer());
 
       // Define the Dirichlet boundary condition from the analytical solution
       code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
       if (code < 1)
       {
         std::cerr <<" *** SIMPoisson2D::parse: Specify code > 0 for the"
-		  <<" inhomogenous DIRICHLET boundary on InteriorLayer\n";
+                  <<" inhomogenous DIRICHLET boundary on InteriorLayer\n";
         return false;
       }
       this->setPropertyType(code,Property::DIRICHLET_INHOM);
@@ -152,12 +182,13 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
       std::cout <<"\nAnalytical solution: Expression"<< std::endl;
       int lines = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
       code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
-      mySol = new AnaSol(is,lines);
+      if (!mySol)
+        mySol = new AnaSol(is,lines);
     }
     else
     {
       std::cerr <<"  ** SIMPoisson2D::parse: Invalid analytical solution "
-		<< cline <<" (ignored)"<< std::endl;
+                << cline <<" (ignored)"<< std::endl;
       return true;
     }
 
@@ -199,22 +230,36 @@ bool SIMPoisson2D::parse (const TiXmlElement* elem)
     }
 
     else if (!strcasecmp(child->Value(),"source")) {
+      int code = -1; // Reserve negative code(s) for the source term function
+      while (myScalars.find(code) != myScalars.end()) --code;
       std::string type;
       utl::getAttribute(child,"type",type,true);
       if (type == "square") {
         double L = 0.0;
         utl::getAttribute(child,"L",L);
-        std::cout <<"\nHeat source function: Square L="<< L << std::endl;
-        prob.setSource(new Square2DHeat(L));
+        std::cout <<"\tHeat source function: Square L="<< L << std::endl;
+        myScalars[code] = new Square2DHeat(L);
+      }
+      else if (type == "sinussquare") {
+        std::cout <<"\tHeat source function: SquareSinus"<< std::endl;
+        myScalars[code] = new SquareSinusSource();
+      }
+      else if (type == "interiorlayer") {
+        std::cout <<"\tHeat source function: InteriorLayer"<< std::endl;
+        myScalars[code] = new PoissonInteriorLayerSource();
       }
       else if (type == "expression" && child->FirstChild()) {
-        std::cout <<"\nHeat source function: "
+        std::cout <<"\tHeat source function: "
                   << child->FirstChild()->Value() << std::endl;
-        prob.setSource(new EvalFunction(child->FirstChild()->Value()));
+        myScalars[code] = new EvalFunction(child->FirstChild()->Value());
       }
       else
+      {
         std::cerr <<"  ** SIMPoisson2D::parse: Invalid source function "
-                  << type << std::endl;
+                  << type <<" (ignored)"<< std::endl;
+        continue;
+      }
+      prob.setSource(myScalars[code]);
     }
 
     else if (!strcasecmp(child->Value(),"anasol")) {
@@ -224,25 +269,25 @@ bool SIMPoisson2D::parse (const TiXmlElement* elem)
       if (type == "square") {
         double L = 0.0;
         utl::getAttribute(child,"L",L);
-        std::cout <<"\nAnalytical solution: Square L="<< L << std::endl;
-        mySol = new AnaSol(NULL,new Square2D(L));
+        std::cout <<"\tAnalytical solution: Square L="<< L << std::endl;
+	if (!mySol)
+          mySol = new AnaSol(NULL,new Square2D(L));
       }
       else if (type == "lshape") {
-        std::cout <<"\nAnalytical solution: Lshape"<< std::endl;
-        mySol = new AnaSol(NULL,new LshapePoisson());
+        std::cout <<"\tAnalytical solution: Lshape"<< std::endl;
+        if (!mySol)
+          mySol = new AnaSol(NULL,new LshapePoisson());
       }
       else if (type == "sinussquare") {
-        std::cout <<"\nAnalytical solution: SquareSinus"
-                  <<"\nHeat source function: SquareSinusSource"<< std::endl;
-        mySol = new AnaSol(NULL,new SquareSinus());
-        prob.setSource(new SquareSinusSource());
+        std::cout <<"\tAnalytical solution: SquareSinus"<< std::endl;
+        if (!mySol)
+          mySol = new AnaSol(NULL,new SquareSinus());
       }
       else if (type == "interiorlayer") {
-        std::cout <<"\nAnalytical solution: InteriorLayer"
-                  <<"\nHeat source function: InteriorLayerSource"<< std::endl;
-        mySol = new AnaSol(new PoissonInteriorLayerSol(),
-                           new PoissonInteriorLayer());
-        prob.setSource(new PoissonInteriorLayerSource());
+        std::cout <<"\tAnalytical solution: InteriorLayerr"<< std::endl;
+        if (!mySol)
+          mySol = new AnaSol(new PoissonInteriorLayerSol(),
+                             new PoissonInteriorLayer());
 
         // Define the Dirichlet boundary condition from the analytical solution
         utl::getAttribute(child,"code",code);
@@ -256,8 +301,9 @@ bool SIMPoisson2D::parse (const TiXmlElement* elem)
         myScalars[code] = new PoissonInteriorLayerSol();
       }
       else if (type == "expression") {
-        std::cout <<"\nAnalytical solution: Expression"<< std::endl;
-        mySol = new AnaSol(child);
+        std::cout <<"\tAnalytical solution: Expression"<< std::endl;
+        if (!mySol)
+          mySol = new AnaSol(child);
       }
       else
         std::cerr <<"  ** SIMPoisson2D::parse: Invalid analytical solution "

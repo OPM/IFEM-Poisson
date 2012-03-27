@@ -21,9 +21,22 @@
 
 SIMPoisson1D::~SIMPoisson1D ()
 {
-  myProblem = 0;
-  // To avoid that that SIMbase tries to delete already deleted functions
+  myProblem = NULL; // Because it is not dynamically allocated
+  // To prevent the SIMbase destructor try to delete already deleted functions
   if (myAFcode > 0) myVectors.erase(myAFcode);
+}
+
+
+void SIMPoisson1D::clearProperties ()
+{
+  // To prevent SIMbase::clearProperties deleting the analytical solution
+  if (myAFcode > 0) myVectors.erase(myAFcode);
+
+  mVec.clear();
+  prob.setSource(NULL);
+  prob.setTraction((RealFunc*)NULL);
+  prob.setTraction((VecFunc*)NULL);
+  this->SIMbase::clearProperties();
 }
 
 
@@ -41,30 +54,37 @@ bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
       double kappa = atof(strtok(NULL," "));
       std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
       if (code == 0)
-	prob.setMaterial(kappa);
+        prob.setMaterial(kappa);
       else if (this->setPropertyType(code,Property::MATERIAL,mVec.size()))
-	mVec.push_back(kappa);
+        mVec.push_back(kappa);
     }
   }
 
   else if (!strncasecmp(keyWord,"SOURCE",6))
   {
+    int code = -1; // Reserve negative code(s) for the source term function
+    while (myScalars.find(code) != myScalars.end()) --code;
+
     cline = strtok(keyWord+6," ");
     if (!strncasecmp(cline,"LINE",4))
     {
       double L = atof(strtok(NULL," "));
       std::cout <<"\nHeat source function: Line L="<< L << std::endl;
-      prob.setSource(new PoissonLineSource(L));
+      myScalars[code] = new PoissonLineSource(L);
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(NULL," ");
       std::cout <<"\nHeat source function: " << cline << std::endl;
-      prob.setSource(new EvalFunction(cline));
+      myScalars[code] = new EvalFunction(cline);
     }
     else
-      std::cerr <<"  ** SIMPoisson1D::parse: Unknown source function "
-		<< cline << std::endl;
+    {
+      std::cerr <<"  ** SIMPoisson1D::parse: Invalid source function "
+                << cline <<" (ignored)"<< std::endl;
+      return true;
+    }
+    prob.setSource(myScalars[code]);
   }
 
   else if (!strncasecmp(keyWord,"ANASOL",6))
@@ -75,19 +95,21 @@ bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
     {
       double L = atof(strtok(NULL," "));
       std::cout <<"\nAnalytical solution: Line L="<< L << std::endl;
-      mySol = new AnaSol(NULL,new PoissonLine(L));
+      if (!mySol)
+        mySol = new AnaSol(NULL,new PoissonLine(L));
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       std::cout <<"\nAnalytical solution: Expression"<< std::endl;
       int lines = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
       code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
-      mySol = new AnaSol(is,lines);
+      if (!mySol)
+        mySol = new AnaSol(is,lines);
     }
     else
     {
-      std::cerr <<"  ** SIMPoisson1D::parse: Unknown analytical solution "
-		<< cline <<" (ignored)"<< std::endl;
+      std::cerr <<"  ** SIMPoisson1D::parse: Invalid analytical solution "
+                << cline <<" (ignored)"<< std::endl;
       return true;
     }
 
@@ -129,22 +151,28 @@ bool SIMPoisson1D::parse (const TiXmlElement* elem)
     }
 
     else if (!strcasecmp(child->Value(),"source")) {
+      int code = -1; // Reserve negative code(s) for the source term function
+      while (myScalars.find(code) != myScalars.end()) --code;
       std::string type;
       utl::getAttribute(child,"type",type,true);
       if (type == "line") {
         double L = 0.0;
         utl::getAttribute(child,"L",L);
-        std::cout <<"\nHeat source function: Line L="<< L << std::endl;
-        prob.setSource(new PoissonLineSource(L));
+        std::cout <<"\tHeat source function: Line L="<< L << std::endl;
+        myScalars[code] = new PoissonLineSource(L);
       }
       else if (type == "expression" && child->FirstChild()) {
-        std::cout <<"\nHeat source function: "
+        std::cout <<"\tHeat source function: "
                   << child->FirstChild()->Value() << std::endl;
-        prob.setSource(new EvalFunction(child->FirstChild()->Value()));
+        myScalars[code] = new EvalFunction(child->FirstChild()->Value());
       }
       else
+      {
         std::cerr <<"  ** SIMPoisson1D::parse: Invalid source function "
-                  << type << std::endl;
+                  << type <<" (ignored)"<< std::endl;
+        continue;
+      }
+      prob.setSource(myScalars[code]);
     }
 
     else if (!strcasecmp(child->Value(),"anasol")) {
@@ -154,12 +182,14 @@ bool SIMPoisson1D::parse (const TiXmlElement* elem)
       if (type == "line") {
         double L = 0.0;
         utl::getAttribute(child,"L",L);
-        std::cout <<"\nAnalytical solution: Line L="<< L << std::endl;
-        mySol = new AnaSol(NULL,new PoissonLine(L));
+        std::cout <<"\tAnalytical solution: Line L="<< L << std::endl;
+        if (!mySol)
+          mySol = new AnaSol(NULL,new PoissonLine(L));
       }
       else if (type == "expression") {
-        std::cout <<"\nAnalytical solution: Expression"<< std::endl;
-        mySol = new AnaSol(child);
+        std::cout <<"\tAnalytical solution: Expression"<< std::endl;
+        if (!mySol)
+          mySol = new AnaSol(child);
       }
       else
         std::cerr <<"  ** SIMPoisson1D::parse: Invalid analytical solution "
@@ -167,7 +197,7 @@ bool SIMPoisson1D::parse (const TiXmlElement* elem)
 
       // Define the analytical boundary traction field
       if (utl::getAttribute(child,"code",code))
-	if (code > 0 && mySol && mySol->getScalarSecSol())
+        if (code > 0 && mySol && mySol->getScalarSecSol())
         {
           setPropertyType(code,Property::NEUMANN);
           myVectors[code] = mySol->getScalarSecSol();
