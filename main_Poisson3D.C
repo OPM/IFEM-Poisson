@@ -190,20 +190,21 @@ int main (int argc, char** argv)
   if (iop == 10)
   {
     theSim = aSim = new AdaptiveSIM(model);
-    model->opt.discretization = ASM::LRSpline;
+    dummy.discretization = ASM::LRSpline;
   }
-  else
-    model->opt.discretization = dummy.discretization;
 
   // Read in model definitions
+  model->opt.discretization = dummy.discretization;
   if (!theSim->read(infile))
     return 1;
 
   // Parse the obsolete options again to let them override input file tags
+  dummy.discretization = model->opt.discretization; // but not this option
   for (i = 1; i < argc; i++)
     if (!model->opt.parseOldOptions(argc,argv,i))
       if (!strcmp(argv[i],"-ignore"))
 	while (i < argc-1 && isdigit(argv[i+1][0])) ++i;
+  model->opt.discretization = dummy.discretization; // XML-tag is used, if set
 
   // Boundary conditions can be ignored only in generalized eigenvalue analysis
   if (model->opt.eig != 4 && model->opt.eig != 6)
