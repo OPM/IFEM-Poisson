@@ -22,15 +22,18 @@
 SIMPoisson1D::~SIMPoisson1D ()
 {
   myProblem = NULL; // Because it is not dynamically allocated
+
   // To prevent the SIMbase destructor try to delete already deleted functions
-  if (myAFcode > 0) myVectors.erase(myAFcode);
+  if (aCode[0] > 0) myScalars.erase(aCode[0]);
+  if (aCode[1] > 0) myVectors.erase(aCode[1]);
 }
 
 
 void SIMPoisson1D::clearProperties ()
 {
   // To prevent SIMbase::clearProperties deleting the analytical solution
-  if (myAFcode > 0) myVectors.erase(myAFcode);
+  if (aCode[0] > 0) myScalars.erase(aCode[0]);
+  if (aCode[1] > 0) myVectors.erase(aCode[1]);
 
   mVec.clear();
   prob.setSource(NULL);
@@ -52,11 +55,12 @@ bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
     {
       int    code  = atoi(strtok(cline," "));
       double kappa = atof(strtok(NULL," "));
-      std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
       if (code == 0)
         prob.setMaterial(kappa);
-      else if (this->setPropertyType(code,Property::MATERIAL,mVec.size()))
-        mVec.push_back(kappa);
+      else
+        this->setPropertyType(code,Property::MATERIAL,mVec.size());
+      mVec.push_back(kappa);
+      std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
     }
   }
 
@@ -120,7 +124,7 @@ bool SIMPoisson1D::parse (char* keyWord, std::istream& is)
     {
       this->setPropertyType(code,Property::NEUMANN);
       myVectors[code] = mySol->getScalarSecSol();
-      myAFcode = code;
+      aCode[1] = code;
     }
   }
 
@@ -146,8 +150,9 @@ bool SIMPoisson1D::parse (const TiXmlElement* elem)
       utl::getAttribute(child,"kappa",kappa);
       if (code == 0)
         prob.setMaterial(kappa);
-      else if (setPropertyType(code,Property::MATERIAL,mVec.size()))
-        mVec.push_back(kappa);
+      else
+        this->setPropertyType(code,Property::MATERIAL,mVec.size());
+      mVec.push_back(kappa);
     }
 
     else if (!strcasecmp(child->Value(),"source")) {
@@ -199,13 +204,44 @@ bool SIMPoisson1D::parse (const TiXmlElement* elem)
       if (utl::getAttribute(child,"code",code))
         if (code > 0 && mySol && mySol->getScalarSecSol())
         {
-          setPropertyType(code,Property::NEUMANN);
+          this->setPropertyType(code,Property::NEUMANN);
           myVectors[code] = mySol->getScalarSecSol();
-          myAFcode = code;
+          aCode[1] = code;
         }
     }
 
   return true;
+}
+
+
+bool SIMPoisson1D::preprocess (const std::vector<int>& ignored, bool fixDup)
+{
+  if (mySol) // Define analytical boundary condition fields
+    for (PropertyVec::iterator p = myProps.begin(); p != myProps.end(); p++)
+      if (p->pcode == Property::DIRICHLET_ANASOL)
+      {
+        if (mySol->getScalarSol() && (aCode[0] == 0 || aCode[0] == p->pindx))
+        {
+          p->pcode = Property::DIRICHLET_INHOM;
+          myScalars[p->pindx] = mySol->getScalarSol();
+          aCode[0] = p->pindx;
+        }
+        else
+          p->pcode = Property::UNDEFINED;
+      }
+      else if (p->pcode == Property::NEUMANN_ANASOL)
+      {
+        if (mySol->getScalarSecSol() && (aCode[1] == 0 || aCode[1] == p->pindx))
+        {
+          p->pcode = Property::NEUMANN;
+          myVectors[p->pindx] = mySol->getScalarSecSol();
+          aCode[1] = p->pindx;
+        }
+        else
+          p->pcode = Property::UNDEFINED;
+      }
+
+  return this->SIM1D::preprocess(ignored,fixDup);
 }
 
 
