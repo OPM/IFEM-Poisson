@@ -5,20 +5,21 @@
         <patchfile type="bsplines">lshape2d.g2</patchfile>
         <raiseorder patch="1" u="2" v="2"/>
         <refine type="uniform" patch="1" u="7" v="7"/>
+        <topologysets>
+          <set name="Homogenous" type="edge">
+            <item patch="1">3</item>
+          </set>
+          <set name="Neumann" type="edge">
+            <item patch="1">1</item>
+            <item patch="1">2</item>
+            <item patch="1">4</item>
+          </set>
+        </topologysets>
     </geometry>
     <!-- General - boundary conditions !-->
     <boundaryconditions>
-        <propertycodes>
-            <code value="1">
-                <patch index="1" edge="3"/>
-            </code>
-            <code value="2">
-                <patch index="1" edge="1"/>
-                <patch index="1" edge="2"/>
-                <patch index="1" edge="4"/>
-            </code>
-        </propertycodes>    
-        <dirichlet code="1"/>
+        <dirichlet set="Homogenous" comp="1"/>
+        <neumann set="Neumann" comp="1" type="anasol"/>
     </boundaryconditions>
     <!-- General - linear solver parameters !-->
     <linearsolver>
@@ -33,6 +34,15 @@
     </linearsolver>
     <!-- App specific block !-->
     <poisson>
-        <anasol type="Lshape" code="2"/>
+      <anasol type="expression">
+        <variables>
+          R=sqrt(x*x+y*y);
+          th=if(above(x,0),asin(y/sqrt(x*x+y*y)),PI-asin(y/sqrt(x*x+y*y)));
+          Rp=R^(-1/3)
+        </variables>
+        <secondary>
+          2/3*Rp*sin(th/3)|-2/3*Rp*cos(th/3)
+        </secondary>
+      </anasol>
     </poisson>
 </simulation>

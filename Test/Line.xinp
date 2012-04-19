@@ -7,25 +7,26 @@
     <patchfile type="bsplines">line1D.g2</patchfile>
     <raiseorder patch="1" u="2"/>
     <refine type="uniform" patch="1" u="7"/>
+    <topologysets>
+      <set name="Homogenous" type="vertex">
+        <item patch="1">1</item>
+      </set>
+      <set name="Neumann" type="vertex">
+        <item patch="1">2</item>
+      </set>
+    </topologysets>
   </geometry>
 
   <!-- General - boundary conditions !-->
   <boundaryconditions>
-    <propertycodes>
-      <code value="1">
-        <patch index="1" vertex="1"/>
-      </code>
-      <code value="2">
-        <patch index="1" vertex="2"/>
-      </code>
-    </propertycodes>
-    <dirichlet code="1"/>
+    <dirichlet set="Homogenous" comp="1"/>
+    <neumann set="Neumann" comp="1" type="anasol"/>
   </boundaryconditions>
 
   <!-- Problem-specific block !-->
   <poisson>
     <source type="expression">PI*PI/4*sin(PI*x/2)</source>
-    <anasol type="expression" code="2">
+    <anasol type="expression">
       <primary>-sin(x*PI/2)</primary>
       <secondary>-PI/2*cos(x*PI/2)</secondary>
     </anasol>
