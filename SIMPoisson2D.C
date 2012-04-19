@@ -334,11 +334,11 @@ bool SIMPoisson2D::preprocess (const std::vector<int>& ignored, bool fixDup)
     for (PropertyVec::iterator p = myProps.begin(); p != myProps.end(); p++)
       if (p->pcode == Property::DIRICHLET_ANASOL)
       {
-        if (mySol->getScalarSol() && (aCode[0] == 0 || aCode[0] == p->pindx))
+        if (mySol->getScalarSol() && (aCode[0]==0 || aCode[0]==abs(p->pindx)))
         {
           p->pcode = Property::DIRICHLET_INHOM;
-          myScalars[p->pindx] = mySol->getScalarSol();
-          aCode[0] = p->pindx;
+          myScalars[abs(p->pindx)] = mySol->getScalarSol();
+          aCode[0] = abs(p->pindx);
         }
         else
           p->pcode = Property::UNDEFINED;
