@@ -210,6 +210,8 @@ bool SIMPoisson3D::parse (const TiXmlElement* elem)
 
 bool SIMPoisson3D::preprocess (const std::vector<int>& ignored, bool fixDup)
 {
+  bool ok = true;
+
   if (mySol) // Define analytical boundary condition fields
     for (PropertyVec::iterator p = myProps.begin(); p != myProps.end(); p++)
       if (p->pcode == Property::DIRICHLET_ANASOL)
@@ -221,7 +223,14 @@ bool SIMPoisson3D::preprocess (const std::vector<int>& ignored, bool fixDup)
           aCode[0] = abs(p->pindx);
         }
         else
+        {
           p->pcode = Property::UNDEFINED;
+          std::cerr <<" *** SIMPoisson3D::preprocess: Analytic Dirichlet condit"
+                    <<"ons\n     can only be assigned to one topology set.\n"
+                    <<"     Ignoring specification for property code = "
+                    << p->pindx << std::endl;
+          ok = false;
+        }
       }
       else if (p->pcode == Property::NEUMANN_ANASOL)
       {
@@ -232,10 +241,21 @@ bool SIMPoisson3D::preprocess (const std::vector<int>& ignored, bool fixDup)
           aCode[1] = p->pindx;
         }
         else
+        {
           p->pcode = Property::UNDEFINED;
+          std::cerr <<" *** SIMPoisson3D::preprocess: Analytic Neumann conditio"
+                    <<"ns\n     can only be assigned to one topology set.\n"
+                    <<"     Ignoring specification for property code = "
+                    << p->pindx << std::endl;
+          ok = false;
+        }
       }
 
-  return this->SIM3D::preprocess(ignored,fixDup);
+  if (this->SIM3D::preprocess(ignored,fixDup) && ok) return true;
+
+  std::cerr <<"\n *** SIMPoisson3D::preprocess: Aborting due to above error(s)."
+            << std::endl;
+  return false;
 }
 
 

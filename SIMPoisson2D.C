@@ -178,7 +178,8 @@ bool SIMPoisson2D::parse (char* keyWord, std::istream& is)
         return false;
       }
       this->setPropertyType(code,Property::DIRICHLET_INHOM);
-      myScalars[code] = new PoissonInteriorLayerSol();
+      myScalars[code] = mySol->getScalarSol();
+      aCode[0] = code;
       code = 0; // Avoid definition of Neumann property
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
@@ -250,8 +251,11 @@ bool SIMPoisson2D::parse (const TiXmlElement* elem)
         myScalars[code] = new SquareSinusSource();
       }
       else if (type == "interiorlayer") {
-        std::cout <<"\tHeat source function: InteriorLayer"<< std::endl;
-        myScalars[code] = new PoissonInteriorLayerSource();
+        double s = 60;
+        utl::getAttribute(child,"slope",s);
+        std::cout <<"\tHeat source function: InteriorLayer, slope = "<< s
+                  << std::endl;
+        myScalars[code] = new PoissonInteriorLayerSource(s);
       }
       else if (type == "expression" && child->FirstChild()) {
         std::cout <<"\tHeat source function: "
@@ -289,21 +293,22 @@ bool SIMPoisson2D::parse (const TiXmlElement* elem)
           mySol = new AnaSol(NULL,new SquareSinus());
       }
       else if (type == "interiorlayer") {
-        std::cout <<"\tAnalytical solution: InteriorLayerr"<< std::endl;
+        double s = 60;
+        utl::getAttribute(child,"slope",s);
+        std::cout <<"\tAnalytical solution: InteriorLayer, slope = "<< s
+                  << std::endl;
         if (!mySol)
-          mySol = new AnaSol(new PoissonInteriorLayerSol(),
-                             new PoissonInteriorLayer());
+          mySol = new AnaSol(new PoissonInteriorLayerSol(s),
+                             new PoissonInteriorLayer(s));
 
         // Define the Dirichlet boundary condition from the analytical solution
         utl::getAttribute(child,"code",code);
-        if (code < 1)
+        if (code > 0)
         {
-          std::cerr <<" *** SIMPoisson2D::parse: Specify code > 0 for the"
-                    <<" inhomogenous DIRICHLET boundary on InteriorLayer\n";
-          return false;
+          this->setPropertyType(code,Property::DIRICHLET_INHOM);
+          myScalars[code] = mySol->getScalarSol();
+          aCode[0] = code;
         }
-        this->setPropertyType(code,Property::DIRICHLET_INHOM);
-        myScalars[code] = new PoissonInteriorLayerSol();
       }
       else if (type == "expression") {
         std::cout <<"\tAnalytical solution: Expression"<< std::endl;
@@ -330,6 +335,8 @@ bool SIMPoisson2D::parse (const TiXmlElement* elem)
 
 bool SIMPoisson2D::preprocess (const std::vector<int>& ignored, bool fixDup)
 {
+  bool ok = true;
+
   if (mySol) // Define analytical boundary condition fields
     for (PropertyVec::iterator p = myProps.begin(); p != myProps.end(); p++)
       if (p->pcode == Property::DIRICHLET_ANASOL)
@@ -341,7 +348,14 @@ bool SIMPoisson2D::preprocess (const std::vector<int>& ignored, bool fixDup)
           aCode[0] = abs(p->pindx);
         }
         else
+        {
           p->pcode = Property::UNDEFINED;
+          std::cerr <<" *** SIMPoisson2D::preprocess: Analytic Dirichlet condit"
+                    <<"ons\n     can only be assigned to one topology set.\n"
+                    <<"     Ignoring specification for property code = "
+                    << p->pindx << std::endl;
+          ok = false;
+        }
       }
       else if (p->pcode == Property::NEUMANN_ANASOL)
       {
@@ -352,10 +366,21 @@ bool SIMPoisson2D::preprocess (const std::vector<int>& ignored, bool fixDup)
           aCode[1] = p->pindx;
         }
         else
+        {
           p->pcode = Property::UNDEFINED;
+          std::cerr <<" *** SIMPoisson2D::preprocess: Analytic Neumann conditio"
+                    <<"ns\n     can only be assigned to one topology set.\n"
+                    <<"     Ignoring specification for property code = "
+                    << p->pindx << std::endl;
+          ok = false;
+        }
       }
 
-  return this->SIM2D::preprocess(ignored,fixDup);
+  if (this->SIM2D::preprocess(ignored,fixDup) && ok) return true;
+
+  std::cerr <<"\n *** SIMPoisson2D::preprocess: Aborting due to above error(s)."
+            << std::endl;
+  return false;
 }
 
 
