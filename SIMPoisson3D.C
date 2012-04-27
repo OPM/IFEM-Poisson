@@ -34,6 +34,7 @@ void SIMPoisson3D::clearProperties ()
   // To prevent SIMbase::clearProperties deleting the analytical solution
   if (aCode[0] > 0) myScalars.erase(aCode[0]);
   if (aCode[1] > 0) myVectors.erase(aCode[1]);
+  aCode[0] = aCode[1] = 0;
 
   mVec.clear();
   prob.setSource(NULL);
@@ -142,10 +143,12 @@ bool SIMPoisson3D::parse (const TiXmlElement* elem)
   for (; child; child = child->NextSiblingElement())
 
     if (!strcasecmp(child->Value(),"isotropic")) {
-      int code = 0;
+      std::string set;
       double kappa = 1000.0;
-      utl::getAttribute(child,"code",code);
+      utl::getAttribute(child,"set",set);
       utl::getAttribute(child,"kappa",kappa);
+      int code = this->getUniquePropertyCode(set,0);
+      if (code == 0) utl::getAttribute(child,"code",code);
       if (code == 0)
         prob.setMaterial(kappa);
       else
@@ -210,52 +213,40 @@ bool SIMPoisson3D::parse (const TiXmlElement* elem)
 
 bool SIMPoisson3D::preprocess (const std::vector<int>& ignored, bool fixDup)
 {
-  bool ok = true;
-
   if (mySol) // Define analytical boundary condition fields
     for (PropertyVec::iterator p = myProps.begin(); p != myProps.end(); p++)
       if (p->pcode == Property::DIRICHLET_ANASOL)
       {
-        if (mySol->getScalarSol() && (aCode[0]==0 || aCode[0]==abs(p->pindx)))
-        {
+        if (!mySol->getScalarSol())
+          p->pcode = Property::UNDEFINED;
+	else if (aCode[0] == abs(p->pindx))
           p->pcode = Property::DIRICHLET_INHOM;
-          myScalars[abs(p->pindx)] = mySol->getScalarSol();
+	else if (aCode[0] == 0) 
+        {
           aCode[0] = abs(p->pindx);
+          myScalars[aCode[0]] = mySol->getScalarSol();
+          p->pcode = Property::DIRICHLET_INHOM;
         }
         else
-        {
           p->pcode = Property::UNDEFINED;
-          std::cerr <<" *** SIMPoisson3D::preprocess: Analytic Dirichlet condit"
-                    <<"ons\n     can only be assigned to one topology set.\n"
-                    <<"     Ignoring specification for property code = "
-                    << p->pindx << std::endl;
-          ok = false;
-        }
       }
       else if (p->pcode == Property::NEUMANN_ANASOL)
       {
-        if (mySol->getScalarSecSol() && (aCode[1] == 0 || aCode[1] == p->pindx))
-        {
+        if (!mySol->getScalarSecSol())
+          p->pcode = Property::UNDEFINED;
+	else if (aCode[1] == p->pindx)
           p->pcode = Property::NEUMANN;
-          myVectors[p->pindx] = mySol->getScalarSecSol();
+	else if (aCode[1] == 0)
+        {
           aCode[1] = p->pindx;
+          myVectors[aCode[1]] = mySol->getScalarSecSol();
+          p->pcode = Property::NEUMANN;
         }
         else
-        {
           p->pcode = Property::UNDEFINED;
-          std::cerr <<" *** SIMPoisson3D::preprocess: Analytic Neumann conditio"
-                    <<"ns\n     can only be assigned to one topology set.\n"
-                    <<"     Ignoring specification for property code = "
-                    << p->pindx << std::endl;
-          ok = false;
-        }
       }
 
-  if (this->SIM3D::preprocess(ignored,fixDup) && ok) return true;
-
-  std::cerr <<"\n *** SIMPoisson3D::preprocess: Aborting due to above error(s)."
-            << std::endl;
-  return false;
+  return this->SIM3D::preprocess(ignored,fixDup);
 }
 
 
