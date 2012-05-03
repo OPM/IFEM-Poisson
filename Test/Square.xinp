@@ -20,7 +20,7 @@
   <!-- General - boundary conditions !-->
   <boundaryconditions>
     <dirichlet set="Homogenous" comp="1"/>
-    <neumann type="anasol" set="Neumann" comp="1"/>
+    <neumann set="Neumann" comp="1" type="anasol"/>
   </boundaryconditions>
 
   <!-- Problem-specific block !-->
