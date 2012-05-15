@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdio.h>
 
 
 /*!
@@ -252,11 +251,12 @@ int main (int argc, char** argv)
   SIMoptions::ProjectionMap& pOpt = model->opt.project;
   SIMoptions::ProjectionMap::const_iterator pit;
 
-  // Default projection method
-  if (model->opt.discretization >= ASM::Spline)
+  // Set default projection method (tensor splines only)
+  bool staticSol = iop + model->opt.eig == 0 || iop == 10;
+  if (model->opt.discretization < ASM::Spline || !staticSol)
+    pOpt.clear(); // No projection if Lagrange/Spectral or no static solution
+  else if (model->opt.discretization == ASM::Spline)
     pOpt[SIMoptions::GLOBAL] = "Greville point projection";
-  else
-    pOpt.clear();
 
   model->setQuadratureRule(model->opt.nGauss[0],true);
 
@@ -268,7 +268,7 @@ int main (int argc, char** argv)
   bool iterate = true;
 
   DataExporter* exporter = NULL;
-  if (model->opt.dumpHDF5(infile) && (iop == 0 || iop == 10))
+  if (model->opt.dumpHDF5(infile) && staticSol)
   {
     if (linalg.myPid == 0)
       std::cout <<"\nWriting HDF5 file "<< model->opt.hdf5
