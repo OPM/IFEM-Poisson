@@ -261,8 +261,8 @@ int main (int argc, char** argv)
   model->setQuadratureRule(model->opt.nGauss[0],true);
 
   Matrix eNorm, ssol;
-  Vector gNorm, sol, load;
-  Vectors projs;
+  Vector sol, load;
+  Vectors projs, gNorm;
   std::vector<Mode> modes;
   int iStep = 1, nBlock = 0;
   bool iterate = true;
@@ -316,25 +316,23 @@ int main (int argc, char** argv)
 
     if (linalg.myPid == 0)
     {
-      AdaptiveSIM::printNorms(gNorm,eNorm,std::cout);
-      size_t j = model->haveAnaSol() ? 5 : 3;
-      for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++)
+      model->printNorms(gNorm,std::cout);
+      size_t j = 2;
+      for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++, j++)
       {
-	std::cout <<"\n>>> Error estimates based on "<< pit->second <<" <<<";
-	std::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm(j++);
-	std::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(j++);
+	std::cout <<"\n\n>>> Error estimates based on "<< pit->second <<" <<<";
+	std::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm[j](1);
+	std::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm[j](2);
 	std::cout <<"\n- relative error (% of |u^r|) : "
-		  << gNorm(j-1)/gNorm(j-2)*100.0;
+		  << gNorm[j](2)/gNorm[j](1)*100.0;
 	if (model->haveAnaSol() && j <= gNorm.size())
 	{
-	  std::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(j)
+	  std::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm[j](3)
 		    <<"\n- relative error (% of |u|)   : "
-		    << gNorm(j)/gNorm(3)*100.0;
+		    << gNorm[j](3)/gNorm[0](3)*100.0;
 	  std::cout <<"\nEffectivity index             : "
-		    << gNorm(j-1)/gNorm(4);
-	  j += 2; // because of the local effectivity index calculation
-	}
-        std::cout << std::endl;
+		    << gNorm[j](2)/gNorm[0](4);
+        }
       }
     }
     break;
@@ -418,7 +416,7 @@ int main (int argc, char** argv)
 	return 11;
 
     // Write element norms
-    if (!model->writeGlvN(eNorm,iStep,nBlock,prefix,4))
+    if (!model->writeGlvN(eNorm,iStep,nBlock,prefix))
       return 12;
 
     model->writeGlvStep(1,0.0,1);
