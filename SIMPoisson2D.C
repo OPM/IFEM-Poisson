@@ -225,17 +225,13 @@ bool SIMPoisson2D::parse (const TiXmlElement* elem)
   for (; child; child = child->NextSiblingElement())
 
     if (!strcasecmp(child->Value(),"isotropic")) {
-      std::string set;
+      int code = this->parseMaterialSet(child,mVec.size());
       double kappa = 1000.0;
-      utl::getAttribute(child,"set",set);
       utl::getAttribute(child,"kappa",kappa);
-      int code = this->getUniquePropertyCode(set,0);
-      if (code == 0) utl::getAttribute(child,"code",code);
       if (code == 0)
         prob.setMaterial(kappa);
-      else
-        this->setPropertyType(code,Property::MATERIAL,mVec.size());
       mVec.push_back(kappa);
+      std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
     }
 
     else if (!strcasecmp(child->Value(),"source")) {
@@ -346,7 +342,7 @@ bool SIMPoisson2D::preprocess (const std::vector<int>& ignored, bool fixDup)
           p->pcode = Property::UNDEFINED;
 	else if (aCode[0] == abs(p->pindx))
           p->pcode = Property::DIRICHLET_INHOM;
-	else if (aCode[0] == 0) 
+	else if (aCode[0] == 0)
         {
           aCode[0] = abs(p->pindx);
           myScalars[aCode[0]] = mySol->getScalarSol();
@@ -400,17 +396,22 @@ bool SIMPoisson2D::initNeumann (size_t propInd)
 }
 
 
-std::ostream& SIMPoisson2D::printNorms(const Vectors& norms, std::ostream& os)
+std::ostream& SIMPoisson2D::printNorms (const Vectors& norms, std::ostream& os)
 {
-  NormBase* norm = getNormIntegrand();
-  os << "Energy norm " << norm->getName(1,1) << ": " << norms[0](1) << std::endl
-     << "External energy " << norm->getName(1,2) << ": " << norms[0](2) << std::endl;
-  if (haveAnaSol())
-    os << "Exact norm " << norm->getName(1,3) << ": " << norms[0](3) << std::endl
-       << "Exact error " << norm->getName(1,4) << ": " << norms[0](4) << std::endl
-       << "Exact relative error (%) : "<< 100.0*norms[0](4)/norms[0](3) << std::endl;
+  if (norms.empty()) return os;
+
+  NormBase* norm = this->getNormIntegrand();
+  const Vector& gnorm = norms.front();
+
+  os <<"Energy norm "<< norm->getName(1,1) <<": "<< gnorm(1)
+     <<"\nExternal energy "<< norm->getName(1,2) <<": "<< gnorm(2);
+
+  if (mySol)
+    os <<"\nExact norm "<< norm->getName(1,3) <<": "<< gnorm(3)
+       <<"\nExact error "<< norm->getName(1,4) <<": "<< gnorm(4)
+       <<"\nExact relative error (%) : "<< 100.0*gnorm(4)/gnorm(3);
 
   delete norm;
 
-  return os;
+  return os << std::endl;
 }
