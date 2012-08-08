@@ -258,6 +258,14 @@ int main (int argc, char** argv)
   else if (model->opt.discretization == ASM::Spline)
     pOpt[SIMoptions::GLOBAL] = "Greville point projection";
 
+  const char* prefix[pOpt.size()+1];
+  prefix[pOpt.size()] = 0;
+  if (model->opt.format >= 0 || model->opt.dumpHDF5(infile)) {
+    int i=0;
+    for (pit = pOpt.begin(); pit != pOpt.end(); pit++)
+      prefix[i++] = pit->second.c_str();
+  }
+
   model->setQuadratureRule(model->opt.nGauss[0],true);
 
   Matrix eNorm, ssol;
@@ -282,6 +290,7 @@ int main (int argc, char** argv)
     exporter->setFieldValue("u",model, aSim ? &aSim->getSolution() : &sol);
     exporter->registerWriter(new HDF5Writer(model->opt.hdf5));
     exporter->registerWriter(new XMLWriter(model->opt.hdf5));
+    exporter->setNormPrefixes(prefix);
   }
 
   switch (iop+model->opt.eig) {
@@ -342,6 +351,9 @@ int main (int argc, char** argv)
     if (!aSim->initAdaptor(adaptor,2))
       break;
 
+    if (exporter)
+      exporter->setNormPrefixes(aSim->getNormPrefixes());
+
     while (iterate) {
       char iterationTag[256];
       sprintf(iterationTag, "Adaptive step #%03d", iStep);
@@ -396,9 +408,6 @@ int main (int argc, char** argv)
     // Write solution fields to VTF-file
     if (!model->writeGlvS(sol,iStep,nBlock))
       return 10;
-
-    const char* prefix[pOpt.size()+1];
-    prefix[pOpt.size()] = 0;
 
     // Write projected solution fields to VTF-file
     size_t i = 0;
