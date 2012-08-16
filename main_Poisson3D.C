@@ -11,6 +11,7 @@
 //!
 //==============================================================================
 
+#include "IFEM.h"
 #include "SIMPoisson3D.h"
 #include "SIMPoisson2D.h"
 #include "SIMPoisson1D.h"
@@ -137,6 +138,8 @@ int main (int argc, char** argv)
 	      <<"\n ====================================\n"
 	      <<"\n Executing command:\n";
     for (i = 0; i < argc; i++) std::cout <<" "<< argv[i];
+    std::cout << std::endl;
+    InitIFEM(argc, argv);
     std::cout <<"\n\nInput file: "<< infile
 	      <<"\nEquation solver: "<< dummy.solver
 	      <<"\nNumber of Gauss points: "<< dummy.nGauss[0];
