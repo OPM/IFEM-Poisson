@@ -279,6 +279,10 @@ int main (int argc, char** argv)
   int iStep = 1, nBlock = 0;
   bool iterate = true;
 
+  if (aSim)
+    aSim->setupProjections();
+
+  projs.resize(i+1);
   DataExporter* exporter = NULL;
   if (model->opt.dumpHDF5(infile) && staticSol)
   {
@@ -292,6 +296,13 @@ int main (int argc, char** argv)
                             DataExporter::SECONDARY |
                             DataExporter::NORMS);
     exporter->setFieldValue("u",model, aSim ? &aSim->getSolution() : &sol);
+    int i=0;
+    for (pit = pOpt.begin(); pit != pOpt.end(); pit++) {
+      exporter->registerField(prefix[i], "projected",DataExporter::SIM,
+                              DataExporter::PRIMARY, prefix[i]);
+      exporter->setFieldValue(prefix[i], model, aSim ? &aSim->getProjection(i) : &projs[i]);
+      i++;
+    }
     exporter->registerWriter(new HDF5Writer(model->opt.hdf5));
     exporter->registerWriter(new XMLWriter(model->opt.hdf5));
     exporter->setNormPrefixes(prefix);
