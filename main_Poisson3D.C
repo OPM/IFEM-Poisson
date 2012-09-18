@@ -264,11 +264,9 @@ int main (int argc, char** argv)
 
   const char* prefix[pOpt.size()+1];
   prefix[pOpt.size()] = 0;
-  if (model->opt.format >= 0 || model->opt.dumpHDF5(infile)) {
-    int i=0;
-    for (pit = pOpt.begin(); pit != pOpt.end(); pit++)
-      prefix[i++] = pit->second.c_str();
-  }
+  if (model->opt.format >= 0 || model->opt.dumpHDF5(infile))
+    for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++)
+      prefix[i] = pit->second.c_str();
 
   model->setQuadratureRule(model->opt.nGauss[0],true);
 
@@ -296,12 +294,11 @@ int main (int argc, char** argv)
                             DataExporter::SECONDARY |
                             DataExporter::NORMS);
     exporter->setFieldValue("u",model, aSim ? &aSim->getSolution() : &sol);
-    int i=0;
-    for (pit = pOpt.begin(); pit != pOpt.end(); pit++) {
-      exporter->registerField(prefix[i], "projected",DataExporter::SIM,
+    for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++) {
+      exporter->registerField(prefix[i], "projected", DataExporter::SIM,
                               DataExporter::PRIMARY, prefix[i]);
-      exporter->setFieldValue(prefix[i], model, aSim ? &aSim->getProjection(i) : &projs[i]);
-      i++;
+      exporter->setFieldValue(prefix[i], model,
+                              aSim ? &aSim->getProjection(i) : &projs[i]);
     }
     exporter->registerWriter(new HDF5Writer(model->opt.hdf5));
     exporter->registerWriter(new XMLWriter(model->opt.hdf5));
@@ -324,11 +321,11 @@ int main (int argc, char** argv)
 
     // Project the FE stresses onto the splines basis
     model->setMode(SIM::RECOVERY);
-    for (pit = pOpt.begin(); pit != pOpt.end(); pit++)
+    for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++)
       if (!model->project(ssol,sol,pit->first))
 	return 4;
       else
-	projs.push_back(ssol);
+	projs[i] = ssol;
 
     if (linalg.myPid == 0 && !pOpt.empty())
       std::cout << std::endl;
