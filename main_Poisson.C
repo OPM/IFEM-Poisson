@@ -1,7 +1,7 @@
 // $Id$
 //==============================================================================
 //!
-//! \file main_Poisson3D.C
+//! \file main_Poisson.C
 //!
 //! \date 20 May 2010
 //!
@@ -12,9 +12,9 @@
 //==============================================================================
 
 #include "IFEM.h"
-#include "SIMPoisson3D.h"
-#include "SIMPoisson2D.h"
 #include "SIMPoisson1D.h"
+#include "SIMPoisson2D.h"
+#include "SIMPoisson3D.h"
 #include "AdaptiveSIM.h"
 #include "LinAlgInit.h"
 #include "HDF5Writer.h"
