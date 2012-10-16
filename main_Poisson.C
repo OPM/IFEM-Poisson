@@ -12,9 +12,7 @@
 //==============================================================================
 
 #include "IFEM.h"
-#include "SIMPoisson1D.h"
-#include "SIMPoisson2D.h"
-#include "SIMPoisson3D.h"
+#include "SIMPoisson.h"
 #include "AdaptiveSIM.h"
 #include "LinAlgInit.h"
 #include "HDF5Writer.h"
