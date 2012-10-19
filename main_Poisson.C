@@ -86,7 +86,7 @@ int main (int argc, char** argv)
   const LinAlgInit& linalg = LinAlgInit::Init(argc,argv);
 
   for (i = 1; i < argc; i++)
-    if (dummy.parseOldOptions(argc,argv,i))
+    if (dummy.parseOldOptions(argc,argv,i)) // to avoid the warnings only
       ; // ignore the obsolete option
     else if (!strcmp(argv[i],"-ignore"))
       while (i < argc-1 && isdigit(argv[i+1][0]))
@@ -130,6 +130,7 @@ int main (int argc, char** argv)
     return 0;
   }
 
+  InitIFEM(argc, argv, linalg.myPid);
   if (linalg.myPid == 0)
   {
     std::cout <<"\n >>> IFEM Poisson equation solver <<<"
@@ -137,28 +138,27 @@ int main (int argc, char** argv)
 	      <<"\n Executing command:\n";
     for (i = 0; i < argc; i++) std::cout <<" "<< argv[i];
     std::cout << std::endl;
-    InitIFEM(argc, argv);
     std::cout <<"\n\nInput file: "<< infile
-	      <<"\nEquation solver: "<< dummy.solver
-	      <<"\nNumber of Gauss points: "<< dummy.nGauss[0];
-    if (dummy.format >= 0)
+	      <<"\nEquation solver: "<< IFEM_cmdOptions.solver
+	      <<"\nNumber of Gauss points: "<< IFEM_cmdOptions.nGauss[0];
+    if (IFEM_cmdOptions.format >= 0)
     {
-      std::cout <<"\nVTF file format: "<< (dummy.format ? "BINARY":"ASCII")
-		<<"\nNumber of visualization points: "<< dummy.nViz[0];
-      if (ndim > 1) std::cout <<" "<< dummy.nViz[1];
-      if (ndim > 2) std::cout <<" "<< dummy.nViz[2];
+      std::cout <<"\nVTF file format: "<< (IFEM_cmdOptions.format ? "BINARY":"ASCII")
+		<<"\nNumber of visualization points: "<< IFEM_cmdOptions.nViz[0];
+      if (ndim > 1) std::cout <<" "<< IFEM_cmdOptions.nViz[1];
+      if (ndim > 2) std::cout <<" "<< IFEM_cmdOptions.nViz[2];
     }
 
-    if (dummy.eig > 0)
-      std::cout <<"\nEigenproblem solver: "<< dummy.eig
-		<<"\nNumber of eigenvalues: "<< dummy.nev
-		<<"\nNumber of Arnoldi vectors: "<< dummy.ncv
-		<<"\nShift value: "<< dummy.shift;
-    if (dummy.discretization == ASM::Lagrange)
+    if (IFEM_cmdOptions.eig > 0)
+      std::cout <<"\nEigenproblem solver: "<< IFEM_cmdOptions.eig
+		<<"\nNumber of eigenvalues: "<< IFEM_cmdOptions.nev
+		<<"\nNumber of Arnoldi vectors: "<< IFEM_cmdOptions.ncv
+		<<"\nShift value: "<< IFEM_cmdOptions.shift;
+    if (IFEM_cmdOptions.discretization == ASM::Lagrange)
       std::cout <<"\nLagrangian basis functions are used";
-    else if (dummy.discretization == ASM::Spectral)
+    else if (IFEM_cmdOptions.discretization == ASM::Spectral)
       std::cout <<"\nSpectral basis functions are used";
-    else if (dummy.discretization == ASM::LRSpline)
+    else if (IFEM_cmdOptions.discretization == ASM::LRSpline)
       std::cout <<"\nLR-spline basis functions are used";
     if (SIMbase::ignoreDirichlet)
       std::cout <<"\nSpecified boundary conditions are ignored";
@@ -191,21 +191,12 @@ int main (int argc, char** argv)
   if (iop == 10)
   {
     theSim = aSim = new AdaptiveSIM(model);
-    dummy.discretization = ASM::LRSpline;
+    IFEM_cmdOptions.discretization = ASM::LRSpline;
   }
 
   // Read in model definitions
-  model->opt.discretization = dummy.discretization;
   if (!theSim->read(infile))
     return 1;
-
-  // Parse the obsolete options again to let them override input file tags
-  dummy.discretization = model->opt.discretization; // but not this option
-  for (i = 1; i < argc; i++)
-    if (!model->opt.parseOldOptions(argc,argv,i))
-      if (!strcmp(argv[i],"-ignore"))
-	while (i < argc-1 && isdigit(argv[i+1][0])) ++i;
-  model->opt.discretization = dummy.discretization; // XML-tag is used, if set
 
   // Boundary conditions can be ignored only in generalized eigenvalue analysis
   if (model->opt.eig != 4 && model->opt.eig != 6)
