@@ -82,7 +82,7 @@ int main (int argc, char** argv)
   char ndim = 3;
   char* infile = 0;
 
-  int myPid = argc > 1 ? InitIFEM(argc,argv) : 0;
+  int myPid = IFEM::Init(argc, argv);
 
   for (i = 1; i < argc; i++)
     if (dummy.parseOldOptions(argc,argv,i)) // to avoid the warnings only
@@ -136,28 +136,26 @@ int main (int argc, char** argv)
 	      <<"\n Executing command:\n";
     for (i = 0; i < argc; i++) std::cout <<" "<< argv[i];
     std::cout <<"\n\nInput file: "<< infile
-	      <<"\nEquation solver: "<< IFEM_cmdOptions.solver
-	      <<"\nNumber of Gauss points: "<< IFEM_cmdOptions.nGauss[0];
-    if (IFEM_cmdOptions.format >= 0)
+	      <<"\nEquation solver: "<< IFEM::getOptions().solver
+	      <<"\nNumber of Gauss points: "<< IFEM::getOptions().nGauss[0];
+    if (IFEM::getOptions().format >= 0)
     {
-      std::cout <<"\nVTF file format: "
-                << (IFEM_cmdOptions.format ? "BINARY":"ASCII")
-                <<"\nNumber of visualization points: "
-                << IFEM_cmdOptions.nViz[0];
-      if (ndim > 1) std::cout <<" "<< IFEM_cmdOptions.nViz[1];
-      if (ndim > 2) std::cout <<" "<< IFEM_cmdOptions.nViz[2];
+      std::cout <<"\nVTF file format: "<< (IFEM::getOptions().format ? "BINARY":"ASCII")
+		<<"\nNumber of visualization points: "<< IFEM::getOptions().nViz[0];
+      if (ndim > 1) std::cout <<" "<< IFEM::getOptions().nViz[1];
+      if (ndim > 2) std::cout <<" "<< IFEM::getOptions().nViz[2];
     }
 
-    if (IFEM_cmdOptions.eig > 0)
-      std::cout <<"\nEigenproblem solver: "<< IFEM_cmdOptions.eig
-		<<"\nNumber of eigenvalues: "<< IFEM_cmdOptions.nev
-		<<"\nNumber of Arnoldi vectors: "<< IFEM_cmdOptions.ncv
-		<<"\nShift value: "<< IFEM_cmdOptions.shift;
-    if (IFEM_cmdOptions.discretization == ASM::Lagrange)
+    if (IFEM::getOptions().eig > 0)
+      std::cout <<"\nEigenproblem solver: "<< IFEM::getOptions().eig
+		<<"\nNumber of eigenvalues: "<< IFEM::getOptions().nev
+		<<"\nNumber of Arnoldi vectors: "<< IFEM::getOptions().ncv
+		<<"\nShift value: "<< IFEM::getOptions().shift;
+    if (IFEM::getOptions().discretization == ASM::Lagrange)
       std::cout <<"\nLagrangian basis functions are used";
-    else if (IFEM_cmdOptions.discretization == ASM::Spectral)
+    else if (IFEM::getOptions().discretization == ASM::Spectral)
       std::cout <<"\nSpectral basis functions are used";
-    else if (IFEM_cmdOptions.discretization == ASM::LRSpline)
+    else if (IFEM::getOptions().discretization == ASM::LRSpline)
       std::cout <<"\nLR-spline basis functions are used";
     if (SIMbase::ignoreDirichlet)
       std::cout <<"\nSpecified boundary conditions are ignored";
@@ -190,7 +188,7 @@ int main (int argc, char** argv)
   if (iop == 10)
   {
     theSim = aSim = new AdaptiveSIM(model);
-    IFEM_cmdOptions.discretization = ASM::LRSpline;
+    IFEM::getOptions().discretization = ASM::LRSpline;
   }
 
   // Read in model definitions
