@@ -14,7 +14,6 @@
 #include "IFEM.h"
 #include "SIMPoisson.h"
 #include "AdaptiveSIM.h"
-#include "LinAlgInit.h"
 #include "HDF5Writer.h"
 #include "XMLWriter.h"
 #include "Utilities.h"
@@ -83,7 +82,7 @@ int main (int argc, char** argv)
   char ndim = 3;
   char* infile = 0;
 
-  const LinAlgInit& linalg = LinAlgInit::Init(argc,argv);
+  int myPid = argc > 1 ? InitIFEM(argc,argv) : 0;
 
   for (i = 1; i < argc; i++)
     if (dummy.parseOldOptions(argc,argv,i)) // to avoid the warnings only
@@ -130,21 +129,21 @@ int main (int argc, char** argv)
     return 0;
   }
 
-  InitIFEM(argc, argv, linalg.myPid);
-  if (linalg.myPid == 0)
+  if (myPid == 0)
   {
     std::cout <<"\n >>> IFEM Poisson equation solver <<<"
 	      <<"\n ====================================\n"
 	      <<"\n Executing command:\n";
     for (i = 0; i < argc; i++) std::cout <<" "<< argv[i];
-    std::cout << std::endl;
     std::cout <<"\n\nInput file: "<< infile
 	      <<"\nEquation solver: "<< IFEM_cmdOptions.solver
 	      <<"\nNumber of Gauss points: "<< IFEM_cmdOptions.nGauss[0];
     if (IFEM_cmdOptions.format >= 0)
     {
-      std::cout <<"\nVTF file format: "<< (IFEM_cmdOptions.format ? "BINARY":"ASCII")
-		<<"\nNumber of visualization points: "<< IFEM_cmdOptions.nViz[0];
+      std::cout <<"\nVTF file format: "
+                << (IFEM_cmdOptions.format ? "BINARY":"ASCII")
+                <<"\nNumber of visualization points: "
+                << IFEM_cmdOptions.nViz[0];
       if (ndim > 1) std::cout <<" "<< IFEM_cmdOptions.nViz[1];
       if (ndim > 2) std::cout <<" "<< IFEM_cmdOptions.nViz[2];
     }
@@ -209,7 +208,7 @@ int main (int argc, char** argv)
     else if (model->opt.nViz[i] > 2)
       vizRHS = false;
 
-  if (linalg.myPid == 0)
+  if (myPid == 0)
   {
     std::cout <<"\n\nEquation solver: "<< model->opt.solver
 	      <<"\nNumber of Gauss points: "<< model->opt.nGauss[0]
@@ -273,7 +272,7 @@ int main (int argc, char** argv)
   DataExporter* exporter = NULL;
   if (model->opt.dumpHDF5(infile) && staticSol)
   {
-    if (linalg.myPid == 0)
+    if (myPid == 0)
       std::cout <<"\nWriting HDF5 file "<< model->opt.hdf5
                 <<".hdf5"<< std::endl;
 
@@ -316,7 +315,7 @@ int main (int argc, char** argv)
       else
 	projs[i] = ssol;
 
-    if (linalg.myPid == 0 && !pOpt.empty())
+    if (myPid == 0 && !pOpt.empty())
       std::cout << std::endl;
 
     // Evaluate solution norms
@@ -324,11 +323,11 @@ int main (int argc, char** argv)
     if (!model->solutionNorms(Vectors(1,sol),projs,eNorm,gNorm))
       return 4;
 
-    if (linalg.myPid == 0)
+    if (myPid == 0)
     {
       model->printNorms(gNorm,std::cout);
       size_t j = 2;
-      for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++, j++)
+      for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++,j++)
       {
 	std::cout <<"\n\n>>> Error estimates based on "<< pit->second <<" <<<";
 	std::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm[j](1);
