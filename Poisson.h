@@ -35,7 +35,7 @@ public:
 
   //! \brief Defines the traction field to use in Neumann boundary conditions.
   void setTraction(VecFunc* tf) { tracFld = tf; }
-  //! \brief Defines the traction field to use in Neumann boundary conditions.
+  //! \brief Defines the heat flux field to use in Neumann boundary conditions.
   void setTraction(RealFunc* ff) { fluxFld = ff; }
   //! \brief Defines the heat source field.
   void setSource(RealFunc* src) { heatSrc = src; }
@@ -97,19 +97,19 @@ public:
   //! \param[in] X Cartesian coordinates of current point
   virtual bool evalSol(Vector& s, const VecFunc& asol, const Vec3& X) const;
 
-  //! \brief Evaluates the boundary traction field (if any) at specified point.
-  double getTraction(const Vec3& X, const Vec3& n) const;
+  //! \brief Evaluates the boundary heat flux (if any) at specified point.
+  double getFlux(const Vec3& X, const Vec3& n) const;
   //! \brief Evaluates the heat source (if any) at specified point.
   double getHeat(const Vec3& X) const;
 
-  //! \brief Writes the surface tractions for a given time step to VTF-file.
-  //! \param vtf The VTF-file object to receive the tractions
+  //! \brief Writes the heat flux vector for a given time step to VTF-file.
+  //! \param vtf The VTF-file object to receive the heat flux vectors
   //! \param[in] iStep Load/time step identifier
   //! \param nBlock Running result block counter
   virtual bool writeGlvT(VTF* vtf, int iStep, int& nBlock) const;
 
-  //! \brief Returns whether there are any traction values to write to VTF.
-  virtual bool hasTractionValues() const { return !tracVal.empty(); }
+  //! \brief Returns whether there are any heat flux values to write to VTF.
+  virtual bool hasTractionValues() const { return !fluxVal.empty(); }
 
   //! \brief Returns a pointer to an Integrand for solution norm evaluation.
   //! \note The Integrand object is allocated dynamically and has to be deleted
@@ -144,7 +144,7 @@ protected:
   RealFunc* fluxFld; //!< Pointer to boundary normal flux field
   RealFunc* heatSrc; //!< Pointer to interior heat source
 
-  mutable std::vector<Vec3Pair> tracVal; //!< Traction field point values
+  mutable std::vector<Vec3Pair> fluxVal; //!< Heat flux point values
 
   unsigned short int nsd; //!< Number of space dimensions (1, 2 or, 3)
 };
@@ -163,15 +163,6 @@ public:
   PoissonNorm(Poisson& p, VecFunc* a = 0);
   //! \brief Empty destructor.
   virtual ~PoissonNorm() {}
-
-  //! \brief Returns whether this norm has explicit boundary contributions.
-  virtual bool hasBoundaryTerms() const { return true; }
-
-  //! \brief Add external energy terms to relevant norms
-  void addBoundaryTerms(Vectors& gNorm, double extEnergy);
-
-  //! \brief Returns the number of norm quantities.
-  virtual size_t getNoFields(int fld=0) const;
 
   //! \brief Evaluates the integrand at an interior point.
   //! \param elmInt The local integral object to receive the contributions
@@ -193,12 +184,28 @@ public:
   //! \param elmInt The local integral object to receive the contributions
   virtual bool finalizeElement(LocalIntegral& elmInt, const TimeDomain&,size_t);
 
-  virtual bool hasElementContributions(size_t i, size_t j)
-  { 
-    return (i == 1 && j < 3) || i > 1;
-  }
+  //! \brief Returns whether this norm has explicit boundary contributions.
+  virtual bool hasBoundaryTerms() const { return true; }
 
-  const char* getName(size_t i, size_t j, const char* prefix);
+  //! \brief Adds external energy terms to relevant norms.
+  //! \param gNorm Global norm quantities
+  //! \param[in] energy Global external energy
+  virtual void addBoundaryTerms(Vectors& gNorm, double energy) const;
+
+  //! \brief Returns the number of norm groups or size of a specified group.
+  //! \param[in] group The norm group to return the size of
+  //! (if zero, return the number of groups)
+  virtual size_t getNoFields(int group = 0) const;
+
+  //! \brief Returns the name of a norm quantity.
+  //! \param[in] i The norm group (one-based index)
+  //! \param[in] j The norm number (one-based index)
+  //! \param[in] prefix Common prefix for all norm names
+  virtual const char* getName(size_t i, size_t j, const char* prefix) const;
+
+  //! \brief Returns whether a norm quantity stores element contributions.
+  virtual bool hasElementContributions(size_t i, size_t j) const;
+
 private:
   VecFunc* anasol; //!< Analytical heat flux
 };

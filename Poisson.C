@@ -40,7 +40,7 @@ double Poisson::getHeat (const Vec3& X) const
 }
 
 
-double Poisson::getTraction (const Vec3& X, const Vec3& n) const
+double Poisson::getFlux (const Vec3& X, const Vec3& n) const
 {
   if (fluxFld)
     return (*fluxFld)(X);
@@ -131,7 +131,7 @@ bool Poisson::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
 {
   if (!tracFld && !fluxFld)
   {
-    std::cerr <<" *** Poisson::evalBou: No tractions."<< std::endl;
+    std::cerr <<" *** Poisson::evalBou: No heat flux."<< std::endl;
     return false;
   }
 
@@ -142,18 +142,18 @@ bool Poisson::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
     return false;
   }
 
-  // Evaluate the Neumann value -q(X)*n
-  double trac = -this->getTraction(X,normal);
+  // Evaluate the Neumann value h = -q(X)*n
+  double h = -this->getFlux(X,normal);
 
-  // Store traction value for visualization
-  if (fe.iGP < tracVal.size() && abs(trac) > 1.0e-8)
+  // Store flux value for visualization
+  if (fe.iGP < fluxVal.size() && abs(h) > 1.0e-8)
   {
-    tracVal[fe.iGP].first = X;
-    tracVal[fe.iGP].second += trac*normal;
+    fluxVal[fe.iGP].first = X;
+    fluxVal[fe.iGP].second += h*normal;
   }
 
   // Integrate the Neumann value
-  elMat.b.front().add(fe.N,trac*fe.detJxW);
+  elMat.b.front().add(fe.N,h*fe.detJxW);
 
   return true;
 }
@@ -161,20 +161,20 @@ bool Poisson::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
 
 void Poisson::initIntegration (size_t, size_t nBp)
 {
-  tracVal.clear();
-  tracVal.resize(nBp,std::make_pair(Vec3(),Vec3()));
+  fluxVal.clear();
+  fluxVal.resize(nBp,std::make_pair(Vec3(),Vec3()));
 }
 
 
 bool Poisson::writeGlvT (VTF* vtf, int iStep, int& nBlock) const
 {
-  if (tracVal.empty())
+  if (fluxVal.empty())
     return true;
   else if (!vtf)
     return false;
 
-  // Write boundary tractions as discrete point vectors to the VTF-file
-  return vtf->writeVectors(tracVal,++nBlock,"Tractions",iStep);
+  // Write boundary heat flux as discrete point vectors to the VTF-file
+  return vtf->writeVectors(fluxVal,++nBlock,"Heat flux",iStep);
 }
 
 
@@ -279,20 +279,6 @@ PoissonNorm::PoissonNorm (Poisson& p, VecFunc* a) : NormBase(p), anasol(a)
 }
 
 
-size_t PoissonNorm::getNoFields (int fld) const
-{
-  if (fld == 0) {
-    size_t nf = 1;
-    for (size_t i = 0; i < prjsol.size(); i++)
-      if (!prjsol.empty())
-        nf++;
-    return nf;
-  }
-
-  return anasol ? 4 : 2;
-}
-
-
 bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 			   const Vec3& X) const
 {
@@ -362,13 +348,12 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
   ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
 
   // Evaluate the surface heat flux
-  double t = problem.getTraction(X,normal);
+  double h = problem.getFlux(X,normal);
   // Evaluate the temperature field
   double u = pnorm.vec.front().dot(fe.N);
 
-  // Integrate the external energy (t,u^h)
-  pnorm[1] += t*u*fe.detJxW;
-
+  // Integrate the external energy (h,u^h)
+  pnorm[1] += h*u*fe.detJxW;
   return true;
 }
 
@@ -389,8 +374,30 @@ bool PoissonNorm::finalizeElement (LocalIntegral& elmInt,
 }
 
 
-const char* PoissonNorm::getName(size_t i, size_t j, const char* prefix)
+void PoissonNorm::addBoundaryTerms (Vectors& gNorm, double energy) const
 {
+  gNorm.front()[1] += energy;
+}
+
+
+size_t PoissonNorm::getNoFields (int group) const
+{
+  size_t nf = 1;
+  if (group < 1)
+    for (size_t i = 0; i < prjsol.size(); i++)
+      nf += prjsol.empty() ? 0 : 1;
+  else
+    nf = anasol ? 4 : 2;
+
+  return nf;
+}
+
+
+const char* PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
+{
+  if (i == 0 || j == 0 || j > 4)
+    return this->NormBase::getName(i,j,prefix);
+
   static const char* s[8] = {
     "a(u^h,u^h)^0.5",
     "(h,u^h)^0.5",
@@ -402,11 +409,7 @@ const char* PoissonNorm::getName(size_t i, size_t j, const char* prefix)
     "effectivity index"
   };
 
-  size_t k;
-  if (i <= 1)
-    k = j-1;
-  else
-    k = j + 3;
+  size_t k = i > 1 ? j+3 : j-1;
 
   if (!prefix)
     return s[k];
@@ -419,7 +422,7 @@ const char* PoissonNorm::getName(size_t i, size_t j, const char* prefix)
 }
 
 
-void PoissonNorm::addBoundaryTerms(Vectors& gNorm, double extEnergy)
+bool PoissonNorm::hasElementContributions (size_t i, size_t j) const
 {
-  gNorm[0][1] += extEnergy;
+  return i > 1 || j != 2;
 }
