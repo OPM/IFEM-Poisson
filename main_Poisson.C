@@ -239,6 +239,13 @@ int main (int argc, char** argv)
   if (!model->preprocess(ignoredPatches,fixDup))
     return 1;
 
+  if (model->opt.discretization < ASM::Spline && !model->opt.hdf5.empty())
+  {
+    std::cout <<"\n ** HDF5 output is available for spline discretization only."
+	      <<" Deactivating...\n"<< std::endl;
+    model->opt.hdf5.clear();
+  }
+
   SIMoptions::ProjectionMap& pOpt = model->opt.project;
   SIMoptions::ProjectionMap::const_iterator pit;
 
@@ -275,7 +282,7 @@ int main (int argc, char** argv)
 
     // Include secondary results only if no projection has been requested.
     // The secondary results will be projected anyway, but without the
-    // nodal avaraging accross patch boundaries in case of multiple patches.
+    // nodal averaging across patch boundaries in case of multiple patches.
     int results = DataExporter::PRIMARY | DataExporter::NORMS;
     if (pOpt.empty()) results |= DataExporter::SECONDARY;
 
