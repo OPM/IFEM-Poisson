@@ -34,6 +34,11 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
       std::cout <<"\nHeat source function: Cube"<< std::endl;
       myScalars[code] = new PoissonCubeSource();
     }
+    else if (!strncasecmp(cline,"WATERFALL",9))
+    {
+      std::cout <<"\nHeat source function: Waterfall"<< std::endl;
+      myScalars[code] = new PoissonWaterfallSource();
+    }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(NULL," ");
@@ -58,6 +63,26 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
       std::cout <<"\nAnalytical solution: Cube"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(NULL,new PoissonCube());
+    }
+    else if (!strncasecmp(cline,"WATERFALL",9))
+    {
+      std::cout <<"\nAnalytical solution: Waterfall"<< std::endl;
+      if (!mySol)
+        mySol = new AnaSol(new PoissonWaterfallSol(),
+                           new PoissonWaterfall());
+
+      // Define the Dirichlet boundary condition from the analytical solution
+      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      if (code < 1)
+      {
+        std::cerr <<" *** SIMPoisson2D::parse: Specify code > 0 for the"
+                  <<" inhomogenous DIRICHLET boundary on Waterfall\n";
+        return false;
+      }
+      this->setPropertyType(code,Property::DIRICHLET_INHOM);
+      myScalars[code] = mySol->getScalarSol();
+      aCode[0] = code;
+      code = 0; // Avoid definition of Neumann property
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
@@ -102,6 +127,13 @@ bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* child)
       std::cout <<"\tHeat source function: Cube"<< std::endl;
       myScalars[code] = new PoissonCubeSource();
     }
+    else if (type == "waterfall") {
+      double eps = 0.002;
+      utl::getAttribute(child,"epsilon",eps);
+      std::cout <<"\tHeat source function: Waterfall, epsilon = "<< eps
+        << std::endl;
+      myScalars[code] = new PoissonWaterfallSource(eps);
+    }
     else if (type == "expression" && child->FirstChild()) {
       std::cout <<"\tHeat source function: "
                 << child->FirstChild()->Value() << std::endl;
@@ -123,6 +155,24 @@ bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* child)
       std::cout <<"\tAnalytical solution: Cube"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(NULL,new PoissonCube());
+    }
+    else if (type == "waterfall") {
+      double eps = 0.002;
+      utl::getAttribute(child,"epsilon",eps);
+      std::cout <<"\tAnalytical solution: Waterfall, epsilon = "<< eps
+        << std::endl;
+      if (!mySol)
+        mySol = new AnaSol(new PoissonWaterfallSol(eps),
+                           new PoissonWaterfall(eps));
+
+      // Define the Dirichlet boundary condition from the analytical solution
+      utl::getAttribute(child,"code",code);
+      if (code > 0)
+      {
+        this->setPropertyType(code,Property::DIRICHLET_INHOM);
+        myScalars[code] = mySol->getScalarSol();
+        aCode[0] = code;
+      }
     }
     else if (type == "expression") {
       std::cout <<"\tAnalytical solution: Expression"<< std::endl;

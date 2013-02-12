@@ -137,6 +137,49 @@ double PoissonInteriorLayerSource::evaluate (const Vec3& X) const
   /****************************************************************************/
 }
 
+Vec3 PoissonWaterfall::evaluate (const Vec3& X) const
+{
+  double x = X.x;
+  double y = X.y;
+  double z = X.z;
+  double r = sqrt(x*x + y*y + z*z);
+  double coef = 1.0 / r / epsilon / (1+pow((r-0.5)/epsilon,2));
+  Vec3 result;
+
+  result.x = -coef*x;
+  result.y = -coef*y;
+  result.z = -coef*z;
+  return result;
+}
+
+
+/*!
+  \class PoissonWaterfallSol
+
+  3D waterfall. Should be a sharp (as defined by epsilon) edge at r=0.5
+*/
+double PoissonWaterfallSol::evaluate (const Vec3& X) const
+{
+  double x = X.x;
+  double y = X.y;
+  double z = X.z;
+  double r = sqrt(x*x + y*y + z*z);
+  return atan((r-0.5)/epsilon);
+}
+
+double PoissonWaterfallSource::evaluate (const Vec3& X) const
+{
+  double x  = X.x;
+  double y  = X.y;
+  double z  = X.z;
+  double r2 = x*x + y*y + z*z;
+  double r  = sqrt(r2);
+  double e  = epsilon;
+
+  return 8*e * (-4*e*e+2*r-1) / r / pow(-4*e*e -4*r2 + 4*r - 1, 2);
+
+}
+
 
 Vec3 PoissonCube::evaluate (const Vec3& X) const
 {

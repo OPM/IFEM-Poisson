@@ -169,6 +169,68 @@ private:
   double SLOPE; //!< layer SLOPE
 };
 
+/*!
+  \brief Poisson 3D problem with smooth sharp solution and a steep interior layer.
+*/
+
+class PoissonWaterfall : public VecFunc
+{
+public:
+  //! \brief Default constructor.
+  PoissonWaterfall(double eps = 0.002) : epsilon(eps) {}
+  //! \brief Empty destructor.
+  virtual ~PoissonWaterfall() {}
+
+protected:
+  //! \brief Evaluates the heat flux at the point \a X.
+  virtual Vec3 evaluate(const Vec3& X) const;
+
+private:
+  double epsilon; //!< layer epsilon (waterfall width approx sqrt(5eps) )
+};
+
+
+/*!
+  \brief Analytical primary solution for PoissonWaterfall.
+*/
+
+class PoissonWaterfallSol : public RealFunc
+{
+public:
+  //! \brief Default constructor.
+  PoissonWaterfallSol(double eps = 0.002) : epsilon(eps) {}
+  //! \brief Empty destructor.
+  virtual ~PoissonWaterfallSol() {}
+
+protected:
+  //! \brief Evaluates the exact temperature distribution at the point \a X.
+  virtual double evaluate(const Vec3& X) const;
+
+private:
+  double epsilon; //!< layer epsilon (waterfall width approx sqrt(5eps) )
+};
+
+
+/*!
+  \brief Heat source for PoissonWaterfall.
+*/
+
+class PoissonWaterfallSource : public RealFunc
+{
+public:
+  //! \brief Default constructor.
+  PoissonWaterfallSource(double eps = 0.002) : epsilon(eps) {}
+  //! \brief Empty destructor.
+  virtual ~PoissonWaterfallSource() {}
+
+protected:
+  //! \brief Evaluates the heat field at the point \a X.
+  virtual double evaluate(const Vec3& X) const;
+
+private:
+  double epsilon; //!< layer epsilon (waterfall width approx sqrt(5eps) )
+};
+
 
 /*!
   \brief Analytic solution for the Poisson equation on a cube domain.

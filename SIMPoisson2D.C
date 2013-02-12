@@ -240,7 +240,7 @@ bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* child)
         << std::endl;
       if (!mySol)
         mySol = new AnaSol(new PoissonInteriorLayerSol(s),
-            new PoissonInteriorLayer(s));
+                           new PoissonInteriorLayer(s));
 
       // Define the Dirichlet boundary condition from the analytical solution
       utl::getAttribute(child,"code",code);
