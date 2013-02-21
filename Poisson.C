@@ -404,7 +404,7 @@ const char* PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
     "a(u,u)^0.5",
     "a(e,e)^0.5, e=u-u^h",
     "a(u^r,u^r)^0.5",
-    "a(e',e')^0.5, e'=u^r-u^h",
+    "a(e,e)^0.5, e=u^r-u^h",
     "a(e,e)^0.5, e=u-u^r",
     "effectivity index"
   };

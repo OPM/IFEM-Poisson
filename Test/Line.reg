@@ -6,8 +6,8 @@ Number of dofs        11
 Number of unknowns    10
 L2-norm            : 0.621255
 Max displacement   : 1.02607
-Energy norm a(u^h,u^h)^0.5: 1.5708
-External energy (h,u^h)^0.5: 1.5708
-Exact norm a(u,u)^0.5: 1.5708
-Exact error a(e,e)^0.5, e=u-u^h: 0.000567369
+Energy norm           a(u^h,u^h)^0.5 : 1.5708
+External energy          (h,u^h)^0.5 : 1.5708
+Exact norm                a(u,u)^0.5 : 1.5708
+Exact error      a(e,e)^0.5, e=u-u^h : 0.000567369
 Exact relative error (%) : 0.0361198

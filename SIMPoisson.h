@@ -15,13 +15,11 @@
 #define _SIM_POISSON_H
 
 #include "Poisson.h"
-
 #include "AnaSol.h"
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
 #include "Utilities.h"
-
 #include "tinyxml.h"
 
 
@@ -29,14 +27,13 @@
   \brief Driver class for NURBS-based FEM analysis of Poisson problems.
 */
 
-  template<class Dim>
-class SIMPoisson : public Dim
+template<class Dim> class SIMPoisson : public Dim
 {
 public:
   //! \brief Default constructor.
   //! \param[in] checkRHS If \e true, ensure the model is in a right-hand system
   SIMPoisson(bool checkRHS = false) : Dim(1,0,checkRHS), prob(Dim::dimension)
-  { 
+  {
     Dim::myProblem = &prob;
     aCode[0] = aCode[1] = 0;
   }
@@ -107,26 +104,6 @@ public:
     return Dim::preprocess(ignored,fixDup);
   }
 
-  //! \brief Print norms to stream
-  std::ostream& printNorms(const Vectors& norms, std::ostream& os)
-  {
-    if (norms.empty()) return os;
-
-    NormBase* norm = this->getNormIntegrand();
-    const Vector& gnorm = norms.front();
-
-    os <<"Energy norm "<< norm->getName(1,1) <<": "<< gnorm(1)
-       <<"\nExternal energy "<< norm->getName(1,2) <<": "<< gnorm(2);
-
-    if (Dim::mySol)
-      os <<"\nExact norm "<< norm->getName(1,3) <<": "<< gnorm(3)
-         <<"\nExact error "<< norm->getName(1,4) <<": "<< gnorm(4)
-         <<"\nExact relative error (%) : "<< 100.0*gnorm(4)/gnorm(3);
-
-    delete norm;
-
-    return os << std::endl;
-  }
 protected:
   //! \brief Parses a data section from the input stream.
   //! \param[in] keyWord Keyword of current data section to read
@@ -227,32 +204,24 @@ private:
   int       aCode[2]; //!< Analytical BC code (used by destructor)
 };
 
-typedef SIMPoisson<SIM1D> SIMPoisson1D;
-typedef SIMPoisson<SIM2D> SIMPoisson2D;
-typedef SIMPoisson<SIM3D> SIMPoisson3D;
 
+typedef SIMPoisson<SIM1D> SIMPoisson1D; //!< 1D specific driver
+typedef SIMPoisson<SIM2D> SIMPoisson2D; //!< 2D specific driver
+typedef SIMPoisson<SIM3D> SIMPoisson3D; //!< 3D specific driver
 
- //! \brief Template specialization - 1D specific input parsing
-   template<>
-bool SIMPoisson1D::parseDimSpecific(char* keyWord, std::istream& is);
+//! \brief Template specialization - 1D specific input parsing.
+template<> bool SIMPoisson1D::parseDimSpecific(char* keyWord, std::istream& is);
+//! \brief Template specialization - 1D specific input parsing.
+template<> bool SIMPoisson1D::parseDimSpecific(const TiXmlElement* elem);
 
-   template<> 
-bool SIMPoisson1D::parseDimSpecific(const TiXmlElement* elem);
+//! \brief Template specialization - 2D specific input parsing.
+template<> bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is);
+//! \brief Template specialization - 2D specific input parsing.
+template<> bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* elem);
 
-
- //! \brief Template specialization - 2D specific input parsing
-   template<>
-bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is);
-
-   template<> 
-bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* elem);
-
- 
- //! \brief Template specialization - 3D specific input parsing
-   template<> 
-bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is);
-
-   template<>
-bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* elem);
+//! \brief Template specialization - 3D specific input parsing.
+template<> bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is);
+//! \brief Template specialization - 3D specific input parsing.
+template<> bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* elem);
 
 #endif
