@@ -333,10 +333,10 @@ int main (int argc, char** argv)
     if (myPid == 0)
     {
       model->printNorms(gNorm,std::cout);
-      size_t j = 2;
+      size_t j = 1;
       for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++,j++)
       {
-	std::cout <<"\n\n>>> Error estimates based on "<< pit->second <<" <<<";
+	std::cout <<"\n>>> Error estimates based on "<< pit->second <<" <<<";
 	std::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm[j](1);
 	std::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm[j](2);
 	std::cout <<"\n- relative error (% of |u^r|) : "
@@ -349,6 +349,7 @@ int main (int argc, char** argv)
 	  std::cout <<"\nEffectivity index             : "
 		    << gNorm[j](2)/gNorm[0](4);
         }
+        std::cout << std::endl;
       }
     }
     break;
