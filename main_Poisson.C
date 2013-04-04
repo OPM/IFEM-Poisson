@@ -22,6 +22,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <cstdio>
+#include <fstream>
 
 
 /*!
@@ -46,6 +47,7 @@
   \arg -nv \a nv : Number of visualization points per knot-span in v-direction
   \arg -nw \a nw : Number of visualization points per knot-span in w-direction
   \arg -hdf5 : Write primary and projected secondary solution to HDF5 file
+  \arg -dumpASC : Dump model and solution to ASCII files for external processing
   \arg -ignore \a p1, \a p2, ... : Ignore these patches in the analysis
   \arg -eig \a iop : Eigenproblem solver to use (1...6)
   \arg -nev \a nev : Number of eigenvalues to compute
@@ -79,6 +81,7 @@ int main (int argc, char** argv)
   bool checkRHS = false;
   bool vizRHS = false;
   bool fixDup = false;
+  bool dumpASCII = false;
   char ndim = 3;
   char* infile = 0;
 
@@ -87,6 +90,8 @@ int main (int argc, char** argv)
   for (i = 1; i < argc; i++)
     if (dummy.parseOldOptions(argc,argv,i))
       ; // ignore the obsolete option
+    else if (!strcmp(argv[i],"-dumpASC"))
+      dumpASCII = myPid == 0; // not for parallel runs
     else if (!strcmp(argv[i],"-ignore"))
       while (i < argc-1 && isdigit(argv[i+1][0]))
 	utl::parseIntegers(ignoredPatches,argv[++i]);
@@ -125,7 +130,7 @@ int main (int argc, char** argv)
 	      <<"       [-DGL2] [-CGL2] [-SCR] [-VDLSA] [-LSQ] [-QUASI]\n"
 	      <<"       [-eig <iop> [-nev <nev>] [-ncv <ncv] [-shift <shf>]]\n"
 	      <<"       [-ignore <p1> <p2> ...] [-fixDup]"
-	      <<" [-checkRHS] [-check]\n";
+	      <<" [-checkRHS] [-check] [-dumpASC]\n";
     return 0;
   }
 
@@ -441,6 +446,27 @@ int main (int argc, char** argv)
   model->closeGlv();
   if (exporter && iop != 10)
     exporter->dumpTimeLevel();
+
+  if (dumpASCII)
+  {
+    // Write (refined) model to g2-file
+    std::ofstream osg(strcat(strtok(infile,"."),".g2"));
+    osg.precision(18);
+    std::cout <<"\nWriting updated g2-file "<< infile << std::endl;
+    model->dumpGeometry(osg);
+    if (!sol.empty())
+    {
+      // Write solution (control point values) to ASCII files
+      std::ofstream osd(strcat(strtok(infile,"."),".sol"));
+      osd.precision(18);
+      std::cout <<"\nWriting primary solution (temperature field) to file "<< infile << std::endl;
+      model->dumpPrimSol(sol,osd,false);
+      std::ofstream oss(strcat(strtok(infile,"."),".sec"));
+      oss.precision(18);
+      std::cout <<"\nWriting all solutions (heat flux etc) to file "<< infile << std::endl;
+      model->dumpSolution(sol,oss);
+    }
+  }
 
   utl::profiler->stop("Postprocessing");
   delete theSim;
