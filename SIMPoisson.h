@@ -60,63 +60,63 @@ public:
     prob.setSource(NULL);
     prob.setTraction((RealFunc*)NULL);
     prob.setTraction((VecFunc*)NULL);
-    this->SIMbase::clearProperties();
-  }
-
-  //! \brief Performs some pre-processing tasks on the FE model.
-  //! \details This method is reimplemented to resolve inhomogeneous boundary
-  //! condition fields in case they are derived from the analytical solution.
-  virtual bool preprocess(const std::vector<int>& ignored, bool fixDup)
-  {
-    if (Dim::mySol) // Define analytical boundary condition fields
-      for (PropertyVec::iterator p = Dim::myProps.begin(); p != Dim::myProps.end(); p++)
-        if (p->pcode == Property::DIRICHLET_ANASOL)
-        {
-          if (!Dim::mySol->getScalarSol())
-            p->pcode = Property::UNDEFINED;
-          else if (aCode[0] == abs(p->pindx))
-            p->pcode = Property::DIRICHLET_INHOM;
-          else if (aCode[0] == 0)
-          {
-            aCode[0] = abs(p->pindx);
-            Dim::myScalars[aCode[0]] = Dim::mySol->getScalarSol();
-            p->pcode = Property::DIRICHLET_INHOM;
-          }
-          else
-            p->pcode = Property::UNDEFINED;
-        }
-        else if (p->pcode == Property::NEUMANN_ANASOL)
-        {
-          if (!Dim::mySol->getScalarSecSol())
-            p->pcode = Property::UNDEFINED;
-          else if (aCode[1] == p->pindx)
-            p->pcode = Property::NEUMANN;
-          else if (aCode[1] == 0)
-          {
-            aCode[1] = p->pindx;
-            Dim::myVectors[aCode[1]] = Dim::mySol->getScalarSecSol();
-            p->pcode = Property::NEUMANN;
-          }
-          else
-            p->pcode = Property::UNDEFINED;
-        }
-
-    return Dim::preprocess(ignored,fixDup);
+    this->Dim::clearProperties();
   }
 
 protected:
+  //! \brief Performs some pre-processing tasks on the FE model.
+  //! \details This method is reimplemented to resolve inhomogeneous boundary
+  //! condition fields in case they are derived from the analytical solution.
+  virtual void preprocessA()
+  {
+    if (!Dim::mySol) return;
+
+    // Define analytical boundary condition fields
+    PropertyVec::iterator p;
+    for (p = Dim::myProps.begin(); p != Dim::myProps.end(); ++p)
+      if (p->pcode == Property::DIRICHLET_ANASOL)
+      {
+        if (!Dim::mySol->getScalarSol())
+          p->pcode = Property::UNDEFINED;
+        else if (aCode[0] == abs(p->pindx))
+          p->pcode = Property::DIRICHLET_INHOM;
+        else if (aCode[0] == 0)
+        {
+          aCode[0] = abs(p->pindx);
+          Dim::myScalars[aCode[0]] = Dim::mySol->getScalarSol();
+          p->pcode = Property::DIRICHLET_INHOM;
+        }
+        else
+          p->pcode = Property::UNDEFINED;
+      }
+      else if (p->pcode == Property::NEUMANN_ANASOL)
+      {
+        if (!Dim::mySol->getScalarSecSol())
+          p->pcode = Property::UNDEFINED;
+        else if (aCode[1] == p->pindx)
+          p->pcode = Property::NEUMANN;
+        else if (aCode[1] == 0)
+        {
+          aCode[1] = p->pindx;
+          Dim::myVectors[aCode[1]] = Dim::mySol->getScalarSecSol();
+          p->pcode = Property::NEUMANN;
+        }
+        else
+          p->pcode = Property::UNDEFINED;
+      }
+  }
+
   //! \brief Parses a data section from the input stream.
   //! \param[in] keyWord Keyword of current data section to read
   //! \param is The file stream to read from
   virtual bool parse(char* keyWord, std::istream& is)
   {
-    char* cline = 0;
-
-    if (parseDimSpecific(keyWord, is))
+    if (this->parseDimSpecific(keyWord,is))
       return true;
 
-    if (!strncasecmp(keyWord,"ISOTROPIC",9))
+    else if (!strncasecmp(keyWord,"ISOTROPIC",9))
     {
+      char* cline = 0;
       int nmat = atoi(keyWord+10);
       std::cout <<"\nNumber of isotropic materials: "<< nmat << std::endl;
       for (int i = 0; i < nmat && (cline = utl::readLine(is)); i++)
@@ -133,7 +133,7 @@ protected:
     }
 
     else
-      return Dim::parse(keyWord,is);
+      return this->Dim::parse(keyWord,is);
 
     return true;
   }
@@ -143,14 +143,14 @@ protected:
   virtual bool parse(const TiXmlElement* elem)
   {
     if (strcasecmp(elem->Value(),"poisson"))
-      return Dim::parse(elem);
+      return this->Dim::parse(elem);
 
     const TiXmlElement* child = elem->FirstChildElement();
-    for (; child; child = child->NextSiblingElement()) {
-      if (parseDimSpecific(child))
+    for (; child; child = child->NextSiblingElement())
+      if (this->parseDimSpecific(child))
         continue;
 
-      if (!strcasecmp(child->Value(),"isotropic")) {
+      else if (!strcasecmp(child->Value(),"isotropic")) {
         int code = this->parseMaterialSet(child,mVec.size());
         double kappa = 1000.0;
         utl::getAttribute(child,"kappa",kappa);
@@ -158,9 +158,10 @@ protected:
           prob.setMaterial(kappa);
         mVec.push_back(kappa);
         std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
-      } else
-        Dim::parse(child);
-    }
+      }
+
+      else
+        this->Dim::parse(child);
 
     return true;
   }
@@ -193,10 +194,13 @@ protected:
   }
 
 private:
-  //! \details This function allows for specialization of the template
-  //!          while still reusing as much code as possible. Only put
-  //!          dimension-specific code in here
+  //! \brief Parses a dimension-specific data section from an input stream.
+  //! \details This function allows for specialization of the template while
+  //! still reusing as much code as possible. Only for dimension-specific code.
   bool parseDimSpecific(char* keyWord, std::istream& is);
+  //! \brief Parses a dimension-specific data section from the an XML element.
+  //! \details This function allows for specialization of the template while
+  //! still reusing as much code as possible. Only for dimension-specific code.
   bool parseDimSpecific(const TiXmlElement* child);
 
   Poisson   prob;     //!< Data and methods for the Poisson problem
