@@ -6,11 +6,11 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       ${PROJECT_SOURCE_DIR}/../../cmake/Modules)
 
-# To allow standalone compilation out of the main tree
 IF(NOT IFEM_CONFIGURED)
   FIND_PACKAGE(IFEM REQUIRED)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IFEM_CXX_FLAGS}")
 ENDIF(NOT IFEM_CONFIGURED)
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IFEM_CXX_FLAGS}")
 
 # Generate regtest script with correct paths
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/../Common/scripts/regtest.sh.in
