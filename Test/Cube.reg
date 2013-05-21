@@ -1,13 +1,13 @@
 Cube.xinp
 
-Number of elements    4096
-Number of nodes       5832
-Number of dofs        5832
-Number of unknowns    4096
-L2-norm            : 0.300612
-Max displacement   : 0.999979
-Energy norm           a(u^h,u^h)^0.5 : 1.92382
-External energy          (h,u^h)^0.5 : 1.92382
+Number of elements    512
+Number of nodes       1000
+Number of dofs        1000
+Number of unknowns    512
+L2-norm            : 0.268054
+Max displacement   : 0.999665
+Energy norm           a(u^h,u^h)^0.5 : 1.92379
+External energy          (h,u^h)^0.5 : 1.92379
 Exact norm                a(u,u)^0.5 : 1.92382
-Exact error      a(e,e)^0.5, e=u-u^h : 0.00277941
-Exact relative error (%) : 0.144473
+Exact error      a(e,e)^0.5, e=u-u^h : 0.0113033
+Exact relative error (%) : 0.587543

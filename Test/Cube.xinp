@@ -6,7 +6,7 @@
   <geometry>
     <patchfile type="bsplines">cube.g2</patchfile>
     <raiseorder patch="1" u="1" v="1" w="1"/>
-    <refine type="uniform" patch="1" u="15" v="15" w="15"/>
+    <refine type="uniform" patch="1" u="7" v="7" w="7"/>
     <topologysets>
       <set name="Boundary" type="face">
         <item patch="1">1 2 3 4 5 6</item>
