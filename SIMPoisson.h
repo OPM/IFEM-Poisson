@@ -21,6 +21,7 @@
 #include "SIM3D.h"
 #include "Utilities.h"
 #include "tinyxml.h"
+#include "Functions.h"
 
 
 /*!
@@ -60,8 +61,11 @@ public:
     prob.setSource(NULL);
     prob.setTraction((RealFunc*)NULL);
     prob.setTraction((VecFunc*)NULL);
+    prob.clearGalerkinProjections();
     this->Dim::clearProperties();
   }
+
+  size_t getNoRHS() const { return 1 + prob.getNoGalerkin(); }
 
 protected:
   //! \brief Performs some pre-processing tasks on the FE model.
@@ -158,6 +162,10 @@ protected:
           prob.setMaterial(kappa);
         mVec.push_back(kappa);
         std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
+      }
+      else if (!strcasecmp(child->Value(),"galerkin")) {
+        if (child->FirstChild() && child->FirstChild()->Value())
+          prob.addGalerkin(new VecFuncExpr(child->FirstChild()->Value()));
       }
 
       else

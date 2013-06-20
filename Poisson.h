@@ -30,8 +30,8 @@ public:
   //! \brief The default constructor initializes all pointers to zero.
   //! \param[in] n Number of spatial dimensions
   Poisson(unsigned short int n = 3);
-  //! \brief Empty destructor.
-  virtual ~Poisson() {}
+  //! \brief Nearly empty destructor.
+  virtual ~Poisson() { clearGalerkinProjections(); }
 
   //! \brief Defines the traction field to use in Neumann boundary conditions.
   void setTraction(VecFunc* tf) { tracFld = tf; }
@@ -42,6 +42,15 @@ public:
 
   //! \brief Defines the conductivity (constitutive property).
   void setMaterial(double K) { kappa = K; }
+
+  //! \brief Add a Galerkin projection
+  void addGalerkin(VecFunc* g) { galerkin.push_back(g); }
+
+  //! \brief Returns the number of Galerkin projections
+  size_t getNoGalerkin() const { return galerkin.size(); }
+
+  //! \brief Clear up Galerkin projections
+  void clearGalerkinProjections();
 
   //! \brief Defines the solution mode before the element assembly is started.
   //! \param[in] mode The solution mode to use
@@ -145,6 +154,8 @@ protected:
   RealFunc* heatSrc; //!< Pointer to interior heat source
 
   mutable std::vector<Vec3Pair> fluxVal; //!< Heat flux point values
+
+  std::vector<VecFunc*> galerkin; //!< Pointer to functions to be galerkin projected
 
   unsigned short int nsd; //!< Number of space dimensions (1, 2 or, 3)
 };

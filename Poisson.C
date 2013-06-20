@@ -71,7 +71,7 @@ LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
     case SIM::STATIC:
       result->rhsOnly = neumann;
       result->withLHS = !neumann;
-      result->resize(neumann?0:1,1);
+      result->resize(neumann?0:1,1+galerkin.size());
       break;
 
     case SIM::VIBRATION:
@@ -95,8 +95,11 @@ LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
   if (result->A.size())
     result->A.front().resize(nen,nen);
 
-  if (result->b.size())
+  if (result->b.size()) {
     result->b.front().resize(nen);
+    for (size_t i=0;i<galerkin.size();++i)
+      result->b[i+1].resize(nen);
+  }
 
   return result;
 }
@@ -121,6 +124,15 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   // Integrate heat source, if defined
   if (heatSrc && !elMat.b.empty())
     elMat.b.front().add(fe.N,(*heatSrc)(X)*fe.detJxW);
+
+  // Galerkin projections a(u^h, v^h) = a(Pu, v^h) = a(w, v^h)
+  for (size_t a=0;a<galerkin.size();++a) {
+    Vec3 A = (*galerkin[a])(X);
+    for (size_t i=1; i<= fe.N.size(); ++i) {
+      for (size_t k=1; k<= nsd; ++k)
+        elMat.b[a+1](i) += A[k-1]*fe.dNdX(i,k)*fe.detJxW;
+    }
+  }
 
   return true;
 }
@@ -270,6 +282,14 @@ NormBase* Poisson::getNormIntegrand (AnaSol* asol) const
 			   asol->getScalarSecSol());
   else
     return new PoissonNorm(*const_cast<Poisson*>(this));
+}
+
+
+void Poisson::clearGalerkinProjections()
+{
+  for (size_t i=0;i<galerkin.size();++i)
+    delete galerkin[i];
+  galerkin.clear();
 }
 
 
