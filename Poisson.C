@@ -65,42 +65,32 @@ void Poisson::setMode (SIM::SolutionMode mode)
 LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
                                           bool neumann) const
 {
-  ElmMats* result = new ElmMats;
+  ElmMats* result = new ElmMats();
   switch (m_mode)
   {
     case SIM::STATIC:
       result->rhsOnly = neumann;
       result->withLHS = !neumann;
-      result->resize(neumann?0:1,1+galerkin.size());
+      result->resize(neumann ? 0 : 1, 1+galerkin.size());
       break;
 
     case SIM::VIBRATION:
-      result->withLHS = true;
       result->resize(1,0);
       break;
 
     case SIM::RHS_ONLY:
-      result->rhsOnly = true;
-      result->resize(0,1);
-      break;
+      result->resize(neumann ? 0 : 0, 1);
 
     case SIM::RECOVERY:
       result->rhsOnly = true;
+      result->withLHS = false;
       break;
 
     default:
-      break;
+      ;
   }
 
-  if (result->A.size())
-    result->A.front().resize(nen,nen);
-
-  if (result->b.size()) {
-    result->b.front().resize(nen);
-    for (size_t i=0;i<galerkin.size();++i)
-      result->b[i+1].resize(nen);
-  }
-
+  result->redim(nen);
   return result;
 }
 
@@ -125,13 +115,11 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   if (heatSrc && !elMat.b.empty())
     elMat.b.front().add(fe.N,(*heatSrc)(X)*fe.detJxW);
 
-  // Galerkin projections a(u^h, v^h) = a(Pu, v^h) = a(w, v^h)
-  for (size_t a=0;a<galerkin.size();++a) {
-    Vec3 A = (*galerkin[a])(X);
-    for (size_t i=1; i<= fe.N.size(); ++i) {
-      for (size_t k=1; k<= nsd; ++k)
-        elMat.b[a+1](i) += A[k-1]*fe.dNdX(i,k)*fe.detJxW;
-    }
+  // Galerkin projections a(u^h,v^h) = a(Pu,v^h) = a(w,v^h)
+  for (size_t a = 1; a <= galerkin.size(); a++)
+  {
+    Vec3 Gw = (*galerkin[a-1])(X) * fe.detJxW;
+    fe.dNdX.multiply(Gw.vec(nsd),elMat.b[a],false,true); // b += dNdX * Gw
   }
 
   return true;
@@ -285,10 +273,11 @@ NormBase* Poisson::getNormIntegrand (AnaSol* asol) const
 }
 
 
-void Poisson::clearGalerkinProjections()
+void Poisson::clearGalerkinProjections ()
 {
-  for (size_t i=0;i<galerkin.size();++i)
+  for (size_t i = 0; i < galerkin.size(); i++)
     delete galerkin[i];
+
   galerkin.clear();
 }
 
