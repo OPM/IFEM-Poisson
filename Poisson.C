@@ -79,7 +79,7 @@ LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
       break;
 
     case SIM::RHS_ONLY:
-      result->resize(neumann ? 0 : 0, 1);
+      result->resize(neumann ? 0 : 1, 1);
 
     case SIM::RECOVERY:
       result->rhsOnly = true;
