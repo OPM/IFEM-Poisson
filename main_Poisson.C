@@ -181,7 +181,7 @@ int main (int argc, char** argv)
   utl::profiler->start("Model input");
 
   // Create the simulation model
-  SIMbase* model;
+  SIMoutput* model;
   if (ndim == 1)
     model = new SIMPoisson1D();
   else if (ndim == 2)
@@ -459,11 +459,13 @@ int main (int argc, char** argv)
       // Write solution (control point values) to ASCII files
       std::ofstream osd(strcat(strtok(infile,"."),".sol"));
       osd.precision(18);
-      std::cout <<"\nWriting primary solution (temperature field) to file "<< infile << std::endl;
+      std::cout <<"\nWriting primary solution (temperature field) to file "
+                << infile << std::endl;
       model->dumpPrimSol(sol,osd,false);
       std::ofstream oss(strcat(strtok(infile,"."),".sec"));
       oss.precision(18);
-      std::cout <<"\nWriting all solutions (heat flux etc) to file "<< infile << std::endl;
+      std::cout <<"\nWriting all solutions (heat flux etc) to file "
+                << infile << std::endl;
       model->dumpSolution(sol,oss);
     }
   }
