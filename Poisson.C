@@ -166,7 +166,7 @@ void Poisson::initIntegration (size_t, size_t nBp)
 }
 
 
-bool Poisson::writeGlvT (VTF* vtf, int iStep, int& nBlock) const
+bool Poisson::writeGlvT (VTF* vtf, int iStep, int& geoBlk, int& nBlock) const
 {
   if (fluxVal.empty())
     return true;
@@ -174,7 +174,7 @@ bool Poisson::writeGlvT (VTF* vtf, int iStep, int& nBlock) const
     return false;
 
   // Write boundary heat flux as discrete point vectors to the VTF-file
-  return vtf->writeVectors(fluxVal,++nBlock,"Heat flux",iStep);
+  return vtf->writeVectors(fluxVal,geoBlk,++nBlock,"Heat flux",iStep);
 }
 
 

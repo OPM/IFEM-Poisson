@@ -272,7 +272,6 @@ int main (int argc, char** argv)
   Vector sol, load;
   Vectors projs(pOpt.size()), gNorm;
   std::vector<Mode> modes;
-  int iStep = 1, nBlock = 0;
   bool iterate = true;
 
   if (aSim)
@@ -367,20 +366,20 @@ int main (int argc, char** argv)
     if (exporter)
       exporter->setNormPrefixes(aSim->getNormPrefixes());
 
-    while (iterate) {
+    for (int iStep = 1; iterate; iStep++) {
       char iterationTag[256];
       sprintf(iterationTag, "Adaptive step #%03d", iStep);
       utl::profiler->start(iterationTag);
       if (!aSim->solveStep(infile,iStep))
         return 5;
-      else if (!aSim->writeGlv(infile,iStep,nBlock,2))
+      else if (!aSim->writeGlv(infile,iStep,2))
         return 6;
       else if (exporter)
         exporter->dumpTimeLevel(NULL,true);
       utl::profiler->stop(iterationTag);
       sprintf(iterationTag, "Refinement step #%03d", iStep);
       utl::profiler->start(iterationTag);
-      iterate = aSim->adaptMesh(++iStep);
+      iterate = aSim->adaptMesh(iStep+1);
       utl::profiler->stop(iterationTag);
     }
 
@@ -402,12 +401,14 @@ int main (int argc, char** argv)
 
   if (iop != 10 && model->opt.format >= 0)
   {
+    int geoBlk = 0, nBlock = 0;
+
     // Write VTF-file with model geometry
-    if (!model->writeGlvG(nBlock,infile))
+    if (!model->writeGlvG(geoBlk,infile))
       return 7;
 
     // Write boundary tractions, if any
-    if (!model->writeGlvT(iStep,nBlock))
+    if (!model->writeGlvT(1,geoBlk,nBlock))
       return 8;
 
     // Write Dirichlet boundary conditions
@@ -415,18 +416,18 @@ int main (int argc, char** argv)
       return 8;
 
     // Write load vector to VTF-file
-    if (!model->writeGlvV(load,"Load vector",iStep,nBlock))
+    if (!model->writeGlvV(load,"Load vector",1,nBlock))
       return 9;
 
     // Write solution fields to VTF-file
-    if (!model->writeGlvS(sol,iStep,nBlock))
+    if (!model->writeGlvS(sol,1,nBlock))
       return 10;
 
     // Write projected solution fields to VTF-file
     size_t i = 0;
     int iBlk = 100;
     for (pit = pOpt.begin(); pit != pOpt.end(); pit++, i++, iBlk += 10)
-      if (!model->writeGlvP(projs[i],iStep,nBlock,iBlk,pit->second.c_str()))
+      if (!model->writeGlvP(projs[i],1,nBlock,iBlk,pit->second.c_str()))
         return 11;
       else
 	prefix[i] = pit->second.c_str();
@@ -438,7 +439,7 @@ int main (int argc, char** argv)
 	return 11;
 
     // Write element norms
-    if (!model->writeGlvN(eNorm,iStep,nBlock,prefix))
+    if (!model->writeGlvN(eNorm,1,nBlock,prefix))
       return 12;
 
     model->writeGlvStep(1,0.0,1);
