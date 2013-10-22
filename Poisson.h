@@ -30,8 +30,8 @@ public:
   //! \brief The default constructor initializes all pointers to zero.
   //! \param[in] n Number of spatial dimensions
   Poisson(unsigned short int n = 3);
-  //! \brief Nearly empty destructor.
-  virtual ~Poisson() { clearGalerkinProjections(); }
+  //! \brief The destructor deletes the functions to be Galerkin-projected.
+  virtual ~Poisson() { this->clearGalerkinProjections(); }
 
   //! \brief Defines the traction field to use in Neumann boundary conditions.
   void setTraction(VecFunc* tf) { tracFld = tf; }
@@ -43,13 +43,11 @@ public:
   //! \brief Defines the conductivity (constitutive property).
   void setMaterial(double K) { kappa = K; }
 
-  //! \brief Add a Galerkin projection
+  //! \brief Adds a function subjected to Galerkin projection.
   void addGalerkin(VecFunc* g) { galerkin.push_back(g); }
-
-  //! \brief Returns the number of Galerkin projections
+  //! \brief Returns the number of Galerkin projections.
   size_t getNoGalerkin() const { return galerkin.size(); }
-
-  //! \brief Clear up Galerkin projections
+  //! \brief Clears up the Galerkin projections.
   void clearGalerkinProjections();
 
   //! \brief Defines the solution mode before the element assembly is started.
@@ -72,7 +70,7 @@ public:
   //! \param[in] fe Finite element data of current integration point
   //! \param[in] X Cartesian coordinates of current integration point
   virtual bool evalInt(LocalIntegral& elmInt, const FiniteElement& fe,
-		       const Vec3& X) const;
+                       const Vec3& X) const;
 
   //! \brief Evaluates the integrand at a boundary point.
   //! \param elmInt The local integral object to receive the contributions
@@ -80,17 +78,15 @@ public:
   //! \param[in] X Cartesian coordinates of current integration point
   //! \param[in] normal Boundary normal vector at current integration point
   virtual bool evalBou(LocalIntegral& elmInt, const FiniteElement& fe,
-		       const Vec3& X, const Vec3& normal) const;
+                       const Vec3& X, const Vec3& normal) const;
 
   //! \brief Evaluates the secondary solution at a result point.
   //! \param[out] s Array of solution field values at current point
-  //! \param[in] N Basis function values at current point
-  //! \param[in] dNdX Basis function gradients at current point
+  //! \param[in] fe Finite element data at current point
   //! \param[in] X Cartesian coordinates of current point
   //! \param[in] MNPC Nodal point correspondance for the basis function values
-  virtual bool evalSol(Vector& s,
-		       const Vector& N, const Matrix& dNdX,
-		       const Vec3& X, const std::vector<int>& MNPC) const;
+  virtual bool evalSol(Vector& s, const FiniteElement& fe,
+                       const Vec3& X, const std::vector<int>& MNPC) const;
 
   //! \brief Evaluates the finite element (FE) solution at an integration point.
   //! \param[out] s The FE solution values at current point
@@ -156,7 +152,7 @@ protected:
 
   mutable std::vector<Vec3Pair> fluxVal; //!< Heat flux point values
 
-  std::vector<VecFunc*> galerkin; //!< Pointer to functions to be galerkin projected
+  std::vector<VecFunc*> galerkin; //!< Functions to be Galerkin-projected
 
   unsigned short int nsd; //!< Number of space dimensions (1, 2 or, 3)
 };
@@ -181,7 +177,7 @@ public:
   //! \param[in] fe Finite element data of current integration point
   //! \param[in] X Cartesian coordinates of current integration point
   virtual bool evalInt(LocalIntegral& elmInt, const FiniteElement& fe,
-		       const Vec3& X) const;
+                       const Vec3& X) const;
 
   //! \brief Evaluates the integrand at a boundary point.
   //! \param elmInt The local integral object to receive the contributions
@@ -189,7 +185,7 @@ public:
   //! \param[in] X Cartesian coordinates of current integration point
   //! \param[in] normal Boundary normal vector at current integration point
   virtual bool evalBou(LocalIntegral& elmInt,  const FiniteElement& fe,
-		       const Vec3& X, const Vec3& normal) const;
+                       const Vec3& X, const Vec3& normal) const;
 
   //! \brief Finalizes the element norms after the numerical integration.
   //! \details This method is used to compute effectivity indices.

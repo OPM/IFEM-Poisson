@@ -185,9 +185,8 @@ bool Poisson::formCmatrix (Matrix& C, const Vec3&, bool invers) const
 }
 
 
-bool Poisson::evalSol (Vector& q, const Vector&,
-		       const Matrix& dNdX, const Vec3& X,
-		       const std::vector<int>& MNPC) const
+bool Poisson::evalSol (Vector& q, const FiniteElement& fe,
+                       const Vec3& X, const std::vector<int>& MNPC) const
 {
   if (primsol.empty() || primsol.front().empty())
   {
@@ -204,7 +203,7 @@ bool Poisson::evalSol (Vector& q, const Vector&,
     return false;
   }
 
-  return this->evalSol(q,eV,dNdX,X);
+  return this->evalSol(q,eV,fe.dNdX,X);
 }
 
 
