@@ -18,11 +18,11 @@
 #include "XMLWriter.h"
 #include "Utilities.h"
 #include "Profiler.h"
+#include <fstream>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <cstdio>
-#include <fstream>
 
 
 /*!
@@ -83,7 +83,7 @@ int main (int argc, char** argv)
   bool fixDup = false;
   bool dumpASCII = false;
   char ndim = 3;
-  char* infile = 0;
+  char* infile = NULL;
 
   int myPid = IFEM::Init(argc,argv);
 
@@ -94,7 +94,7 @@ int main (int argc, char** argv)
       dumpASCII = myPid == 0; // not for parallel runs
     else if (!strcmp(argv[i],"-ignore"))
       while (i < argc-1 && isdigit(argv[i+1][0]))
-	utl::parseIntegers(ignoredPatches,argv[++i]);
+        utl::parseIntegers(ignoredPatches,argv[++i]);
     else if (!strcmp(argv[i],"-free"))
       SIMbase::ignoreDirichlet = true;
     else if (!strcmp(argv[i],"-check"))
@@ -123,16 +123,19 @@ int main (int argc, char** argv)
   if (!infile)
   {
     std::cout <<"usage: "<< argv[0]
-	      <<" <inputfile> [-dense|-spr|-superlu[<nt>]|-samg|-petsc]\n      "
-	      <<" [-free] [-lag|-spec|-LR] [-1D|-2D] [-adap[<i>]] [-nGauss <n>]"
-	      <<"\n       [-vtf <format> [-nviz <nviz>]"
-	      <<" [-nu <nu>] [-nv <nv>] [-nw <nw>]] [-hdf5]\n"
-	      <<"       [-DGL2] [-CGL2] [-SCR] [-VDLSA] [-LSQ] [-QUASI]\n"
-	      <<"       [-eig <iop> [-nev <nev>] [-ncv <ncv] [-shift <shf>]]\n"
-	      <<"       [-ignore <p1> <p2> ...] [-fixDup]"
-	      <<" [-checkRHS] [-check] [-dumpASC]\n";
+              <<" <inputfile> [-dense|-spr|-superlu[<nt>]|-samg|-petsc]\n"
+              <<"       [-lag|-spec|-LR] [-1D|-2D] [-nGauss <n>]\n"
+              <<"       [-hdf5] [-vtf <format> [-nviz <nviz>]"
+              <<" [-nu <nu>] [-nv <nv>] [-nw <nw>]]\n       [-adap[<i>]]"
+              <<" [-DGL2] [-CGL2] [-SCR] [-VDLSA] [-LSQ] [-QUASI]\n      "
+              <<" [-eig <iop> [-nev <nev>] [-ncv <ncv] [-shift <shf>] [-free]]"
+              <<"\n       [-ignore <p1> <p2> ...] [-fixDup]"
+              <<" [-checkRHS] [-check] [-dumpASC]\n";
     return 0;
   }
+
+  if (iop == 10)
+    IFEM::getOptions().discretization = ASM::LRSpline;
 
   if (myPid == 0)
   {
@@ -190,12 +193,9 @@ int main (int argc, char** argv)
     model = new SIMPoisson3D(checkRHS);
 
   SIMinput* theSim = model;
-  AdaptiveSIM* aSim = 0;
+  AdaptiveSIM* aSim = NULL;
   if (iop == 10)
-  {
     theSim = aSim = new AdaptiveSIM(model);
-    IFEM::getOptions().discretization = ASM::LRSpline;
-  }
 
   // Read in model definitions
   if (!theSim->read(infile))
@@ -244,13 +244,6 @@ int main (int argc, char** argv)
   if (!model->preprocess(ignoredPatches,fixDup))
     return 1;
 
-  if (model->opt.discretization < ASM::Spline && !model->opt.hdf5.empty())
-  {
-    std::cout <<"\n ** HDF5 output is available for spline discretization only."
-	      <<" Deactivating...\n"<< std::endl;
-    model->opt.hdf5.clear();
-  }
-
   SIMoptions::ProjectionMap& pOpt = model->opt.project;
   SIMoptions::ProjectionMap::const_iterator pit;
 
@@ -260,6 +253,13 @@ int main (int argc, char** argv)
     pOpt.clear(); // No projection if Lagrange/Spectral or no static solution
   else if (model->opt.discretization == ASM::Spline && pOpt.empty())
     pOpt[SIMoptions::GLOBAL] = "Greville point projection";
+
+  if (model->opt.discretization < ASM::Spline && !model->opt.hdf5.empty())
+  {
+    std::cout <<"\n ** HDF5 output is available for spline discretization only."
+	      <<" Deactivating...\n"<< std::endl;
+    model->opt.hdf5.clear();
+  }
 
   const char* prefix[pOpt.size()];
   if (model->opt.format >= 0 || model->opt.dumpHDF5(infile))
@@ -291,10 +291,8 @@ int main (int argc, char** argv)
     if (pOpt.empty()) results |= DataExporter::SECONDARY;
 
     exporter = new DataExporter(true);
-    if (model->opt.eig > 0) {
-      exporter->registerField("eig", "eigenmode", DataExporter::SIM, DataExporter::EIGENMODES);
-      exporter->setFieldValue("eig", model, &modes);
-    } else {
+    if (staticSol)
+    {
       exporter->registerField("u","heat",DataExporter::SIM,results);
       exporter->setFieldValue("u",model, aSim ? &aSim->getSolution() : &sol);
       for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++) {
@@ -303,11 +301,16 @@ int main (int argc, char** argv)
         exporter->setFieldValue(prefix[i], model,
                                 aSim ? &aSim->getProjection(i) : &projs[i]);
       }
+      exporter->setNormPrefixes(prefix);
     }
-
+    if (model->opt.eig > 0)
+    {
+      exporter->registerField("eig", "eigenmode", DataExporter::SIM,
+                              DataExporter::EIGENMODES);
+      exporter->setFieldValue("eig", model, &modes);
+    }
     exporter->registerWriter(new HDF5Writer(model->opt.hdf5));
     exporter->registerWriter(new XMLWriter(model->opt.hdf5));
-    exporter->setNormPrefixes(prefix);
   }
 
   switch (iop+model->opt.eig) {
@@ -435,14 +438,12 @@ int main (int argc, char** argv)
     for (pit = pOpt.begin(); pit != pOpt.end(); pit++, i++, iBlk += 10)
       if (!model->writeGlvP(projs[i],1,nBlock,iBlk,pit->second.c_str()))
         return 11;
-      else
-	prefix[i] = pit->second.c_str();
 
     // Write eigenmodes
     bool isFreq = model->opt.eig==3 || model->opt.eig==4 || model->opt.eig==6;
     for (i = 0; i < modes.size(); i++)
       if (!model->writeGlvM(modes[i],isFreq,nBlock))
-	return 11;
+        return 11;
 
     // Write element norms
     if (!model->writeGlvN(eNorm,1,nBlock,prefix))
