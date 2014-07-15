@@ -3,8 +3,7 @@
 <simulation>
 
   <!-- General - geometry definitions !-->
-  <geometry>
-    <patchfile type="bsplines">line1D.g2</patchfile>
+  <geometry L="2.0">
     <raiseorder patch="1" u="2"/>
     <refine type="uniform" patch="1" u="7"/>
     <topologysets>
