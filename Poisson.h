@@ -188,10 +188,11 @@ public:
   virtual bool evalBou(LocalIntegral& elmInt,  const FiniteElement& fe,
                        const Vec3& X, const Vec3& normal) const;
 
+  using NormBase::finalizeElement;
   //! \brief Finalizes the element norms after the numerical integration.
   //! \details This method is used to compute effectivity indices.
   //! \param elmInt The local integral object to receive the contributions
-  virtual bool finalizeElement(LocalIntegral& elmInt, const TimeDomain&,size_t);
+  virtual bool finalizeElement(LocalIntegral& elmInt);
 
   //! \brief Returns whether this norm has explicit boundary contributions.
   virtual bool hasBoundaryTerms() const { return true; }

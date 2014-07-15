@@ -366,8 +366,7 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
 }
 
 
-bool PoissonNorm::finalizeElement (LocalIntegral& elmInt,
-				   const TimeDomain&, size_t)
+bool PoissonNorm::finalizeElement (LocalIntegral& elmInt)
 {
   if (!anasol) return true;
 
