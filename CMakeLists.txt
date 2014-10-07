@@ -15,10 +15,6 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IFEM_CXX_FLAGS}")
 # Generate regtest script with correct paths
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/../Common/scripts/regtest.sh.in
                regtest.sh)
-CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/../Common/scripts/doregtests.sh.in
-  doregtests.sh @ONLY)
-CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/../Common/scripts/check-patchseries.sh.in
-               check-patchseries.sh)
 
 set(Poisson_SRCS Poisson.C
                  PoissonSolutions.C
