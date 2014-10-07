@@ -1,0 +1,21 @@
+//==============================================================================
+//!
+//! \file TestSIMPoisson.C
+//!
+//! \date Oct 7 2014
+//!
+//! \author Arne Morten Kvarving / SINTEF
+//!
+//! \brief Tests for driver for NURBS-based FEM analysis of the Poisson equation.
+//!
+//==============================================================================
+
+#include "SIMPoisson.h"
+
+#include "gtest/gtest.h"
+
+TEST(TestSIMPoisson, Parse)
+{
+  SIMPoisson2D sim;
+  EXPECT_TRUE(sim.read("Square.xinp"));
+}

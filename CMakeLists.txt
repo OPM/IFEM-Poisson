@@ -20,14 +20,20 @@ CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/../Common/scripts/doregtests.sh.in
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/../Common/scripts/check-patchseries.sh.in
                check-patchseries.sh)
 
-FILE(GLOB Poisson_SRCS *.C)
+set(Poisson_SRCS Poisson.C
+                 PoissonSolutions.C
+                 SIMPoisson1D.C
+                 SIMPoisson2D.C
+                 SIMPoisson3D.C)
 
-INCLUDE_DIRECTORIES(${IFEM_INCLUDES})
+INCLUDE_DIRECTORIES(${IFEM_INCLUDES} ${PROJECT_SOURCE_DIR})
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
-ADD_EXECUTABLE(Poisson ${Poisson_SRCS})
-TARGET_LINK_LIBRARIES(Poisson ${IFEM_LIBRARIES})
+add_library(CommonPoisson ${Poisson_SRCS})
+
+ADD_EXECUTABLE(Poisson main_Poisson.C)
+TARGET_LINK_LIBRARIES(Poisson CommonPoisson ${IFEM_LIBRARIES})
 
 # Installation
 INSTALL(TARGETS Poisson DESTINATION bin COMPONENT bin)
@@ -44,3 +50,17 @@ ELSE(IFEM_USE_PARALLEL_PETSC)
     IFEM_ADD_TEST(${TESTFILE} Poisson)
   ENDFOREACH()
 ENDIF(IFEM_USE_PARALLEL_PETSC)
+list(APPEND TEST_APPS Poisson)
+
+# Unit tests
+IFEM_add_test_app(${PROJECT_SOURCE_DIR}/Test/*.C
+                  ${PROJECT_SOURCE_DIR}/Test
+                  Poisson
+                  CommonPoisson ${IFEM_LIBRARIES})
+
+if(IFEM_COMMON_APP_BUILD)
+  set(TEST_APPS ${TEST_APPS} PARENT_SCOPE)
+  set(UNIT_TEST_NUMBER ${UNIT_TEST_NUMBER} PARENT_SCOPE)
+else()
+  add_check_target()
+endif()
