@@ -30,6 +30,7 @@
       <primary>cos(PI*x)*(2-y)</primary>
       <secondary>PI*sin(PI*x)*(2-y)|cos(PI*x)</secondary>
     </anasol>
+    <galerkin>1.0</galerkin>
   </poisson>
 
 </simulation>

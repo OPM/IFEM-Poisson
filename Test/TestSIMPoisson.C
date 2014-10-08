@@ -18,4 +18,10 @@ TEST(TestSIMPoisson, Parse)
 {
   SIMPoisson2D sim;
   EXPECT_TRUE(sim.read("Square.xinp"));
+
+  const Poisson& poisson = static_cast<const Poisson&>(*sim.getProblem());
+
+  ASSERT_FLOAT_EQ(poisson.getHeat(Vec3()), M_PI*M_PI*2.0);
+  ASSERT_FLOAT_EQ(poisson.getMaterial(), 1.0);
+  EXPECT_EQ(poisson.getNoGalerkin(), 1);
 }

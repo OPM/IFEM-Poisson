@@ -43,6 +43,9 @@ public:
   //! \brief Defines the conductivity (constitutive property).
   void setMaterial(double K) { kappa = K; }
 
+  //! \brief Obtain current conductivity.
+  double getMaterial() const { return kappa; }
+
   //! \brief Adds a function subjected to Galerkin projection.
   void addGalerkin(VecFunc* g) { galerkin.push_back(g); }
   //! \brief Returns the number of Galerkin projections.
