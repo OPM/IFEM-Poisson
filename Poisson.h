@@ -145,6 +145,9 @@ public:
   //! \param[in] invers If \e true, set up the inverse matrix instead
   virtual bool formCmatrix(Matrix& C, const Vec3& X, bool invers = false) const;
 
+  //! \brief Return linear system type
+  virtual LinAlg::LinearSystemType getLinearSystemType() const { return LinAlg::SPD; }
+
 private:
   // Physical properties (constant)
   double kappa; //!< Conductivity
