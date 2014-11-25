@@ -4,7 +4,6 @@
 
   <!-- General - geometry definitions !-->
   <geometry>
-    <patchfile type="bsplines">cube.g2</patchfile>
     <raiseorder patch="1" u="1" v="1" w="1"/>
     <refine type="uniform" patch="1" u="7" v="7" w="7"/>
     <topologysets>
@@ -18,18 +17,6 @@
   <boundaryconditions>
     <dirichlet set="Boundary" comp="1"/>
   </boundaryconditions>
-
-  <!-- General - linear solver parameters !-->
-  <linearsolver>
-    <type>cg</type>
-    <pc>ilu</pc>
-    <package>petsc</package>
-    <levels>2</levels>
-    <atol>1.0e-12</atol>
-    <rtol>1.0e-12</rtol>
-    <dtol>1.0e6</dtol>
-    <maxits>5000</maxits>
-  </linearsolver>
 
   <!-- Problem-specific block !-->
   <poisson>
