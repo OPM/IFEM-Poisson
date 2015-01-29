@@ -139,33 +139,12 @@ int main (int argc, char** argv)
 
   if (myPid == 0)
   {
-    const SIMoptions& opts = IFEM::getOptions();
     std::cout <<"\n >>> IFEM Poisson equation solver <<<"
 	      <<"\n ====================================\n"
 	      <<"\n Executing command:\n";
     for (i = 0; i < argc; i++) std::cout <<" "<< argv[i];
-    std::cout <<"\n\nInput file: "<< infile
-	      <<"\nEquation solver: "<< opts.solver
-	      <<"\nNumber of Gauss points: "<< opts.nGauss[0];
-    if (opts.format >= 0)
-    {
-      std::cout <<"\nVTF file format: "<< (opts.format ? "BINARY":"ASCII")
-		<<"\nNumber of visualization points: "<< opts.nViz[0];
-      if (ndim > 1) std::cout <<" "<< opts.nViz[1];
-      if (ndim > 2) std::cout <<" "<< opts.nViz[2];
-    }
-
-    if (opts.eig > 0)
-      std::cout <<"\nEigenproblem solver: "<< opts.eig
-		<<"\nNumber of eigenvalues: "<< opts.nev
-		<<"\nNumber of Arnoldi vectors: "<< opts.ncv
-		<<"\nShift value: "<< opts.shift;
-    if (opts.discretization == ASM::Lagrange)
-      std::cout <<"\nLagrangian basis functions are used";
-    else if (opts.discretization == ASM::Spectral)
-      std::cout <<"\nSpectral basis functions are used";
-    else if (opts.discretization == ASM::LRSpline)
-      std::cout <<"\nLR-spline basis functions are used";
+    std::cout <<"\n\nInput file: "<< infile;
+    IFEM::getOptions().print(std::cout);
     if (SIMbase::ignoreDirichlet)
       std::cout <<"\nSpecified boundary conditions are ignored";
     if (fixDup)
@@ -213,30 +192,7 @@ int main (int argc, char** argv)
       vizRHS = false;
 
   if (myPid == 0)
-  {
-    std::cout <<"\n\nEquation solver: "<< model->opt.solver
-	      <<"\nNumber of Gauss points: "<< model->opt.nGauss[0]
-	      <<" "<< model->opt.nGauss[1];
-    if (model->opt.format >= 0)
-    {
-      std::cout <<"\nVTF file format: "<< (model->opt.format ? "BINARY":"ASCII")
-		<<"\nNumber of visualization points: "<< model->opt.nViz[0];
-      if (ndim > 1) std::cout <<" "<< model->opt.nViz[1];
-      if (ndim > 2) std::cout <<" "<< model->opt.nViz[2];
-    }
-    if (model->opt.eig > 0)
-      std::cout <<"\nEigenproblem solver: "<< model->opt.eig
-		<<"\nNumber of eigenvalues: "<< model->opt.nev
-		<<"\nNumber of Arnoldi vectors: "<< model->opt.ncv
-		<<"\nShift value: "<< model->opt.shift;
-    if (model->opt.discretization == ASM::Lagrange)
-      std::cout <<"\nLagrangian basis functions are used";
-    else if (model->opt.discretization == ASM::Spectral)
-      std::cout <<"\nSpectral basis functions are used";
-    else if (model->opt.discretization == ASM::LRSpline)
-      std::cout <<"\nLR-spline basis functions are used";
-    std::cout << std::endl;
-  }
+    model->opt.print(std::cout,true) << std::endl;
 
   utl::profiler->stop("Model input");
 
