@@ -149,7 +149,7 @@ int main (int argc, char** argv)
       std::cout <<"\nSpecified boundary conditions are ignored";
     if (fixDup)
       std::cout <<"\nCo-located nodes will be merged";
-    if (checkRHS)
+    if (checkRHS && ndim > 1)
       std::cout <<"\nCheck that each patch has a right-hand coordinate system";
     if (!ignoredPatches.empty())
     {
@@ -167,7 +167,7 @@ int main (int argc, char** argv)
   if (ndim == 1)
     model = new SIMPoisson1D();
   else if (ndim == 2)
-    model = new SIMPoisson2D();
+    model = new SIMPoisson2D(checkRHS);
   else
     model = new SIMPoisson3D(checkRHS);
 
