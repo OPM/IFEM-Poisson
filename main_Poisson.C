@@ -136,28 +136,26 @@ int main (int argc, char** argv)
   if (iop == 10)
     IFEM::getOptions().discretization = ASM::LRSpline;
 
-  if (myPid == 0)
+  IFEM::cout <<"\n >>> IFEM Poisson equation solver <<<"
+             <<"\n ====================================\n"
+             <<"\n Executing command:\n";
+  for (i = 0; i < argc; i++) IFEM::cout <<" "<< argv[i];
+  IFEM::cout <<"\n\nInput file: "<< infile;
+  IFEM::getOptions().print(IFEM::cout);
+  if (SIMbase::ignoreDirichlet)
+    IFEM::cout <<"\nSpecified boundary conditions are ignored";
+  if (fixDup)
+    IFEM::cout <<"\nCo-located nodes will be merged";
+  if (checkRHS && ndim > 1)
+    IFEM::cout <<"\nCheck that each patch has a right-hand coordinate system";
+  if (!ignoredPatches.empty())
   {
-    std::cout <<"\n >>> IFEM Poisson equation solver <<<"
-	      <<"\n ====================================\n"
-	      <<"\n Executing command:\n";
-    for (i = 0; i < argc; i++) std::cout <<" "<< argv[i];
-    std::cout <<"\n\nInput file: "<< infile;
-    IFEM::getOptions().print(std::cout);
-    if (SIMbase::ignoreDirichlet)
-      std::cout <<"\nSpecified boundary conditions are ignored";
-    if (fixDup)
-      std::cout <<"\nCo-located nodes will be merged";
-    if (checkRHS && ndim > 1)
-      std::cout <<"\nCheck that each patch has a right-hand coordinate system";
-    if (!ignoredPatches.empty())
-    {
-      std::cout <<"\nIgnored patches:";
-      for (size_t i = 0; i < ignoredPatches.size(); i++)
-	std::cout <<" "<< ignoredPatches[i];
-    }
-    std::cout << std::endl;
+    IFEM::cout <<"\nIgnored patches:";
+    for (size_t i = 0; i < ignoredPatches.size(); i++)
+      IFEM::cout <<" "<< ignoredPatches[i];
   }
+  IFEM::cout << std::endl;
+
   utl::profiler->stop("Initialization");
   utl::profiler->start("Model input");
 
@@ -190,8 +188,7 @@ int main (int argc, char** argv)
     else if (model->opt.nViz[i] > 2)
       vizRHS = false;
 
-  if (myPid == 0)
-    model->opt.print(std::cout,true) << std::endl;
+  model->opt.print(IFEM::cout,true) << std::endl;
 
   utl::profiler->stop("Model input");
 
@@ -211,8 +208,8 @@ int main (int argc, char** argv)
 
   if (model->opt.discretization < ASM::Spline && !model->opt.hdf5.empty())
   {
-    std::cout <<"\n ** HDF5 output is available for spline discretization only."
-	      <<" Deactivating...\n"<< std::endl;
+    IFEM::cout <<"\n ** HDF5 output is available for spline discretization only."
+               <<" Deactivating...\n"<< std::endl;
     model->opt.hdf5.clear();
   }
 
@@ -270,6 +267,7 @@ int main (int argc, char** argv)
 
   switch (iop+model->opt.eig) {
   case 0:
+  {
     model->setMode(SIM::STATIC);
     model->initSystem(model->opt.solver,1,1);
     model->setAssociatedRHS(0,0);
@@ -290,38 +288,35 @@ int main (int argc, char** argv)
       else
 	projs[i] = ssol;
 
-    if (myPid == 0 && !pOpt.empty())
-      std::cout << std::endl;
+    if (!pOpt.empty())
+      IFEM::cout << std::endl;
 
     // Evaluate solution norms
     model->setQuadratureRule(model->opt.nGauss[1]);
     if (!model->solutionNorms(Vectors(1,sol),projs,eNorm,gNorm))
       return 4;
 
-    if (myPid == 0)
+    model->printNorms(gNorm,IFEM::cout);
+    size_t j = 1;
+    for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++,j++)
     {
-      model->printNorms(gNorm,std::cout);
-      size_t j = 1;
-      for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++,j++)
+      IFEM::cout <<"\n>>> Error estimates based on "<< pit->second <<" <<<";
+      IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm[j](1);
+      IFEM::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm[j](2);
+      IFEM::cout <<"\n- relative error (% of |u^r|) : "
+                 << gNorm[j](2)/gNorm[j](1)*100.0;
+      if (model->haveAnaSol() && j <= gNorm.size())
       {
-	std::cout <<"\n>>> Error estimates based on "<< pit->second <<" <<<";
-	std::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm[j](1);
-	std::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm[j](2);
-	std::cout <<"\n- relative error (% of |u^r|) : "
-		  << gNorm[j](2)/gNorm[j](1)*100.0;
-	if (model->haveAnaSol() && j <= gNorm.size())
-	{
-	  std::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm[j](3)
-		    <<"\n- relative error (% of |u|)   : "
-		    << gNorm[j](3)/gNorm[0](3)*100.0;
-	  std::cout <<"\nEffectivity index             : "
-		    << gNorm[j](2)/gNorm[0](4);
-        }
-        std::cout << std::endl;
+        IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm[j](3)
+                   <<"\n- relative error (% of |u|)   : "
+                   << gNorm[j](3)/gNorm[0](3)*100.0;
+        IFEM::cout <<"\nEffectivity index             : "
+                   << gNorm[j](2)/gNorm[0](4);
       }
+      IFEM::cout << std::endl;
     }
     break;
-
+  }
   case 10:
     // Adaptive simulation
     if (!aSim->initAdaptor(adaptor,2))
@@ -415,21 +410,24 @@ int main (int argc, char** argv)
     // Write (refined) model to g2-file
     std::ofstream osg(strcat(strtok(infile,"."),".g2"));
     osg.precision(18);
-    std::cout <<"\nWriting updated g2-file "<< infile << std::endl;
-    model->dumpGeometry(osg);
+    IFEM::cout <<"\nWriting updated g2-file "<< infile << std::endl;
+    utl::LogStream log(osg);
+    model->dumpGeometry(log);
     if (!sol.empty())
     {
       // Write solution (control point values) to ASCII files
       std::ofstream osd(strcat(strtok(infile,"."),".sol"));
       osd.precision(18);
-      std::cout <<"\nWriting primary solution (temperature field) to file "
-                << infile << std::endl;
-      model->dumpPrimSol(sol,osd,false);
+      IFEM::cout <<"\nWriting primary solution (temperature field) to file "
+                 << infile << std::endl;
+      utl::LogStream log(osd);
+      model->dumpPrimSol(sol,log,false);
       std::ofstream oss(strcat(strtok(infile,"."),".sec"));
       oss.precision(18);
-      std::cout <<"\nWriting all solutions (heat flux etc) to file "
-                << infile << std::endl;
-      model->dumpSolution(sol,oss);
+      IFEM::cout <<"\nWriting all solutions (heat flux etc) to file "
+                 << infile << std::endl;
+      utl::LogStream log2(oss);
+      model->dumpSolution(sol,log2);
     }
   }
 
