@@ -39,10 +39,11 @@ public:
     aCode[0] = aCode[1] = 0;
   }
 
-  //! \brief The destructor cleans up the dynamically allocated objects.
+  //! \brief The destructor zero out the integrand pointer (deleted by parent).
   virtual ~SIMPoisson()
   {
     Dim::myProblem = NULL; // Because it is not dynamically allocated
+    Dim::myInts.clear();
 
     // To prevent the SIMbase destructor try to delete already deleted functions
     if (aCode[0] > 0) Dim::myScalars.erase(aCode[0]);
