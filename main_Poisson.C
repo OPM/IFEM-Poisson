@@ -410,8 +410,7 @@ int main (int argc, char** argv)
     std::ofstream osg(strcat(strtok(infile,"."),".g2"));
     osg.precision(18);
     IFEM::cout <<"\nWriting updated g2-file "<< infile << std::endl;
-    utl::LogStream log(osg);
-    model->dumpGeometry(log);
+    model->dumpGeometry(osg);
     if (!sol.empty())
     {
       // Write solution (control point values) to ASCII files
