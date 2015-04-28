@@ -232,9 +232,8 @@ int main (int argc, char** argv)
   DataExporter* exporter = NULL;
   if (model->opt.dumpHDF5(infile))
   {
-    if (myPid == 0)
-      std::cout <<"\nWriting HDF5 file "<< model->opt.hdf5
-                <<".hdf5"<< std::endl;
+    IFEM::cout <<"\nWriting HDF5 file "<< model->opt.hdf5
+               <<".hdf5"<< std::endl;
 
     // Include secondary results only if no projection has been requested.
     // The secondary results will be projected anyway, but without the
@@ -296,7 +295,7 @@ int main (int argc, char** argv)
     if (!model->solutionNorms(Vectors(1,sol),projs,eNorm,gNorm))
       return 4;
 
-    model->printNorms(gNorm,IFEM::cout);
+    model->printNorms(gNorm);
     size_t j = 1;
     for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++,j++)
     {
