@@ -146,7 +146,7 @@ bool Poisson::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
   double h = -this->getFlux(X,normal);
 
   // Store flux value for visualization
-  if (fe.iGP < fluxVal.size() && abs(h) > 1.0e-8)
+  if (fe.iGP < fluxVal.size() && fabs(h) > 1.0e-8)
   {
     fluxVal[fe.iGP].first = X;
     fluxVal[fe.iGP].second += h*normal;
