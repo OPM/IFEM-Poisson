@@ -23,9 +23,10 @@
 #include "WeakOperators.h"
 
 
-Poisson::Poisson (unsigned short int n) : nsd(n)
+Poisson::Poisson (unsigned short int n)
 {
   npv = 1; // One primary unknown per node (scalar equation)
+  nsd = n;
 
   kappa = 1.0;
 
@@ -227,13 +228,6 @@ bool Poisson::evalSol (Vector& q, const Vector& eV,
   CB.multiply(C,dNdX,false,true).multiply(eV,q); // q = C*dNdX^T*eV
   q *= -1.0;
 
-  return true;
-}
-
-
-bool Poisson::evalSol (Vector& s, const VecFunc& asol, const Vec3& X) const
-{
-  s = Vector(asol(X).ptr(),nsd);
   return true;
 }
 

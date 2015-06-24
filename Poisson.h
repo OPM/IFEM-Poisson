@@ -100,12 +100,6 @@ public:
   bool evalSol(Vector& s, const Vector& eV,
                const Matrix& dNdX, const Vec3& X) const;
 
-  //! \brief Evaluates the analytical solution at an integration point.
-  //! \param[out] s The analytical solution values at current point
-  //! \param[in] asol The analytical solution field (heat flux)
-  //! \param[in] X Cartesian coordinates of current point
-  virtual bool evalSol(Vector& s, const VecFunc& asol, const Vec3& X) const;
-
   //! \brief Evaluates the boundary heat flux (if any) at specified point.
   double getFlux(const Vec3& X, const Vec3& n) const;
   //! \brief Evaluates the heat source (if any) at specified point.
@@ -160,8 +154,6 @@ protected:
   mutable std::vector<Vec3Pair> fluxVal; //!< Heat flux point values
 
   std::vector<VecFunc*> galerkin; //!< Functions to be Galerkin-projected
-
-  unsigned short int nsd; //!< Number of space dimensions (1, 2 or, 3)
 };
 
 
