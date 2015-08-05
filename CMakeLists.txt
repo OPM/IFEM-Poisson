@@ -22,14 +22,14 @@ set(Poisson_SRCS Poisson.C
                  SIMPoisson2D.C
                  SIMPoisson3D.C)
 
-INCLUDE_DIRECTORIES(${IFEM_INCLUDES} ${PROJECT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${IFEM_INCLUDES} ../Common ${PROJECT_SOURCE_DIR})
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 add_library(CommonPoisson ${Poisson_SRCS})
 
 ADD_EXECUTABLE(Poisson main_Poisson.C)
-TARGET_LINK_LIBRARIES(Poisson CommonPoisson ${IFEM_LIBRARIES})
+TARGET_LINK_LIBRARIES(Poisson CommonPoisson CommonIFEM ${IFEM_LIBRARIES})
 
 # Installation
 INSTALL(TARGETS Poisson DESTINATION bin COMPONENT bin)
@@ -52,7 +52,7 @@ list(APPEND TEST_APPS Poisson)
 IFEM_add_test_app(${PROJECT_SOURCE_DIR}/Test/*.C
                   ${PROJECT_SOURCE_DIR}/Test
                   Poisson
-                  CommonPoisson ${IFEM_LIBRARIES})
+                  CommonPoisson CommonIFEM ${IFEM_LIBRARIES})
 
 if(IFEM_COMMON_APP_BUILD)
   set(TEST_APPS ${TEST_APPS} PARENT_SCOPE)

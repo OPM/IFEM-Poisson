@@ -20,6 +20,7 @@
 #include "Vec3Oper.h"
 #include "AnaSol.h"
 #include "VTF.h"
+#include "WeakOperators.h"
 
 
 Poisson::Poisson (unsigned short int n) : nsd(n)
@@ -113,7 +114,7 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
   // Integrate heat source, if defined
   if (heatSrc && !elMat.b.empty())
-    elMat.b.front().add(fe.N,(*heatSrc)(X)*fe.detJxW);
+    WeakOperators::Source(elMat.b.front(), fe, (*heatSrc)(X));
 
   // Galerkin projections a(u^h,v^h) = a(Pu,v^h) = a(w,v^h)
   for (size_t a = 1; a <= galerkin.size(); a++)
