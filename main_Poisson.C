@@ -208,8 +208,8 @@ int main (int argc, char** argv)
 
   if (model->opt.discretization < ASM::Spline && !model->opt.hdf5.empty())
   {
-    IFEM::cout <<"\n ** HDF5 output is available for spline discretization only."
-               <<" Deactivating...\n"<< std::endl;
+    IFEM::cout <<"\n ** HDF5 output is available for spline discretization only"
+               <<". Deactivating...\n"<< std::endl;
     model->opt.hdf5.clear();
   }
 
@@ -217,8 +217,6 @@ int main (int argc, char** argv)
   if (model->opt.format >= 0 || model->opt.dumpHDF5(infile))
     for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++)
       prefix[i] = pit->second.c_str();
-
-  model->setQuadratureRule(model->opt.nGauss[0],true);
 
   Matrix eNorm, ssol;
   Vector sol, load;
@@ -244,8 +242,8 @@ int main (int argc, char** argv)
     exporter = new DataExporter(true);
     if (staticSol)
     {
-      exporter->registerField("u","heat",DataExporter::SIM,results);
-      exporter->setFieldValue("u",model, aSim ? &aSim->getSolution() : &sol);
+      exporter->registerField("u", "solution", DataExporter::SIM,results);
+      exporter->setFieldValue("u", model, aSim ? &aSim->getSolution() : &sol);
       for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++) {
         exporter->registerField(prefix[i], "projected", DataExporter::SIM,
                                 DataExporter::SECONDARY, prefix[i]);
@@ -260,16 +258,18 @@ int main (int argc, char** argv)
                               DataExporter::EIGENMODES);
       exporter->setFieldValue("eig", model, &modes);
     }
-    exporter->registerWriter(new HDF5Writer(model->opt.hdf5,model->getProcessAdm()));
-    exporter->registerWriter(new XMLWriter(model->opt.hdf5,model->getProcessAdm()));
+    exporter->registerWriter(new HDF5Writer(model->opt.hdf5,
+                                            model->getProcessAdm()));
+    exporter->registerWriter(new XMLWriter(model->opt.hdf5,
+                                           model->getProcessAdm()));
   }
 
   switch (iop+model->opt.eig) {
   case 0:
   {
     model->setMode(SIM::STATIC);
-    model->initSystem(model->opt.solver,1,1);
-    model->setAssociatedRHS(0,0);
+    model->setQuadratureRule(model->opt.nGauss[0],true);
+    model->initSystem(model->opt.solver);
     if (!model->assembleSystem())
       return 2;
     else if (vizRHS)
@@ -283,9 +283,9 @@ int main (int argc, char** argv)
     model->setMode(SIM::RECOVERY);
     for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++)
       if (!model->project(ssol,sol,pit->first))
-	return 4;
+        return 4;
       else
-	projs[i] = ssol;
+        projs[i] = ssol;
 
     if (!pOpt.empty())
       IFEM::cout << std::endl;
@@ -347,6 +347,7 @@ int main (int argc, char** argv)
   default:
     // Free vibration: Assemble coefficient matrix [K]
     model->setMode(SIM::VIBRATION);
+    model->setQuadratureRule(model->opt.nGauss[0],true);
     model->initSystem(model->opt.solver,1,0);
     if (!model->assembleSystem())
       return 5;
