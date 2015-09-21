@@ -33,7 +33,7 @@ template<class Dim> class SIMPoisson : public Dim
 public:
   //! \brief Default constructor.
   //! \param[in] checkRHS If \e true, ensure the model is in a right-hand system
-  SIMPoisson(bool checkRHS = false) : Dim(1,0,checkRHS), prob(Dim::dimension)
+  SIMPoisson(bool checkRHS = false) : Dim(1,checkRHS), prob(Dim::dimension)
   {
     Dim::myProblem = &prob;
     aCode[0] = aCode[1] = 0;
