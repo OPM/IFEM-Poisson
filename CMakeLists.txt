@@ -26,7 +26,7 @@ INCLUDE_DIRECTORIES(${IFEM_INCLUDES} ../Common ${PROJECT_SOURCE_DIR})
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
-add_library(CommonPoisson ${Poisson_SRCS})
+add_library(CommonPoisson STATIC ${Poisson_SRCS})
 
 ADD_EXECUTABLE(Poisson main_Poisson.C)
 TARGET_LINK_LIBRARIES(Poisson CommonPoisson CommonIFEM ${IFEM_LIBRARIES})
