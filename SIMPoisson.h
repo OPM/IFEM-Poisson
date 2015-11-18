@@ -42,7 +42,7 @@ public:
   //! \brief The destructor zero out the integrand pointer (deleted by parent).
   virtual ~SIMPoisson()
   {
-    Dim::myProblem = NULL; // Because it is not dynamically allocated
+    Dim::myProblem = nullptr; // Because it is not dynamically allocated
     Dim::myInts.clear();
 
     // To prevent the SIMbase destructor try to delete already deleted functions
@@ -59,9 +59,9 @@ public:
     aCode[0] = aCode[1] = 0;
 
     mVec.clear();
-    prob.setSource(NULL);
-    prob.setTraction((RealFunc*)NULL);
-    prob.setTraction((VecFunc*)NULL);
+    prob.setSource(nullptr);
+    prob.setTraction((RealFunc*)nullptr);
+    prob.setTraction((VecFunc*)nullptr);
     prob.clearGalerkinProjections();
     this->Dim::clearProperties();
   }
@@ -127,7 +127,7 @@ protected:
       for (int i = 0; i < nmat && (cline = utl::readLine(is)); i++)
       {
         int    code  = atoi(strtok(cline," "));
-        double kappa = atof(strtok(NULL," "));
+        double kappa = atof(strtok(nullptr," "));
         if (code == 0)
           prob.setMaterial(kappa);
         else

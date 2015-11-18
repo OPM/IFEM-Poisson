@@ -31,13 +31,13 @@ bool SIMPoisson1D::parseDimSpecific(char* keyWord, std::istream& is)
     cline = strtok(keyWord+6," ");
     if (!strncasecmp(cline,"LINE",4))
     {
-      double L = atof(strtok(NULL," "));
+      double L = atof(strtok(nullptr," "));
       std::cout <<"\nHeat source function: Line L="<< L << std::endl;
       myScalars[code] = new PoissonLineSource(L);
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
-      cline = strtok(NULL," ");
+      cline = strtok(nullptr," ");
       std::cout <<"\nHeat source function: " << cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
@@ -56,16 +56,16 @@ bool SIMPoisson1D::parseDimSpecific(char* keyWord, std::istream& is)
     cline = strtok(keyWord+6," ");
     if (!strncasecmp(cline,"LINE",4))
     {
-      double L = atof(strtok(NULL," "));
+      double L = atof(strtok(nullptr," "));
       std::cout <<"\nAnalytical solution: Line L="<< L << std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new PoissonLine(L));
+        mySol = new AnaSol(nullptr,new PoissonLine(L));
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       std::cout <<"\nAnalytical solution: Expression"<< std::endl;
-      int lines = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
-      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      int lines = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
+      code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       if (!mySol)
         mySol = new AnaSol(is,lines);
     }
@@ -78,7 +78,7 @@ bool SIMPoisson1D::parseDimSpecific(char* keyWord, std::istream& is)
 
     // Define the analytical boundary traction field
     if (code == -1)
-      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
     if (code > 0 && mySol->getScalarSecSol())
     {
       this->setPropertyType(code,Property::NEUMANN);
@@ -128,7 +128,7 @@ bool SIMPoisson1D::parseDimSpecific(const TiXmlElement* child)
       utl::getAttribute(child,"L",L);
       std::cout <<"\tAnalytical solution: Line L="<< L << std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new PoissonLine(L));
+        mySol = new AnaSol(nullptr,new PoissonLine(L));
     }
     else if (type == "expression") {
       std::cout <<"\tAnalytical solution: Expression"<< std::endl;

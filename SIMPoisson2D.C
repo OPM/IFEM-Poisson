@@ -40,21 +40,21 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
       if (!strncasecmp(cline,"UNIFORM",7))
       {
 	PROFILE("LR refinement");
-	int nRef = atoi(strtok(NULL," "));
+	int nRef = atoi(strtok(nullptr," "));
 	std::cout <<"\nLR refinement UNIFORM : "<< nRef << std::endl;
 	patch->uniformRefine(nRef);
       }
       else if (!strncasecmp(cline,"CORNER",6))
       {
 	PROFILE("LR refinement");
-	int nRef = atoi(strtok(NULL," "));
+	int nRef = atoi(strtok(nullptr," "));
 	std::cout <<"\nLR refinement CORNER : "<< nRef << std::endl;
 	patch->cornerRefine(nRef);
       }
       else if (!strncasecmp(cline,"DIAGONAL",8))
       {
 	PROFILE("LR refinement");
-	int nRef = atoi(strtok(NULL," "));
+	int nRef = atoi(strtok(nullptr," "));
 	std::cout <<"\nLR refinement DIAGONAL : "<< nRef << std::endl;
 	patch->diagonalRefine(nRef);
       }
@@ -70,7 +70,7 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
     cline = strtok(keyWord+6," ");
     if (!strncasecmp(cline,"SQUARE",6))
     {
-      double L = atof(strtok(NULL," "));
+      double L = atof(strtok(nullptr," "));
       std::cout <<"\nHeat source function: Square L="<< L << std::endl;
       myScalars[code] = new Square2DHeat(L);
     }
@@ -86,7 +86,7 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
-      cline = strtok(NULL," ");
+      cline = strtok(nullptr," ");
       std::cout <<"\nHeat source function: " << cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
@@ -105,22 +105,22 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
     cline = strtok(keyWord+6," ");
     if (!strncasecmp(cline,"SQUARE",6))
     {
-      double L = atof(strtok(NULL," "));
+      double L = atof(strtok(nullptr," "));
       std::cout <<"\nAnalytical solution: Square L="<< L << std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new Square2D(L));
+        mySol = new AnaSol(nullptr,new Square2D(L));
     }
     else if (!strncasecmp(cline,"LSHAPE",6))
     {
       std::cout <<"\nAnalytical solution: Lshape"<< std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new LshapePoisson());
+        mySol = new AnaSol(nullptr,new LshapePoisson());
     }
     else if (!strncasecmp(cline,"SINUSSQUARE",11))
     {
       std::cout <<"\nAnalytical solution: SquareSinus"<< std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new SquareSinus());
+        mySol = new AnaSol(nullptr,new SquareSinus());
     }
     else if (!strncasecmp(cline,"INTERIORLAYER",13))
     {
@@ -130,7 +130,7 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
                            new PoissonInteriorLayer());
 
       // Define the Dirichlet boundary condition from the analytical solution
-      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       if (code < 1)
       {
         std::cerr <<" *** SIMPoisson2D::parse: Specify code > 0 for the"
@@ -145,8 +145,8 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       std::cout <<"\nAnalytical solution: Expression"<< std::endl;
-      int lines = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
-      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      int lines = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
+      code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       if (!mySol)
         mySol = new AnaSol(is,lines);
     }
@@ -159,7 +159,7 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
 
     // Define the analytical boundary traction field
     if (code == -1)
-      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
     if (code > 0 && mySol->getScalarSecSol())
     {
       this->setPropertyType(code,Property::NEUMANN);
@@ -221,17 +221,17 @@ bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* child)
       utl::getAttribute(child,"L",L);
       std::cout <<"\tAnalytical solution: Square L="<< L << std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new Square2D(L));
+        mySol = new AnaSol(nullptr,new Square2D(L));
     }
     else if (type == "lshape") {
       std::cout <<"\tAnalytical solution: Lshape"<< std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new LshapePoisson());
+        mySol = new AnaSol(nullptr,new LshapePoisson());
     }
     else if (type == "sinussquare") {
       std::cout <<"\tAnalytical solution: SquareSinus"<< std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new SquareSinus());
+        mySol = new AnaSol(nullptr,new SquareSinus());
     }
     else if (type == "interiorlayer") {
       double s = 60;

@@ -82,7 +82,7 @@ int main (int argc, char** argv)
   bool fixDup = false;
   bool dumpASCII = false;
   char ndim = 3;
-  char* infile = NULL;
+  char* infile = nullptr;
 
   int myPid = IFEM::Init(argc,argv);
 
@@ -169,7 +169,7 @@ int main (int argc, char** argv)
     model = new SIMPoisson3D(checkRHS);
 
   SIMinput* theSim = model;
-  AdaptiveSIM* aSim = NULL;
+  AdaptiveSIM* aSim = nullptr;
   if (iop == 10)
     theSim = aSim = new AdaptiveSIM(model);
 
@@ -227,7 +227,7 @@ int main (int argc, char** argv)
   if (aSim)
     aSim->setupProjections();
 
-  DataExporter* exporter = NULL;
+  DataExporter* exporter = nullptr;
   if (model->opt.dumpHDF5(infile))
   {
     IFEM::cout <<"\nWriting HDF5 file "<< model->opt.hdf5
@@ -333,7 +333,7 @@ int main (int argc, char** argv)
       else if (!aSim->writeGlv(infile,iStep,2))
         return 6;
       else if (exporter)
-        exporter->dumpTimeLevel(NULL,true);
+        exporter->dumpTimeLevel(nullptr,true);
       utl::profiler->stop(iterationTag);
       sprintf(iterationTag, "Refinement step #%03d", iStep);
       utl::profiler->start(iterationTag);

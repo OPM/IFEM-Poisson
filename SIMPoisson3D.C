@@ -41,7 +41,7 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
-      cline = strtok(NULL," ");
+      cline = strtok(nullptr," ");
       std::cout <<"\nHeat source function: " << cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
@@ -62,7 +62,7 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
     {
       std::cout <<"\nAnalytical solution: Cube"<< std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new PoissonCube());
+        mySol = new AnaSol(nullptr,new PoissonCube());
     }
     else if (!strncasecmp(cline,"WATERFALL",9))
     {
@@ -72,7 +72,7 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
                            new PoissonWaterfall());
 
       // Define the Dirichlet boundary condition from the analytical solution
-      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       if (code < 1)
       {
         std::cerr <<" *** SIMPoisson2D::parse: Specify code > 0 for the"
@@ -87,8 +87,8 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       std::cout <<"\nAnalytical solution: Expression"<< std::endl;
-      int lines = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
-      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      int lines = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
+      code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       if (!mySol)
         mySol = new AnaSol(is,lines);
     }
@@ -101,7 +101,7 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
 
     // Define the analytical boundary traction field
     if (code == -1)
-      code = (cline = strtok(NULL," ")) ? atoi(cline) : 0;
+      code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
     if (code > 0 && mySol->getScalarSecSol())
     {
       this->setPropertyType(code,Property::NEUMANN);
@@ -154,7 +154,7 @@ bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* child)
     if (type == "cube") {
       std::cout <<"\tAnalytical solution: Cube"<< std::endl;
       if (!mySol)
-        mySol = new AnaSol(NULL,new PoissonCube());
+        mySol = new AnaSol(nullptr,new PoissonCube());
     }
     else if (type == "waterfall") {
       double eps = 0.002;
