@@ -133,11 +133,11 @@ public:
   virtual size_t getNoFields(int fld = 2) const { return fld > 1 ? nsd : 1; }
   //! \brief Returns the name of the primary solution field.
   //! \param[in] prefix Name prefix
-  virtual const char* getField1Name(size_t, const char* prefix = 0) const;
+  virtual std::string getField1Name(size_t, const char* prefix = 0) const;
   //! \brief Returns the name of a secondary solution field component.
   //! \param[in] i Field component index
   //! \param[in] prefix Name prefix for all components
-  virtual const char* getField2Name(size_t i, const char* prefix = 0) const;
+  virtual std::string getField2Name(size_t i, const char* prefix = 0) const;
 
   //! \brief Sets up the constitutive matrix at current point.
   //! \param[out] C \f$ nsd\times nsd\f$-matrix
