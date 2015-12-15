@@ -28,6 +28,10 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 add_library(CommonPoisson STATIC ${Poisson_SRCS})
 
+if(NOT IFEM_COMMON_APP_BUILD)
+  add_subdirectory(../Common CommonIFEM)
+endif()
+
 ADD_EXECUTABLE(Poisson main_Poisson.C)
 TARGET_LINK_LIBRARIES(Poisson CommonPoisson CommonIFEM ${IFEM_LIBRARIES})
 
