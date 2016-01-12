@@ -378,14 +378,10 @@ void PoissonNorm::addBoundaryTerms (Vectors& gNorm, double energy) const
 
 size_t PoissonNorm::getNoFields (int group) const
 {
-  size_t nf = 1;
   if (group < 1)
-    for (size_t i = 0; i < prjsol.size(); i++)
-      nf += prjsol.empty() ? 0 : 1;
+    return this->NormBase::getNoFields();
   else
-    nf = anasol ? 4 : 2;
-
-  return nf;
+    return anasol ? 4 : 2;
 }
 
 
