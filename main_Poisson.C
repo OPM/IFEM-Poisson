@@ -237,12 +237,13 @@ int main (int argc, char** argv)
     // The secondary results will be projected anyway, but without the
     // nodal averaging across patch boundaries in case of multiple patches.
     int results = DataExporter::PRIMARY | DataExporter::NORMS;
-    if (pOpt.empty()) results |= DataExporter::SECONDARY;
+    if (pOpt.empty() && !model->opt.pSolOnly)
+      results |= DataExporter::SECONDARY;
 
     exporter = new DataExporter(true);
     if (staticSol)
     {
-      exporter->registerField("u", "solution", DataExporter::SIM,results);
+      exporter->registerField("u", "solution", DataExporter::SIM, results);
       exporter->setFieldValue("u", model, aSim ? &aSim->getSolution() : &sol);
       for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++) {
         exporter->registerField(prefix[i], "projected", DataExporter::SIM,
