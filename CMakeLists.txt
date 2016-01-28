@@ -1,20 +1,21 @@
-PROJECT(Poisson)
+project(Poisson)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+cmake_minimum_required(VERSION 2.6)
 
 # Add local modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-                      ${PROJECT_SOURCE_DIR}/../../cmake/Modules)
+                      ${PROJECT_SOURCE_DIR}/../../cmake/Modules
+                      ${PROJECT_SOURCE_DIR}/../../cmake/Scripts)
 
-IF(NOT IFEM_CONFIGURED)
-  FIND_PACKAGE(IFEM REQUIRED)
-ENDIF(NOT IFEM_CONFIGURED)
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IFEM_CXX_FLAGS}")
+if(NOT IFEM_CONFIGURED)
+  find_package(IFEM REQUIRED)
+  include_directories(${IFEM_INCLUDE_DIRS})
+  add_definitions(${IFEM_DEFINITIONS})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IFEM_CXX_FLAGS}")
+endif()
 
 # Generate regtest script with correct paths
-CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/../Common/scripts/regtest.sh.in
-               regtest.sh)
+configure_file(${IFEM_REGTEST_SCRIPT} regtest.sh)
 
 set(Poisson_SRCS Poisson.C
                  PoissonSolutions.C
@@ -22,41 +23,32 @@ set(Poisson_SRCS Poisson.C
                  SIMPoisson2D.C
                  SIMPoisson3D.C)
 
-INCLUDE_DIRECTORIES(${IFEM_INCLUDES} ../Common ${PROJECT_SOURCE_DIR})
+include_directories(${IFEM_INCLUDES} ../Common ${PROJECT_SOURCE_DIR})
 
-SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 add_library(CommonPoisson STATIC ${Poisson_SRCS})
 
-if(NOT IFEM_COMMON_APP_BUILD)
-  add_subdirectory(../Common CommonIFEM)
-endif()
-
-ADD_EXECUTABLE(Poisson main_Poisson.C)
-TARGET_LINK_LIBRARIES(Poisson CommonPoisson CommonIFEM ${IFEM_LIBRARIES})
-
-# Installation
-INSTALL(TARGETS Poisson DESTINATION bin COMPONENT bin)
-
-ENABLE_TESTING()
+enable_testing()
+include(IFEMTesting)
 
 # Regression tests
-IF(IFEM_USE_PARALLEL_PETSC)
+if(IFEM_USE_PARALLEL_PETSC)
   # Add parallel tests here
-ELSE(IFEM_USE_PARALLEL_PETSC)
-  FILE(GLOB POISSON_TESTFILES RELATIVE ${PROJECT_SOURCE_DIR}/Test
+else(IFEM_USE_PARALLEL_PETSC)
+  file(GLOB POISSON_TESTFILES RELATIVE ${PROJECT_SOURCE_DIR}/Test
                                        ${PROJECT_SOURCE_DIR}/Test/*.reg)
-  FOREACH(TESTFILE ${POISSON_TESTFILES})
-    IFEM_ADD_TEST(${TESTFILE} Poisson)
-  ENDFOREACH()
-ENDIF(IFEM_USE_PARALLEL_PETSC)
+  foreach(TESTFILE ${POISSON_TESTFILES})
+    ifem_add_test(${TESTFILE} Poisson)
+  endforeach()
+endif()
 list(APPEND TEST_APPS Poisson)
 
 # Unit tests
 IFEM_add_test_app(${PROJECT_SOURCE_DIR}/Test/*.C
                   ${PROJECT_SOURCE_DIR}/Test
                   Poisson
-                  CommonPoisson CommonIFEM ${IFEM_LIBRARIES})
+                  CommonPoisson IFEMAppCommon ${IFEM_LIBRARIES})
 
 if(IFEM_COMMON_APP_BUILD)
   set(TEST_APPS ${TEST_APPS} PARENT_SCOPE)
@@ -64,3 +56,9 @@ if(IFEM_COMMON_APP_BUILD)
 else()
   add_check_target()
 endif()
+
+add_executable(Poisson main_Poisson.C)
+target_link_libraries(Poisson CommonPoisson IFEMAppCommon ${IFEM_LIBRARIES})
+
+# Installation
+install(TARGETS Poisson DESTINATION bin COMPONENT bin)
