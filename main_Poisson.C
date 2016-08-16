@@ -18,11 +18,65 @@
 #include "XMLWriter.h"
 #include "Utilities.h"
 #include "Profiler.h"
+#include "AppCommon.h"
+#include "SIMSolverAdap.h"
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
+
+/*! \brief Setup and launch a simulation.
+ *! \param[in] infile The input file to process
+ *! \param[in] checkRHS Check for a right-hand-side model.
+ *! \param[in] ignoredPatches Patches to ignore
+ *! \param[in] fixDup True to collapse co-located nodes.
+ *! \param[in] vizRHS True to store load vector to VTF.
+ */
+
+template<class Dim, template<class T> class Solver=SIMSolver>
+int runSimulator(char* infile, bool checkRHS,
+                 const std::vector<int>& ignoredPatches,
+                 bool fixDup, bool vizRHS, bool dumpASCII)
+{
+  SIMPoisson<Dim> model(checkRHS);
+  Solver<SIMPoisson<Dim>> solver(model);
+
+  if (!model.read(infile) || !solver.read(infile))
+    return 1;
+
+  // Boundary conditions can be ignored only in generalized eigenvalue analysis
+  if (model.opt.eig != 4 && model.opt.eig != 6)
+    SIMbase::ignoreDirichlet = false;
+
+  // Load vector visualization is not available when using additional viz-points
+  for (size_t i = 0; i < 3; i++)
+    if (i >= Dim::dimension)
+      model.opt.nViz[i] = 1;
+    else if (model.opt.nViz[i] > 2)
+      vizRHS = false;
+
+  if (!model.preprocess(ignoredPatches, fixDup))
+    return 2;
+
+  model.setVizRHS(vizRHS);
+  model.setDumpASCII(dumpASCII);
+
+  model.setQuadratureRule(model.opt.nGauss[0],true);
+  model.initSystem(model.opt.solver,1,model.opt.eig>0?0:1);
+
+  std::unique_ptr<DataExporter> exporter;
+  if (model.opt.dumpHDF5(infile)) {
+    if (model.opt.discretization < ASM::Spline && !model.opt.hdf5.empty())
+      IFEM::cout <<"\n ** HDF5 output is available for spline discretization only"
+        <<". Deactivating...\n"<< std::endl;
+    else
+      exporter.reset(SIM::handleDataOutput(model, solver, model.opt.hdf5, false, 1, 1));
+  }
+
+  return solver.solveProblem(infile, exporter.get(), "Solving Poisson problem", false);
+}
 
 
 /*!
@@ -61,12 +115,6 @@
   \arg -1D : Use one-parametric simulation driver
   \arg -2D : Use two-parametric simulation driver
   \arg -adap : Use adaptive simulation driver with LR-splines discretization
-  \arg -DGL2 : Estimate error using discrete global L2 projection
-  \arg -CGL2 : Estimate error using continuous global L2 projection
-  \arg -SCR : Estimate error using Superconvergent recovery at Greville points
-  \arg -VDSA: Estimate error using Variational Diminishing Spline Approximations
-  \arg -LSQ : Estimate error using through Least Square projections
-  \arg -QUASI : Estimate error using Quasi-interpolation projections
 */
 
 int main (int argc, char** argv)
@@ -75,7 +123,6 @@ int main (int argc, char** argv)
   utl::profiler->start("Initialization");
 
   std::vector<int> ignoredPatches;
-  size_t adaptor = 0;
   int  i, iop = 0;
   bool checkRHS = false;
   bool vizRHS = false;
@@ -109,11 +156,7 @@ int main (int argc, char** argv)
     else if (!strcmp(argv[i],"-2D"))
       ndim = 2;
     else if (!strncmp(argv[i],"-adap",5))
-    {
       iop = 10;
-      if (strlen(argv[i]) > 5)
-        adaptor = atoi(argv[i]+5);
-    }
     else if (!infile)
       infile = argv[i];
     else
@@ -126,7 +169,6 @@ int main (int argc, char** argv)
               <<"       [-lag|-spec|-LR] [-1D|-2D] [-nGauss <n>]\n"
               <<"       [-hdf5] [-vtf <format> [-nviz <nviz>]"
               <<" [-nu <nu>] [-nv <nv>] [-nw <nw>]]\n       [-adap[<i>]]"
-              <<" [-DGL2] [-CGL2] [-SCR] [-VDLSA] [-LSQ] [-QUASI]\n      "
               <<" [-eig <iop> [-nev <nev>] [-ncv <ncv] [-shift <shf>] [-free]]"
               <<"\n       [-ignore <p1> <p2> ...] [-fixDup]"
               <<" [-checkRHS] [-check] [-dumpASC]\n";
@@ -157,282 +199,26 @@ int main (int argc, char** argv)
   IFEM::cout << std::endl;
 
   utl::profiler->stop("Initialization");
-  utl::profiler->start("Model input");
 
-  // Create the simulation model
-  SIMoutput* model;
-  if (ndim == 1)
-    model = new SIMPoisson1D();
-  else if (ndim == 2)
-    model = new SIMPoisson2D(checkRHS);
-  else
-    model = new SIMPoisson3D(checkRHS);
-
-  SIMinput* theSim = model;
-  AdaptiveSIM* aSim = nullptr;
-  if (iop == 10)
-    theSim = aSim = new AdaptiveSIM(model);
-
-  // Read in model definitions
-  if (!theSim->read(infile))
-    return 1;
-
-  // Boundary conditions can be ignored only in generalized eigenvalue analysis
-  if (model->opt.eig != 4 && model->opt.eig != 6)
-    SIMbase::ignoreDirichlet = false;
-
-  // Load vector visualization is not available when using additional viz-points
-  for (i = 0; i < 3; i++)
-    if (i >= ndim)
-      model->opt.nViz[i] = 1;
-    else if (model->opt.nViz[i] > 2)
-      vizRHS = false;
-
-  model->opt.print(IFEM::cout,true) << std::endl;
-
-  utl::profiler->stop("Model input");
-
-  // Establish the FE data structures
-  if (!model->preprocess(ignoredPatches,fixDup))
-    return 1;
-
-  SIMoptions::ProjectionMap& pOpt = model->opt.project;
-  SIMoptions::ProjectionMap::const_iterator pit;
-
-  // Set default projection method (tensor splines only)
-  bool staticSol = iop + model->opt.eig == 0 || iop == 10;
-  if (model->opt.discretization < ASM::Spline || !staticSol)
-    pOpt.clear(); // No projection if Lagrange/Spectral or no static solution
-  else if (model->opt.discretization == ASM::Spline && pOpt.empty())
-    pOpt[SIMoptions::GLOBAL] = "Greville point projection";
-
-  if (model->opt.discretization < ASM::Spline && !model->opt.hdf5.empty())
-  {
-    IFEM::cout <<"\n ** HDF5 output is available for spline discretization only"
-               <<". Deactivating...\n"<< std::endl;
-    model->opt.hdf5.clear();
+  if (iop == 10) {
+    if (ndim == 1)
+      return runSimulator<SIM1D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
+                                               fixDup, vizRHS, dumpASCII);
+    else if (ndim == 2)
+      return runSimulator<SIM2D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
+                                               fixDup, vizRHS, dumpASCII);
+    else
+      return runSimulator<SIM3D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
+                                               fixDup, vizRHS, dumpASCII);
+  } else {
+    if (ndim == 1)
+      return runSimulator<SIM1D>(infile, checkRHS, ignoredPatches,
+                                 fixDup, vizRHS, dumpASCII);
+    else if (ndim == 2)
+      return runSimulator<SIM2D>(infile, checkRHS, ignoredPatches,
+                                 fixDup, vizRHS, dumpASCII);
+    else
+      return runSimulator<SIM3D>(infile, checkRHS, ignoredPatches,
+                                 fixDup, vizRHS, dumpASCII);
   }
-
-  const char* prefix[pOpt.size()];
-  if (model->opt.format >= 0 || model->opt.dumpHDF5(infile))
-    for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++)
-      prefix[i] = pit->second.c_str();
-
-  Matrix eNorm, ssol;
-  Vector sol, load;
-  Vectors projs(pOpt.size()), gNorm;
-  std::vector<Mode> modes;
-  bool iterate = true;
-
-  if (aSim)
-    aSim->setupProjections();
-
-  DataExporter* exporter = nullptr;
-  if (model->opt.dumpHDF5(infile))
-  {
-    IFEM::cout <<"\nWriting HDF5 file "<< model->opt.hdf5
-               <<".hdf5"<< std::endl;
-
-    // Include secondary results only if no projection has been requested.
-    // The secondary results will be projected anyway, but without the
-    // nodal averaging across patch boundaries in case of multiple patches.
-    int results = DataExporter::PRIMARY | DataExporter::NORMS;
-    if (pOpt.empty() && !model->opt.pSolOnly)
-      results |= DataExporter::SECONDARY;
-
-    exporter = new DataExporter(true);
-    if (staticSol)
-    {
-      exporter->registerField("u", "solution", DataExporter::SIM, results);
-      exporter->setFieldValue("u", model, aSim ? &aSim->getSolution() : &sol);
-      for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++) {
-        exporter->registerField(prefix[i], "projected", DataExporter::SIM,
-                                DataExporter::SECONDARY, prefix[i]);
-        exporter->setFieldValue(prefix[i], model,
-                                aSim ? &aSim->getProjection(i) : &projs[i]);
-      }
-      exporter->setNormPrefixes(prefix);
-    }
-    if (model->opt.eig > 0)
-    {
-      exporter->registerField("eig", "eigenmode", DataExporter::SIM,
-                              DataExporter::EIGENMODES);
-      exporter->setFieldValue("eig", model, &modes);
-    }
-    exporter->registerWriter(new HDF5Writer(model->opt.hdf5,
-                                            model->getProcessAdm()));
-    exporter->registerWriter(new XMLWriter(model->opt.hdf5,
-                                           model->getProcessAdm()));
-  }
-
-  switch (iop+model->opt.eig) {
-  case 0:
-  {
-    model->setMode(SIM::STATIC);
-    model->setQuadratureRule(model->opt.nGauss[0],true);
-    model->initSystem(model->opt.solver);
-    if (!model->assembleSystem())
-      return 2;
-    else if (vizRHS)
-      model->extractLoadVec(load);
-
-    // Solve the linear system of equations
-    if (!model->solveSystem(sol,1))
-      return 3;
-
-    // Project the FE stresses onto the splines basis
-    model->setMode(SIM::RECOVERY);
-    for (i = 0, pit = pOpt.begin(); pit != pOpt.end(); i++, pit++)
-      if (!model->project(ssol,sol,pit->first))
-        return 4;
-      else
-        projs[i] = ssol;
-
-    if (!pOpt.empty())
-      IFEM::cout << std::endl;
-
-    // Evaluate solution norms
-    model->setQuadratureRule(model->opt.nGauss[1]);
-    if (!model->solutionNorms(Vectors(1,sol),projs,eNorm,gNorm))
-      return 4;
-
-    model->printNorms(gNorm);
-    size_t j = 1;
-    for (pit = pOpt.begin(); pit != pOpt.end() && j < gNorm.size(); pit++,j++)
-    {
-      IFEM::cout <<"\n>>> Error estimates based on "<< pit->second <<" <<<";
-      IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm[j](1);
-      IFEM::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm[j](2);
-      IFEM::cout <<"\n- relative error (% of |u^r|) : "
-                 << gNorm[j](2)/gNorm[j](1)*100.0;
-      if (model->haveAnaSol() && j <= gNorm.size())
-      {
-        IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm[j](3)
-                   <<"\n- relative error (% of |u|)   : "
-                   << gNorm[j](3)/gNorm[0](3)*100.0;
-        IFEM::cout <<"\nEffectivity index             : "
-                   << gNorm[j](2)/gNorm[0](4);
-      }
-      IFEM::cout << std::endl;
-    }
-    break;
-  }
-  case 10:
-    // Adaptive simulation
-    if (!aSim->initAdaptor(adaptor,2))
-      break;
-
-    if (exporter)
-      exporter->setNormPrefixes(aSim->getNormPrefixes());
-
-    for (int iStep = 1; iterate; iStep++) {
-      char iterationTag[256];
-      sprintf(iterationTag, "Adaptive step #%03d", iStep);
-      utl::profiler->start(iterationTag);
-      if (!aSim->solveStep(infile,iStep))
-        return 5;
-      else if (!aSim->writeGlv(infile,iStep,2))
-        return 6;
-      else if (exporter)
-        exporter->dumpTimeLevel(nullptr,true);
-      utl::profiler->stop(iterationTag);
-      sprintf(iterationTag, "Refinement step #%03d", iStep);
-      utl::profiler->start(iterationTag);
-      iterate = aSim->adaptMesh(iStep+1);
-      utl::profiler->stop(iterationTag);
-    }
-
-  case 100:
-    break; // Model check
-
-  default:
-    // Free vibration: Assemble coefficient matrix [K]
-    model->setMode(SIM::VIBRATION);
-    model->setQuadratureRule(model->opt.nGauss[0],true);
-    model->initSystem(model->opt.solver,1,0);
-    if (!model->assembleSystem())
-      return 5;
-
-    if (!model->systemModes(modes))
-      return 6;
-  }
-
-  utl::profiler->start("Postprocessing");
-
-  if (iop != 10 && model->opt.format >= 0)
-  {
-    int geoBlk = 0, nBlock = 0;
-
-    // Write VTF-file with model geometry
-    if (!model->writeGlvG(geoBlk,infile))
-      return 7;
-
-    // Write boundary tractions, if any
-    if (!model->writeGlvT(1,geoBlk,nBlock))
-      return 8;
-
-    // Write Dirichlet boundary conditions
-    if (!model->writeGlvBC(nBlock))
-      return 8;
-
-    // Write load vector to VTF-file
-    if (!model->writeGlvV(load,"Load vector",1,nBlock))
-      return 9;
-
-    // Write solution fields to VTF-file
-    if (!model->writeGlvS(sol,1,nBlock))
-      return 10;
-
-    // Write projected solution fields to VTF-file
-    size_t i = 0;
-    int iBlk = 100;
-    for (pit = pOpt.begin(); pit != pOpt.end(); pit++, i++, iBlk += 10)
-      if (!model->writeGlvP(projs[i],1,nBlock,iBlk,pit->second.c_str()))
-        return 11;
-
-    // Write eigenmodes
-    bool isFreq = model->opt.eig==3 || model->opt.eig==4 || model->opt.eig==6;
-    for (i = 0; i < modes.size(); i++)
-      if (!model->writeGlvM(modes[i],isFreq,nBlock))
-        return 11;
-
-    // Write element norms
-    if (!model->writeGlvN(eNorm,1,nBlock,prefix))
-      return 12;
-
-    model->writeGlvStep(1,0.0,1);
-  }
-  model->closeGlv();
-  if (exporter && iop != 10)
-    exporter->dumpTimeLevel();
-
-  if (dumpASCII)
-  {
-    // Write (refined) model to g2-file
-    std::ofstream osg(strcat(strtok(infile,"."),".g2"));
-    osg.precision(18);
-    IFEM::cout <<"\nWriting updated g2-file "<< infile << std::endl;
-    model->dumpGeometry(osg);
-    if (!sol.empty())
-    {
-      // Write solution (control point values) to ASCII files
-      std::ofstream osd(strcat(strtok(infile,"."),".sol"));
-      osd.precision(18);
-      IFEM::cout <<"\nWriting primary solution (temperature field) to file "
-                 << infile << std::endl;
-      utl::LogStream log(osd);
-      model->dumpPrimSol(sol,log,false);
-      std::ofstream oss(strcat(strtok(infile,"."),".sec"));
-      oss.precision(18);
-      IFEM::cout <<"\nWriting all solutions (heat flux etc) to file "
-                 << infile << std::endl;
-      utl::LogStream log2(oss);
-      model->dumpSolution(sol,log2);
-    }
-  }
-
-  utl::profiler->stop("Postprocessing");
-  delete theSim;
-  delete exporter;
-  return 0;
 }

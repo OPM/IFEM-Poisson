@@ -36,11 +36,13 @@ include(IFEMTesting)
 if(IFEM_USE_PARALLEL_PETSC)
   # Add parallel tests here
 else(IFEM_USE_PARALLEL_PETSC)
-  file(GLOB POISSON_TESTFILES RELATIVE ${PROJECT_SOURCE_DIR}/Test
-                                       ${PROJECT_SOURCE_DIR}/Test/*.reg)
-  foreach(TESTFILE ${POISSON_TESTFILES})
-    ifem_add_test(${TESTFILE} Poisson)
-  endforeach()
+  ifem_add_test(Cube.reg Poisson)
+  ifem_add_test(Line.reg Poisson)
+  ifem_add_test(Lshape.reg Poisson)
+  ifem_add_test(Square.reg Poisson)
+  if(LRSpline_FOUND OR LRSPLINE_FOUND)
+    ifem_add_test(IL-truebeta-structured.reg Poisson)
+  endif()
 endif()
 list(APPEND TEST_APPS Poisson)
 
