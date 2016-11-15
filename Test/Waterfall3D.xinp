@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry>
+    <raiseorder patch="1" u="1" v="1" w="1"/>
+    <refine type="uniform" patch="1" u="3" v="3" w="3"/>
+    <topologysets>
+      <set name="Boundary" type="face">
+        <item patch="1">1 2 3 4 5 6</item>
+      </set>
+      <set name="Corner" type="vertex">
+        <item patch="1">1</item>
+      </set>
+    </topologysets>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <neumann set="Boundary" type="anasol" comp="1"/>
+    <dirichlet set="Corner" comp="1" type="anasol"/>
+  </boundaryconditions>
+
+<!--
+  <postprocessing>
+    <vtfformat nu="2" nv="2" nw="2">BINARY</vtfformat>
+    <projection type="grlv"/>
+  </postprocessing>
+-->
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">r=sqrt(x*x+y*y+z*z); eps=0.05; -8*eps*(1 + 4*eps*eps - 2*r)/r/(-4*r + 4*r*r + 4*eps*eps + 1)^2</source>
+    <anasol type="expression">
+      <primary>  r=sqrt(x*x+y*y+z*z); eps=0.05;  atan((r-0.5)/eps)</primary>
+      <secondary>r=sqrt(x*x+y*y+z*z); eps=0.05; -x/eps/r/(((r-0.5)/eps)^2+1) |
+                 r=sqrt(x*x+y*y+z*z); eps=0.05; -y/eps/r/(((r-0.5)/eps)^2+1) |
+                 r=sqrt(x*x+y*y+z*z); eps=0.05; -z/eps/r/(((r-0.5)/eps)^2+1)
+      </secondary>
+    </anasol>
+
+  </poisson>
+
+
+  <!--General - adaptive refinement parameters -->
+  <adaptive>
+    <maxstep      value="3"/>
+    <beta         value="7"/>
+    <maxdof       value="10000"/>
+    <errtol       value="0.000001"/>
+    <knot_mult    value="1"/>
+    <scheme       value="isotropic_function"/>
+    <!--
+      <use_norm     value="1"/>
+      <use_sub_norm value="1"/>
+      <symmetry value="1"/>
+      <store_eps_mesh/>
+      <test_linear_independence/>
+    -->
+  </adaptive>
+
+</simulation>

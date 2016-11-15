@@ -1,0 +1,58 @@
+Waterfall3D.xinp -LR -adap
+
+Number of elements    64
+Number of nodes       216
+Number of dofs        216
+Number of constraints 1
+Number of unknowns    215
+ >>> Starting adaptive simulation based on exact errors <<<
+Adaptive step 1
+L2-norm            : 0.943954
+Max displacement   : 3.77276
+Energy norm           a(u^h,u^h)^0.5 : 3.10813
+External energy          (h,u^h)^0.5 : 3.1009
+Exact norm                a(u,u)^0.5 : 3.52326
+Exact error      a(e,e)^0.5, e=u-u^h : 1.66551
+Exact relative error (%) : 47.2718
+Root mean square (RMS) of error      : 1.53489
+Min element error                    : 0.00020482
+Max element error                    : 0.568036
+Average element error                : 0.113646
+Refining 16 basis functions with errors in range \[3.26116,6.32588\] 7\% of all basis functions
+Refined mesh: 442 elements 756 nodes.
+Adaptive step 2
+Number of elements    442
+Number of nodes       756
+Number of dofs        756
+Number of constraints 1
+Number of unknowns    755
+L2-norm            : 1.19572
+Max displacement   : 1.99285
+Energy norm           a(u^h,u^h)^0.5 : 3.41689
+External energy          (h,u^h)^0.5 : 3.33116
+Exact norm                a(u,u)^0.5 : 3.52796
+Exact error      a(e,e)^0.5, e=u-u^h : 0.872754
+Exact relative error (%) : 24.7382
+Root mean square (RMS) of error      : 2.01651
+Min element error                    : 1.08759e-05
+Max element error                    : 0.162883
+Average element error                : 0.0184431
+Refining 53 basis functions with errors in range \[1.27157,2.63582\] 7\% of all basis functions
+Refined mesh: 1415 elements 1729 nodes.
+Adaptive step 3
+Number of elements    1415
+Number of nodes       1729
+Number of dofs        1729
+Number of constraints 1
+Number of unknowns    1728
+L2-norm            : 1.25561
+Max displacement   : 1.53308
+Energy norm           a(u^h,u^h)^0.5 : 3.51712
+External energy          (h,u^h)^0.5 : 3.4145
+Exact norm                a(u,u)^0.5 : 3.52799
+Exact error      a(e,e)^0.5, e=u-u^h : 0.276873
+Exact relative error (%) : 7.8479
+Root mean square (RMS) of error      : 1.6476
+Min element error                    : 1.04763e-05
+Max element error                    : 0.0311405
+Average element error                : 0.00381898
