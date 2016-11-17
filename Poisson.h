@@ -15,6 +15,7 @@
 #define _POISSON_H
 
 #include "IntegrandBase.h"
+#include "EqualOrderOperators.h"
 #include "Vec3.h"
 
 
@@ -27,6 +28,8 @@
 class Poisson : public IntegrandBase
 {
 public:
+  using WeakOps = EqualOrderOperators::Weak; //!< Convenience rename
+
   //! \brief The default constructor initializes all pointers to zero.
   //! \param[in] n Number of spatial dimensions
   Poisson(unsigned short int n = 3);
