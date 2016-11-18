@@ -1,0 +1,13 @@
+Lshape.xinp -2D -LR
+
+Number of elements    128
+Number of nodes       325
+Number of dofs        325
+Number of unknowns    300
+L2-norm            : 0.59621
+Max displacement   : 1.25943
+Energy norm           a(u^h,u^h)^0.5 : 1.35476
+External energy          (h,u^h)^0.5 : -1.35476
+Exact norm                a(u,u)^0.5 : 1.35531
+Exact error      a(e,e)^0.5, e=u-u^h : 0.0321452
+Exact relative error (%) : 2.3718
