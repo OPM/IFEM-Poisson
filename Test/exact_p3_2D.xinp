@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry>
+    <raiseorder patch="1" u="2" v="2"/>
+    <refine type="uniform" patch="1" u="7" v="7"/>
+    <topologysets>
+      <set name="edges" type="edge">
+        <item patch="1">1 2 3 4</item>
+      </set>
+      <set name="zero" type="edge">
+        <item patch="1">1 3</item>
+      </set>
+      <set name="nonzero" type="edge">
+        <item patch="1">2 4</item>
+      </set>
+    </topologysets>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="nonzero" comp="1" type="anasol"/>
+    <dirichlet set="zero" comp="1"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">-6*x*y*(x^2 + y^2)</source>
+    <anasol type="expression">
+      <primary>x^3 * y^3</primary>
+      <secondary>-3 * x^2 * y^3|-3 * x^3 * y^2</secondary>
+    </anasol>
+    <galerkin>1.0</galerkin>
+  </poisson>
+
+</simulation>

@@ -1,0 +1,56 @@
+interior_layer_adap.xinp -2D -adap
+
+Number of Gauss points: 4
+LR-spline basis functions are used
+	Material code 0: 1
+	Analytical solution: InteriorLayer, slope = 60
+	Heat source function: InteriorLayer, slope = 60
+Number of elements    256
+Number of nodes       361
+Number of dofs        361
+Number of constraints 37
+Number of unknowns    324
+L2-norm            : 1.50744
+Energy norm           a(u^h,u^h)^0.5 : 9.48035
+External energy          (h,u^h)^0.5 : 8.52468
+Exact norm                a(u,u)^0.5 : 10.3681
+Exact error      a(e,e)^0.5, e=u-u^h : 4.04787
+Exact relative error (%) : 39.0415
+Root mean square (RMS) of error      : 1.66862
+Min element error                    : 0.000106334
+Max element error                    : 0.931335
+Average element error                : 0.130051
+Refining 140 basis functions with errors in range \[0.803685,7.17804\] 10\% of max error (0.717804)
+Refined mesh: 811 elements 922 nodes.
+Number of elements    811
+Number of nodes       922
+Number of dofs        922
+Number of constraints 51
+Number of unknowns    871
+L2-norm            : 1.43047
+Energy norm           a(u^h,u^h)^0.5 : 10.2396
+External energy          (h,u^h)^0.5 : 9.05618
+Exact norm                a(u,u)^0.5 : 10.3653
+Exact error      a(e,e)^0.5, e=u-u^h : 1.62087
+Exact relative error (%) : 15.6374
+Root mean square (RMS) of error      : 1.97598
+Min element error                    : 6.21694e-07
+Max element error                    : 0.279462
+Average element error                : 0.0257004
+Refining 282 basis functions with errors in range \[0.238605,2.36016\] 10\% of max error (0.236016)
+Refined mesh: 2068 elements 2071 nodes.
+Number of elements    2068
+Number of nodes       2071
+Number of dofs        2071
+Number of constraints 51
+Number of unknowns    2020
+L2-norm            : 1.34086
+Energy norm           a(u^h,u^h)^0.5 : 10.3607
+External energy          (h,u^h)^0.5 : 9.19396
+Exact norm                a(u,u)^0.5 : 10.3655
+Exact error      a(e,e)^0.5, e=u-u^h : 0.314731
+Exact relative error (%) : 3.03635
+Root mean square (RMS) of error      : 2.29657
+Min element error                    : 8.46833e-08
+Max element error                    : 0.0425411
+Average element error                : 0.00276302

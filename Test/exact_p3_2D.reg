@@ -1,0 +1,12 @@
+exact_p3_2D.xinp -2D 
+
+Number of elements    64
+Number of nodes       121
+Number of dofs        121
+Number of constraints 19
+Number of unknowns    81
+L2-norm            : 0.221411
+Max displacement   : 1 node 121
+Energy norm           a(u^h,u^h)^0.5 : 0.717137
+External energy          (h,u^h)^0.5 : -0.843143
+Exact norm                a(u,u)^0.5 : 0.717137

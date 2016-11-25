@@ -1,0 +1,12 @@
+exact_p2_2D_LR.xinp -2D -LR 
+
+Reading data file simple_lr_p2.lr
+Number of elements    49
+Number of nodes       73
+Number of dofs        73
+Number of constraints 15
+Number of unknowns    41
+L2-norm            : 0.232276
+Energy norm           a(u^h,u^h)^0.5 : 0.730297
+External energy          (h,u^h)^0.5 : -0.632595
+Exact norm                a(u,u)^0.5 : 0.730297
