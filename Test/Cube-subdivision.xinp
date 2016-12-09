@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry sets="true">
+    <subdivision nx="2" ny="2" nz="2">
+      <raiseorder patch="1" u="1" v="1" w="1"/>
+      <refine type="uniform" patch="1" u="7" v="7" w="7"/>
+    </subdivision>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">3*PI*PI*sin(x*PI)*sin(y*PI)*sin(z*PI)</source>
+    <anasol type="expression">
+      <primary>sin(PI*x)*sin(PI*y)*sin(z*PI)</primary>
+      <secondary>-PI*cos(PI*x)*sin(PI*y)*sin(z*PI) |
+                 -PI*sin(PI*x)*cos(PI*y)*sin(PI*z) |
+                 -PI*sin(PI*x)*sin(PI*y)*cos(PI*z)
+      </secondary>
+    </anasol>
+  </poisson>
+
+</simulation>

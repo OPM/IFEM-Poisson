@@ -14,6 +14,7 @@
 #ifndef _SIM_POISSON_H
 #define _SIM_POISSON_H
 
+#include "SIMMultiPatchModelGen.h"
 #include "Poisson.h"
 #include "AnaSol.h"
 #include "SIM1D.h"
@@ -31,13 +32,13 @@
   \brief Driver class for NURBS-based FEM analysis of Poisson problems.
 */
 
-template<class Dim> class SIMPoisson : public Dim
+template<class Dim> class SIMPoisson : public SIMMultiPatchModelGen<Dim>
 {
 public:
   //! \brief Default constructor.
   //! \param[in] checkRHS If \e true, ensure the model is in a right-hand system
   SIMPoisson(bool checkRHS = false) :
-    Dim(1,checkRHS), prob(Dim::dimension)
+    SIMMultiPatchModelGen<Dim>(1), prob(Dim::dimension)
   {
     Dim::myProblem = &prob;
     aCode[0] = aCode[1] = 0;

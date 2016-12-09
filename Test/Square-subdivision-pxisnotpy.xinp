@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2" scale="2.0" sets="true">
+    <subdivision nx="2" ny="2">
+      <raiseorder patch="1" u="2" v="1"/>
+      <refine patch="1" u="7" v="7"/>
+    </subdivision>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Edge4" comp="1"/>
+    <neumann set="Edge3" comp="1" type="anasol"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">PI*PI*cos(PI*x)*(2-y)</source>
+    <anasol type="expression">
+      <primary>cos(PI*x)*(2-y)</primary>
+      <secondary>PI*sin(PI*x)*(2-y)|cos(PI*x)</secondary>
+    </anasol>
+    <galerkin>1.0</galerkin>
+  </poisson>
+
+</simulation>
