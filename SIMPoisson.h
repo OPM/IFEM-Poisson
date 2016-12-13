@@ -272,7 +272,7 @@ public:
       asciiFile = asciiFile.substr(asciiFile.rfind('.')+1);
     }
 
-    return this->SIMinput::read(filename);
+    return this->SIMadmin::read(filename);
   }
 
 
