@@ -35,7 +35,7 @@
     <!--General - adaptive refinement parameters -->
     <adaptive>
         <maxstep value="3"/>
-	<beta value="20"/>
+        <beta value="10" type="threshold"/>
         <maxdof value="10000"/>
         <errtol value="0.000001"/>
         <symmetry value="1"/>

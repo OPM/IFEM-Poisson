@@ -1,0 +1,13 @@
+exact_p3_2D_LR.xinp -2D -LR 
+
+LR-spline basis functions are used
+Parsing input file exact_p3_2D_LR.xinp
+Number of elements    49
+Number of nodes       88
+Number of dofs        88
+Number of constraints 17
+Number of unknowns    52
+L2-norm            : 0.205367
+Energy norm           a(u^h,u^h)^0.5 : 0.717137
+External energy          (h,u^h)^0.5 : -0.702198
+Exact norm                a(u,u)^0.5 : 0.717137
