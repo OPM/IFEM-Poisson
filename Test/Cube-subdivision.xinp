@@ -4,6 +4,7 @@
 
   <!-- General - geometry definitions !-->
   <geometry sets="true">
+    <partitioning procs= "4" nperproc= "2"/>
     <subdivision nx="2" ny="2" nz="2">
       <raiseorder patch="1" u="1" v="1" w="1"/>
       <refine type="uniform" patch="1" u="7" v="7" w="7"/>
@@ -26,5 +27,9 @@
       </secondary>
     </anasol>
   </poisson>
+
+  <linearsolver>
+    <pc>asm</pc>
+  </linearsolver>
 
 </simulation>
