@@ -33,9 +33,9 @@ enable_testing()
 include(IFEMTesting)
 
 # Regression tests
-if(IFEM_USE_PARALLEL_PETSC)
+if(MPI_FOUND)
   # Add parallel tests here
-else(IFEM_USE_PARALLEL_PETSC)
+else()
   ifem_add_test(Cube.reg Poisson)
   ifem_add_test(Line.reg Poisson)
   ifem_add_test(Lshape.reg Poisson)
