@@ -1,0 +1,13 @@
+Square-subdivision-pxisnotpy.xinp -2D
+
+Number of elements    64
+Number of nodes       110
+Number of dofs        110
+Number of unknowns    99
+L2-norm            : 1.01133
+Max displacement   : 2.21757
+Energy norm           a(u^h,u^h)^0.5 : 5.32153
+External energy          (h,u^h)^0.5 : 4.9314
+Exact norm                a(u,u)^0.5 : 5.32155
+Exact error      a(e,e)^0.5, e=u-u^h : 0.0150364
+Exact relative error (%) : 0.282556

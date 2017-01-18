@@ -34,12 +34,17 @@ include(IFEMTesting)
 
 # Regression tests
 if(MPI_FOUND)
-  # Add parallel tests here
+  ifem_add_test(MPI/Cube-subdivision.reg Poisson 4)
 else()
   ifem_add_test(Cube.reg Poisson)
+  ifem_add_test(Cube-subdivision.reg Poisson)
   ifem_add_test(Line.reg Poisson)
+  ifem_add_test(Line-subdivision.reg Poisson)
   ifem_add_test(Lshape.reg Poisson)
   ifem_add_test(Square.reg Poisson)
+  ifem_add_test(Square-subdivision-nxisnotny.reg Poisson)
+  ifem_add_test(Square-subdivision-pxisnotpy.reg Poisson)
+  ifem_add_test(Square-subdivision-nonhom.reg Poisson)
   ifem_add_test(Waterfall3D.reg Poisson)
   ifem_add_test(exact_p1_2D.reg Poisson)
   ifem_add_test(exact_p2_2D.reg Poisson)
