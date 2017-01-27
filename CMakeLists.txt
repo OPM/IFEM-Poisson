@@ -18,6 +18,7 @@ endif()
 configure_file(${IFEM_REGTEST_SCRIPT} regtest.sh)
 
 set(Poisson_SRCS Poisson.C
+                 PoissonArgs.C
                  PoissonSolutions.C
                  SIMPoisson1D.C
                  SIMPoisson2D.C

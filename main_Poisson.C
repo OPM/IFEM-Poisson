@@ -20,6 +20,7 @@
 #include "Profiler.h"
 #include "AppCommon.h"
 #include "SIMSolverAdap.h"
+#include "PoissonArgs.h"
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -123,18 +124,18 @@ int main (int argc, char** argv)
   utl::profiler->start("Initialization");
 
   std::vector<int> ignoredPatches;
-  int  i, iop = 0;
+  int  i;
   bool checkRHS = false;
   bool vizRHS = false;
   bool fixDup = false;
   bool dumpASCII = false;
-  char ndim = 3;
   char* infile = nullptr;
+  PoissonArgs args;
 
-  int myPid = IFEM::Init(argc,argv);
-
+  int myPid = IFEM::Init(argc,argv,"Poisson solver");
+  int ignoreArg = -1;
   for (i = 1; i < argc; i++)
-    if (SIMoptions::ignoreOldOptions(argc,argv,i))
+    if (i == ignoreArg || SIMoptions::ignoreOldOptions(argc,argv,i))
       ; // ignore the obsolete option
     else if (!strcmp(argv[i],"-dumpASC"))
       dumpASCII = myPid == 0; // not for parallel runs
@@ -143,8 +144,6 @@ int main (int argc, char** argv)
         utl::parseIntegers(ignoredPatches,argv[++i]);
     else if (!strcmp(argv[i],"-free"))
       SIMbase::ignoreDirichlet = true;
-    else if (!strcmp(argv[i],"-check"))
-      iop = 100;
     else if (!strcmp(argv[i],"-checkRHS"))
       checkRHS = true;
     else if (!strcmp(argv[i],"-vizRHS"))
@@ -152,14 +151,20 @@ int main (int argc, char** argv)
     else if (!strcmp(argv[i],"-fixDup"))
       fixDup = true;
     else if (!strcmp(argv[i],"-1D"))
-      ndim = 1;
+      args.dim = 1;
     else if (!strcmp(argv[i],"-2D"))
-      ndim = 2;
+      args.dim = 2;
     else if (!strncmp(argv[i],"-adap",5))
-      iop = 10;
-    else if (!infile)
+      args.adap = true;
+    else if (!infile) {
       infile = argv[i];
-    else
+      ignoreArg = i;
+      if (strcasestr(infile,".xinp")) {
+        if (!args.readXML(infile,false))
+          return 1;
+        i = 0;
+      }
+    } else
       std::cerr <<"  ** Unknown option ignored: "<< argv[i] << std::endl;
 
   if (!infile)
@@ -175,7 +180,7 @@ int main (int argc, char** argv)
     return 0;
   }
 
-  if (iop == 10)
+  if (args.adap)
     IFEM::getOptions().discretization = ASM::LRSpline;
 
   IFEM::cout <<"\n >>> IFEM Poisson equation solver <<<"
@@ -188,7 +193,7 @@ int main (int argc, char** argv)
     IFEM::cout <<"\nSpecified boundary conditions are ignored";
   if (fixDup)
     IFEM::cout <<"\nCo-located nodes will be merged";
-  if (checkRHS && ndim > 1)
+  if (checkRHS && args.dim > 1)
     IFEM::cout <<"\nCheck that each patch has a right-hand coordinate system";
   if (!ignoredPatches.empty())
   {
@@ -200,21 +205,21 @@ int main (int argc, char** argv)
 
   utl::profiler->stop("Initialization");
 
-  if (iop == 10) {
-    if (ndim == 1)
+  if (args.adap) {
+    if (args.dim == 1)
       return runSimulator<SIM1D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
                                                fixDup, vizRHS, dumpASCII);
-    else if (ndim == 2)
+    else if (args.dim == 2)
       return runSimulator<SIM2D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
                                                fixDup, vizRHS, dumpASCII);
     else
       return runSimulator<SIM3D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
                                                fixDup, vizRHS, dumpASCII);
   } else {
-    if (ndim == 1)
+    if (args.dim == 1)
       return runSimulator<SIM1D>(infile, checkRHS, ignoredPatches,
                                  fixDup, vizRHS, dumpASCII);
-    else if (ndim == 2)
+    else if (args.dim == 2)
       return runSimulator<SIM2D>(infile, checkRHS, ignoredPatches,
                                  fixDup, vizRHS, dumpASCII);
     else

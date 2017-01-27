@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <simulation>
     <!--General - geometry definitions-->
-    <geometry>
+    <geometry dim="2">
         <raiseorder patch="1" u="2" v="2"/>
         <refine patch="1" type="uniform" u="15" v="15"/>
         <topologysets>
@@ -44,7 +44,7 @@
         <scheme value="isotropic_function"/>
     </adaptive>
     <!--App specific block-->
-    <poisson>
+    <poisson adaptive="true">
         <isotropic code="0" kappa="1"/>
         <anasol type="interiorlayer"/>
         <source type="interiorlayer"/>
