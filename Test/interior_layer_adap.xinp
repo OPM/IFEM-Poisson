@@ -34,14 +34,14 @@
     </boundaryconditions>
     <!--General - adaptive refinement parameters -->
     <adaptive>
-        <maxstep value="3"/>
-        <beta value="10" type="threshold"/>
-        <maxdof value="10000"/>
-        <errtol value="0.000001"/>
-        <symmetry value="1"/>
-        <knot_mult value="1"/>
-        <use_norm value="0"/>
-        <scheme value="isotropic_function"/>
+        <maxstep>3</maxstep>
+        <beta type="threshold">10</beta>
+        <maxdof>10000</maxdof>
+        <errtol>0.000001</errtol>
+        <symmetry>1</symmetry>
+        <knot_mult>1</knot_mult>
+        <use_norm>0</use_norm>
+        <scheme>isotropic_function</scheme>
     </adaptive>
     <!--App specific block-->
     <poisson adaptive="true">

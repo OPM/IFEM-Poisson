@@ -3,7 +3,7 @@
 <simulation>
 
   <!-- General - geometry definitions !-->
-  <geometry scale="2.0">
+  <geometry dim="2" scale="2.0">
     <raiseorder patch="1" u="2" v="2"/>
     <refine type="uniform" patch="1" u="7" v="7"/>
     <topologysets>

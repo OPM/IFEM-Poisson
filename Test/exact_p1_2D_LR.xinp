@@ -3,7 +3,7 @@
 <simulation>
 
   <!-- General - geometry definitions !-->
-  <geometry>
+  <geometry dim="2">
     <patchfile type="lrplines">simple_lr_p1.lr</patchfile>
     <topologysets>
       <set name="edges" type="edge">

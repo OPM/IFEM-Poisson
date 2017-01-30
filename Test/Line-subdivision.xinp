@@ -3,7 +3,7 @@
 <simulation>
 
   <!-- General - geometry definitions !-->
-  <geometry L="2.0" sets="true">
+  <geometry dim="1" L="2.0" sets="true">
     <subdivision nx="2">
       <raiseorder patch="1" u="2"/>
       <refine type="uniform" patch="1" u="7"/>
