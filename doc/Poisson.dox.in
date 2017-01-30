@@ -1,0 +1,28 @@
+// $Id$
+//==============================================================================
+//!
+//! \file Poisson.dox
+//!
+//! \date Nov 29 2016
+//!
+//! \author Arne Morten Kvarving / SINTEF
+//!
+//! \brief File containing the Main Page of the IFEM-Poisson documentation.
+//!
+//==============================================================================
+
+/*! \mainpage Isogeometric FEM Poisson application
+
+\author Einar Christensen, SINTEF ICT, Trondheim
+
+\section intro Introduction
+This is a Poisson application built on top of the IFEM library.
+
+IFEM is an object-oriented toolbox for implementing isogeometric finite element
+solvers for linear and nonlinear partial differential equations.
+The toolbox is developed through the ICADA project at SINTEF ICT, Trondheim.
+The purpose of this code is to serve as a common base for isogeometric
+PDE-simulators, using splines and NURBS as basis functions in the finite element
+formulations. The toolbox contains methods for doing linear and non-linear,
+stationary and dynamic time-domain analyses, as well as eigenvalue analyses.
+*/

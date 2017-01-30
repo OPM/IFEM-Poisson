@@ -80,5 +80,25 @@ endif()
 add_executable(Poisson main_Poisson.C)
 target_link_libraries(Poisson CommonPoisson IFEMAppCommon ${IFEM_LIBRARIES})
 
+# For generating the doxy
+if(IFEM_AS_SUBMODULE OR IFEM_INTREE_BUILD)
+  set(EXTRA_DOXY_PATHS "${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}")
+  configure_file(${IFEM_PATH}/doc/Doxyfile.in Doxyfile)
+else()
+  configure_file(doc/Doxyfile.in Doxyfile)
+endif()
+configure_file(doc/Poisson.dox.in Poisson.dox)
+add_custom_target(doc doxygen ${PROJECT_BINARY_DIR}/Doxyfile
+                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                  COMMENT "Generating API documentation" VERBATIM)
+
+if(IFEM_INSTALL_DOXY)
+  install(CODE "EXECUTE_PROCESS(COMMAND ${CMAKE_BUILD_TOOL} doc WORKING_DIRECTORY \"${CMAKE_CURRENT_BINARY_DIR}\")" COMPONENT doc)
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html DESTINATION ${CMAKE_INSTALL_DOCDIR}/Apps/Poisson
+          COMPONENT doc
+          PATTERN *.md5 EXCLUDE
+          PATTERN *.map EXCLUDE)
+endif(IFEM_INSTALL_DOXY)
+
 # Installation
 install(TARGETS Poisson DESTINATION bin COMPONENT bin)
