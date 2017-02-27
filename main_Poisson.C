@@ -21,20 +21,19 @@
 #include "AppCommon.h"
 #include "SIMSolverAdap.h"
 #include "PoissonArgs.h"
-#include <fstream>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
 
-/*! \brief Setup and launch a simulation.
- *! \param[in] infile The input file to process
- *! \param[in] checkRHS Check for a right-hand-side model.
- *! \param[in] ignoredPatches Patches to ignore
- *! \param[in] fixDup True to collapse co-located nodes.
- *! \param[in] vizRHS True to store load vector to VTF.
- */
+/*!
+  \brief Sets up and launches the simulation.
+  \param[in] infile The input file to process
+  \param[in] checkRHS If \e true, check patches for a right-hand-side model
+  \param[in] ignoredPatches List of patches to ignore in the simulation
+  \param[in] fixDup If \e true, collapse co-located nodes into a single node
+  \param[in] vizRHS If \e true, save the load vector to VTF for visualization
+*/
 
 template<class Dim, template<class T> class Solver=SIMSolver>
 int runSimulator(char* infile, bool checkRHS,
@@ -65,7 +64,7 @@ int runSimulator(char* infile, bool checkRHS,
   model.setDumpASCII(dumpASCII);
 
   model.setQuadratureRule(model.opt.nGauss[0],true);
-  model.initSystem(model.opt.solver,1,model.opt.eig>0?0:1);
+  model.initSystem(model.opt.solver,1,model.opt.eig>0?0:1,0,true);
 
   std::unique_ptr<DataExporter> exporter;
   if (model.opt.dumpHDF5(infile)) {
@@ -124,7 +123,6 @@ int main (int argc, char** argv)
   utl::profiler->start("Initialization");
 
   std::vector<int> ignoredPatches;
-  int  i;
   bool checkRHS = false;
   bool vizRHS = false;
   bool fixDup = false;
@@ -134,7 +132,7 @@ int main (int argc, char** argv)
 
   int myPid = IFEM::Init(argc,argv,"Poisson solver");
   int ignoreArg = -1;
-  for (i = 1; i < argc; i++)
+  for (int i = 1; i < argc; i++)
     if (i == ignoreArg || SIMoptions::ignoreOldOptions(argc,argv,i))
       ; // ignore the obsolete option
     else if (!strcmp(argv[i],"-dumpASC"))
@@ -183,11 +181,7 @@ int main (int argc, char** argv)
   if (args.adap)
     IFEM::getOptions().discretization = ASM::LRSpline;
 
-  IFEM::cout <<"\n >>> IFEM Poisson equation solver <<<"
-             <<"\n ====================================\n"
-             <<"\n Executing command:\n";
-  for (i = 0; i < argc; i++) IFEM::cout <<" "<< argv[i];
-  IFEM::cout <<"\n\nInput file: "<< infile;
+  IFEM::cout <<"\nInput file: "<< infile;
   IFEM::getOptions().print(IFEM::cout);
   if (SIMbase::ignoreDirichlet)
     IFEM::cout <<"\nSpecified boundary conditions are ignored";
