@@ -22,6 +22,7 @@
 #include "SIM3D.h"
 #include "Utilities.h"
 #include "tinyxml.h"
+#include "TimeStep.h"
 #include "Functions.h"
 #include "DataExporter.h"
 #include "IFEM.h"
@@ -156,7 +157,7 @@ public:
   bool advanceStep(TimeStep&) { return true; }
 
   //! \brief No internal VTF handling.
-  bool saveStep(TimeStep&, int& nBlock)
+  bool saveStep(TimeStep& tp, int& nBlock)
   {
     if (this->opt.format < 0)
       return true;
@@ -180,6 +181,14 @@ public:
     // Write solution fields to VTF-file
     if (!this->writeGlvS(*solution,1,nBlock))
       return false;
+
+    // Write solution gradients to VTF-file
+    if (!solution->empty()) {
+      Matrix tmp;
+      if (!this->project(tmp, *solution))
+        return false;
+      this->writeGlvV(tmp, "grad(u)", tp.step, nBlock, 110, this->nsd);
+    }
 
     // Write projected solution fields to VTF-file
     size_t i = 0;
