@@ -72,7 +72,7 @@ int runSimulator(char* infile, bool checkRHS,
       IFEM::cout <<"\n ** HDF5 output is available for spline discretization only"
         <<". Deactivating...\n"<< std::endl;
     else
-      exporter.reset(SIM::handleDataOutput(model, solver, model.opt.hdf5, false, 1, 1));
+      exporter.reset(SIM::handleDataOutput(model, solver, model.opt.hdf5));
   }
 
   return solver.solveProblem(infile, exporter.get(), "Solving Poisson problem", false);
