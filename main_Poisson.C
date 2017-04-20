@@ -13,14 +13,10 @@
 
 #include "IFEM.h"
 #include "SIMPoisson.h"
-#include "AdaptiveSIM.h"
-#include "HDF5Writer.h"
-#include "XMLWriter.h"
+#include "PoissonArgs.h"
+#include "SIMSolverAdap.h"
 #include "Utilities.h"
 #include "Profiler.h"
-#include "AppCommon.h"
-#include "SIMSolverAdap.h"
-#include "PoissonArgs.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -33,6 +29,7 @@
   \param[in] ignoredPatches List of patches to ignore in the simulation
   \param[in] fixDup If \e true, collapse co-located nodes into a single node
   \param[in] vizRHS If \e true, save the load vector to VTF for visualization
+  \param[in] dumpASCII If \e true, dump model and solution to ASCII files
 */
 
 template<class Dim, template<class T> class Solver=SIMSolver>
@@ -66,16 +63,10 @@ int runSimulator(char* infile, bool checkRHS,
   model.setQuadratureRule(model.opt.nGauss[0],true);
   model.initSystem(model.opt.solver,1,model.opt.eig>0?0:1,0,true);
 
-  std::unique_ptr<DataExporter> exporter;
-  if (model.opt.dumpHDF5(infile)) {
-    if (model.opt.discretization < ASM::Spline && !model.opt.hdf5.empty())
-      IFEM::cout <<"\n ** HDF5 output is available for spline discretization only"
-        <<". Deactivating...\n"<< std::endl;
-    else
-      exporter.reset(SIM::handleDataOutput(model, solver, model.opt.hdf5));
-  }
+  if (model.opt.dumpHDF5(infile))
+    solver.handleDataOutput(model.opt.hdf5);
 
-  return solver.solveProblem(infile, exporter.get(), "Solving Poisson problem", false);
+  return solver.solveProblem(infile,"Solving Poisson problem",false);
 }
 
 
