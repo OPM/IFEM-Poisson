@@ -21,12 +21,11 @@
 #include "SIM2D.h"
 #include "SIM3D.h"
 #include "Utilities.h"
-#include "tinyxml.h"
-#include "TimeStep.h"
 #include "Functions.h"
 #include "ExprFunctions.h"
 #include "DataExporter.h"
 #include "IFEM.h"
+#include "tinyxml.h"
 #include <fstream>
 
 
@@ -38,12 +37,13 @@ template<class Dim> class SIMPoisson : public SIMMultiPatchModelGen<Dim>
 {
 public:
   //! \brief Default constructor.
-  //! \param[in] checkRHS If \e true, ensure the model is in a right-hand system
-  explicit SIMPoisson(bool checkRHS = false) :
-    SIMMultiPatchModelGen<Dim>(1,checkRHS), prob(Dim::dimension)
+  explicit SIMPoisson(bool checkRHS = false)
+    : SIMMultiPatchModelGen<Dim>(1,checkRHS),
+      prob(Dim::dimension), solution(&mySolVec)
   {
     Dim::myProblem = &prob;
     aCode[0] = aCode[1] = 0;
+    vizRHS = false;
   }
 
   //! \brief The destructor zero out the integrand pointer (deleted by parent).
@@ -73,164 +73,209 @@ public:
     this->Dim::clearProperties();
   }
 
-  //! \brief Returns number of right-hand-side vectors
-  size_t getNoRHS() const { return 1 + prob.getNoGalerkin(); }
+  //! \brief Returns the number of right-hand-side vectors.
+  virtual size_t getNoRHS() const { return 1 + prob.getNoGalerkin(); }
 
-  //! \brief Register data fields for output
+  //! \brief Registers data fields for output.
   void registerFields(DataExporter& exporter)
   {
     int results = DataExporter::PRIMARY | DataExporter::NORMS;
 
-    if (!this->opt.pSolOnly && this->opt.project.empty())
+    if (!Dim::opt.pSolOnly && Dim::opt.project.empty())
       results |= DataExporter::SECONDARY;
 
-    if (solution) {
-      exporter.registerField("u", "solution", DataExporter::SIM, results);
-      exporter.setFieldValue("u", this, solution);
-    }
-
-    if (!this->opt.project.empty() && projections) {
-      size_t i = 0;
-      for (auto& it : this->opt.project) {
-        exporter.registerField(it.second.c_str(), "projected", DataExporter::SIM,
-                                DataExporter::SECONDARY, it.second.c_str());
-        exporter.setFieldValue(it.second.c_str(), this, &(*projections)[i++]);
-      }
-    }
+    exporter.registerField("u", "solution", DataExporter::SIM, results);
+    exporter.setFieldValue("u", this, solution);
   }
 
-  //! \brief Set solution vector
-  void setSol(const Vector* sol) { solution = const_cast<Vector*>(sol); }
+  //! \brief Sets the solution vector for output.
+  void setSol(const Vector* sol) { solution = sol; }
 
-  //! \brief Set project vectors
-  void setProjections(const Vectors* sol) { projections = sol; }
+  //! \brief Toggles writing the load vector to VTF.
+  void setVizRHS(bool viz) { vizRHS = viz; }
 
-  //! \brief No internal VTF handling.
-  bool saveModel(char* infile, int& geoBlk, int&)
+  //! \brief Sets the ASCII file name prefix.
+  void setASCIIfile(const char* filename)
   {
-    if (Dim::opt.format >= 0 && !this->writeGlvG(geoBlk, infile))
+    const char* end = strrchr(filename,'.');
+    if (end)
+      asciiFile.assign(filename,end);
+    else
+      asciiFile.assign(filename);
+  }
+
+  //! \brief Opens a new VTF-file and writes the model geometry to it.
+  //! \param[in] fileName File name used to construct the VTF-file name from
+  //! \param[out] geoBlk Running geometry block counter
+  //! \param[out] nBlock Running result block counter
+  //!
+  //! \details This method is not used in adaptive simulations.
+  //! It also writes out the boundary tractions (if any) and the Dirichlet
+  //! boundary conditions, as this data is regarded part of the model
+  //! and not as simulation results.
+  bool saveModel(char* fileName, int& geoBlk, int& nBlock)
+  {
+    if (!asciiFile.empty())
+    {
+      // Write (possibly refined) model to g2-file
+      std::ofstream osg(asciiFile+".g2");
+      osg.precision(18);
+      IFEM::cout <<"\nWriting updated g2-file "<< asciiFile+".g2" << std::endl;
+      this->dumpGeometry(osg);
+    }
+
+    if (Dim::opt.format < 0)
+      return true; // No VTF-output
+
+    // Write geometry
+    if (!this->writeGlvG(geoBlk,fileName))
       return false;
 
-    this->gBlk = geoBlk;
+    // Write boundary tractions, if any
+    if (!this->writeGlvT(1,geoBlk,nBlock))
+      return false;
 
-    return true;
+    // Write Dirichlet boundary conditions
+    return this->writeGlvBC(nBlock);
   }
 
-  //! \brief Assemble and solve linear system
+  //! \brief Assembles and solves the linear system.
   bool solveStep(TimeStep&)
   {
-    this->setMode(this->opt.eig == 0 ? SIM::STATIC : SIM::VIBRATION);
-    if (!this->assembleSystem())
+    if (!this->setMode(Dim::opt.eig == 0 ? SIM::STATIC : SIM::VIBRATION))
       return false;
 
-    if (this->opt.eig == 0) {
-      if (!this->solveSystem(mySolVec,1))
-        return false;
+    if (Dim::opt.eig == 0)
+      this->initSystem(Dim::opt.solver,1,1,0,true);
+    else
+      this->initSystem(Dim::opt.solver,1,0);
+    this->setQuadratureRule(Dim::opt.nGauss[0],true);
 
-      // Project the FE stresses onto the splines basis
-      this->setMode(SIM::RECOVERY);
-      size_t i = 0;
-      if (projections == &myProj)
-        myProj.resize(this->opt.project.size());
-      for (auto pit  = this->opt.project.begin();
-                pit != this->opt.project.end(); ++i, ++pit) {
-        Matrix ssol;
-        if (!this->project(ssol,*solution,pit->first))
+    if (!this->assembleSystem())
+      return false;
+    else if (vizRHS && Dim::opt.eig == 0)
+      this->extractLoadVec(myLoad);
+
+    if (Dim::opt.eig > 0) // Eigenvalue analysis (free vibration)
+      return this->systemModes(modes);
+
+    if (!this->solveSystem(mySolVec,1))
+      return false;
+
+    if (!this->setMode(SIM::RECOVERY))
+      return false;
+
+    if (!Dim::opt.project.empty())
+    {
+      // Project the secondary solution onto the splines basis
+      size_t j = 0;
+      myProj.resize(Dim::opt.project.size());
+      for (auto& pit : Dim::opt.project)
+        if (!this->project(myProj[j++],mySolVec,pit.first))
           return false;
-        else
-          myProj[i] = ssol;
-      }
 
-      // Evaluate solution norms
-      this->setQuadratureRule(this->opt.nGauss[1]);
-      if (!this->solutionNorms(*solution,*projections,eNorm,gNorm))
-        return false;
-
-      this->printNorms(gNorm);
-    } else {
-      this->setMode(SIM::VIBRATION);
-      if (!this->systemModes(modes))
-        return false;
+      IFEM::cout << std::endl;
     }
 
+    // Evaluate solution norms
+    Vectors gNorm;
+    this->setQuadratureRule(Dim::opt.nGauss[1]);
+    if (!this->solutionNorms(mySolVec,myProj,myNorm,gNorm))
+      return false;
+
+    // Print global norm summary to console
+    this->printNorms(gNorm);
     return true;
   }
 
   //! \brief No time stepping.
   bool advanceStep(TimeStep&) { return true; }
 
-  //! \brief No internal VTF handling.
-  bool saveStep(TimeStep& tp, int& nBlock)
+  //! \brief Saves solution-dependent quantities to file for postprocessing.
+  bool saveStep(TimeStep&, int& nBlock)
   {
-    if (this->opt.format < 0)
+    if (!asciiFile.empty())
+    {
+      // Write solution (control point values) to ASCII files
+      std::ofstream osd(asciiFile+".sol");
+      osd.precision(18);
+      IFEM::cout <<"\nWriting primary solution (temperature field) to file "
+                 << asciiFile+".sol" << std::endl;
+      utl::LogStream log(osd);
+      this->dumpPrimSol(mySolVec,log,false);
+      std::ofstream oss(asciiFile+".sec");
+      oss.precision(18);
+      IFEM::cout <<"\nWriting all solutions (heat flux etc) to file "
+                 << asciiFile+".sec" << std::endl;
+      utl::LogStream log2(oss);
+      this->dumpSolution(mySolVec,log2);
+    }
+
+    if (Dim::opt.format < 0)
       return true;
 
-    // Write boundary tractions, if any
-    if (!this->writeGlvT(1,gBlk,nBlock))
-      return false;
-
-    // Write Dirichlet boundary conditions
-    if (!this->writeGlvBC(nBlock))
-      return false;
-
     // Write load vector to VTF-file
-    if (vizRHS) {
-      Vector load;
-      this->extractLoadVec(load);
-      if (!this->writeGlvV(load,"Load vector",1,nBlock))
-        return false;
-    }
+    if (!this->writeGlvV(myLoad,"Load vector",1,nBlock))
+      return false;
 
     // Write solution fields to VTF-file
-    if (!this->writeGlvS(*solution,1,nBlock))
+    if (!this->writeGlvS(mySolVec,1,nBlock))
       return false;
-
-    // Write solution gradients to VTF-file
-    if (!solution->empty()) {
-      Matrix tmp;
-      if (!this->project(tmp, *solution))
-        return false;
-      this->writeGlvV(tmp, "grad(u)", tp.step, nBlock, 110, this->nsd);
-    }
 
     // Write projected solution fields to VTF-file
     size_t i = 0;
-    int iBlk = 100;
-    for (auto pit = this->opt.project.begin(); pit != this->opt.project.end(); pit++, i++, iBlk += 10)
-      if (!this->writeGlvP((*projections)[i],1,nBlock,iBlk,pit->second.c_str()))
+    int iBlk = 100, iGrad = -1;
+    std::string grdName;
+    std::vector<const char*> prefix(Dim::opt.project.size(),nullptr);
+    for (auto& pit : Dim::opt.project)
+      if (i >= myProj.size())
+        break;
+      else if (!this->writeGlvP(myProj[i],1,nBlock,iBlk,pit.second.c_str()))
+        return false;
+      else
+      {
+        iBlk += 10;
+        prefix[i++] = pit.second.c_str();
+        if (iGrad < 0 || pit.first == SIMoptions::GLOBAL)
+        {
+          iGrad = i-1;
+          grdName = pit.second + " q";
+        }
+      }
+
+    // Write the projected solution gradient vector (heat flux) to VTF-file
+    if (iGrad >= 0)
+      if (!this->writeGlvV(myProj[iGrad],grdName.c_str(),1,nBlock,110,Dim::nsd))
         return false;
 
     // Write eigenmodes
-    bool isFreq = this->opt.eig==3 || this->opt.eig==4 || this->opt.eig==6;
+    bool isFreq = Dim::opt.eig==3 || Dim::opt.eig==4 || Dim::opt.eig==6;
     for (i = 0; i < modes.size(); i++)
       if (!this->writeGlvM(modes[i],isFreq,nBlock))
         return false;
 
     // Write element norms
-    auto prefix = this->getNormPrefixes();
-    if (!this->writeGlvN(eNorm,1,nBlock,prefix.data()))
+    if (!this->writeGlvN(myNorm,1,nBlock,prefix.data()))
       return false;
 
-    this->writeGlvStep(1,0.0,1);
-
-    if (!asciiFile.empty())
-      this->writeASCII();
-
-    return true;
+    return this->writeGlvStep(1,0.0,1);
   }
 
+  //! \brief Prints a norm group to the log stream.
+  //! \param[in] gNorm The global norm values
+  //! \param[in] fNorm Global reference norm values
+  //! \param[in] name Name of norm group
   virtual void printNormGroup(const Vector& gNorm, const Vector& fNorm,
                               const std::string& name) const
   {
     IFEM::cout <<"\n>>> Error estimates based on "<< name <<" <<<";
     if (name == "Pure residuals")
       IFEM::cout <<"\nResidual norm |u|_res = |f+nabla^2 u|: "<< gNorm(2);
-    else {
-      IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm(1);
-      IFEM::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(2);
-      IFEM::cout <<"\n- relative error (% of |u^r|) : "
+    else
+      IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm(1)
+                 <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(2)
+                 <<"\n- relative error (% of |u^r|) : "
                  << gNorm(2)/gNorm(1)*100.0;
-    }
 
     if (this->haveAnaSol())
     {
@@ -244,61 +289,7 @@ public:
     IFEM::cout << std::endl;
   }
 
-  //! \brief Set whether or not to dump results to ascii files
-  void setDumpASCII(bool dump) { asciiFile.resize(dump?1:0); }
-
-  //! \brief True to store laod vector to VTF file
-  void setVizRHS(bool viz) { vizRHS = viz; }
-
-  //! \brief Write results to ascii files
-  void writeASCII()
-  {
-    // Write (refined) model to g2-file
-    std::ofstream osg(asciiFile+".g2");
-    osg.precision(18);
-    IFEM::cout <<"\nWriting updated g2-file "<< asciiFile+".g2" << std::endl;
-    this->dumpGeometry(osg);
-    if (solution && !solution->empty())
-    {
-      // Write solution (control point values) to ASCII files
-      std::ofstream osd(asciiFile+".sol");
-      osd.precision(18);
-      IFEM::cout <<"\nWriting primary solution (temperature field) to file "
-                 << asciiFile+".sol" << std::endl;
-      utl::LogStream log(osd);
-      this->dumpPrimSol(*solution,log,false);
-      std::ofstream oss(asciiFile+".sec");
-      oss.precision(18);
-      IFEM::cout <<"\nWriting all solutions (heat flux etc) to file "
-                 << asciiFile+".sec" << std::endl;
-      utl::LogStream log2(oss);
-      this->dumpSolution(*solution,log2);
-    }
-  }
-
-  //! \brief Read input file and store name of the parsed file.
-  virtual bool read(const char* filename)
-  {
-    if (!asciiFile.empty()) {
-      asciiFile = filename;
-      asciiFile = asciiFile.substr(asciiFile.rfind('.')+1);
-    }
-
-    return this->SIMadmin::read(filename);
-  }
-
-
 protected:
-  //! \brief Internal helper function to extract projection prefixes.
-  std::vector<const char*> getNormPrefixes()
-  {
-    std::vector<const char*> result;
-    for (auto& it : this->opt.project)
-      result.push_back(it.second.c_str());
-
-    return result;
-  }
-
   //! \brief Performs some pre-processing tasks on the FE model.
   //! \details This method is reimplemented to resolve inhomogeneous boundary
   //! condition fields in case they are derived from the analytical solution.
@@ -379,10 +370,9 @@ protected:
   {
     if (!strcasecmp(elem->Value(),"postprocessing")) {
       const TiXmlElement* child = elem->FirstChildElement("projection");
-      if (child)
-        if (child->FirstChildElement("residual"))
-          prob.setNormIntegrandType(Integrand::ELEMENT_CORNERS |
-                                    Integrand::SECOND_DERIVATIVES);
+      if (child && child->FirstChildElement("residual"))
+        prob.setNormIntegrandType(Integrand::ELEMENT_CORNERS |
+                                  Integrand::SECOND_DERIVATIVES);
       return this->Dim::parse(elem);
     }
     if (strcasecmp(elem->Value(),"poisson"))
@@ -413,6 +403,17 @@ protected:
     return true;
   }
 
+private:
+  //! \brief Parses a dimension-specific data section from an input stream.
+  //! \details This function allows for specialization of the template while
+  //! still reusing as much code as possible. Only for dimension-specific code.
+  bool parseDimSpecific(char* keyWord, std::istream& is);
+  //! \brief Parses a dimension-specific data section from the an XML element.
+  //! \details This function allows for specialization of the template while
+  //! still reusing as much code as possible. Only for dimension-specific code.
+  bool parseDimSpecific(const TiXmlElement* child);
+
+protected:
   //! \brief Initializes material properties for integration of interior terms.
   //! \param[in] propInd Physical property index
   virtual bool initMaterial(size_t propInd)
@@ -441,28 +442,20 @@ protected:
   }
 
 private:
-  //! \brief Parses a dimension-specific data section from an input stream.
-  //! \details This function allows for specialization of the template while
-  //! still reusing as much code as possible. Only for dimension-specific code.
-  bool parseDimSpecific(char* keyWord, std::istream& is);
-  //! \brief Parses a dimension-specific data section from the an XML element.
-  //! \details This function allows for specialization of the template while
-  //! still reusing as much code as possible. Only for dimension-specific code.
-  bool parseDimSpecific(const TiXmlElement* child);
-
   Poisson   prob;     //!< Data and methods for the Poisson problem
   RealArray mVec;     //!< Material data
   int       aCode[2]; //!< Analytical BC code (used by destructor)
-  int gBlk = -1;      //!< Geometry block
-  Matrix eNorm;       //!< Element norms
-  Vectors gNorm;      //!< Global norms
-  bool vizRHS = false;//!< True to store load vector to VTF file
 
-  Vectors myProj; //!< Internal projection vectors
-  const Vectors* projections = &myProj; //!< Pointer to projection vectors
-  Vector mySolVec; //!< Internal solution vector
-  const Vector* solution = &mySolVec; //!< Pointer to solution vector
+  Vector    myLoad;   //!< External load vector (for VTF export)
+  Vector    mySolVec; //!< Primary solution vector
+  Vectors   myProj;   //!< Projected solution vectors
+  Matrix    myNorm;   //!< Element norms
+
   std::vector<Mode> modes; //!< Eigen modes
+
+  const Vector* solution; //!< Pointer to primary solution vector
+
+  bool        vizRHS;    //!< If \e true, store load vector to VTF
   std::string asciiFile; //!< ASCII output file prefix
 };
 

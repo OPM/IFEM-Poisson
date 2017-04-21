@@ -17,9 +17,6 @@
 #include "SIMSolverAdap.h"
 #include "Utilities.h"
 #include "Profiler.h"
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 
 
 /*!
@@ -58,10 +55,8 @@ int runSimulator(char* infile, bool checkRHS,
     return 2;
 
   model.setVizRHS(vizRHS);
-  model.setDumpASCII(dumpASCII);
-
-  model.setQuadratureRule(model.opt.nGauss[0],true);
-  model.initSystem(model.opt.solver,1,model.opt.eig>0?0:1,0,true);
+  if (dumpASCII)
+    model.setASCIIfile(infile);
 
   if (model.opt.dumpHDF5(infile))
     solver.handleDataOutput(model.opt.hdf5);
@@ -153,16 +148,17 @@ int main (int argc, char** argv)
           return 1;
         i = 0;
       }
-    } else
+    }
+    else
       std::cerr <<"  ** Unknown option ignored: "<< argv[i] << std::endl;
 
   if (!infile)
   {
     std::cout <<"usage: "<< argv[0]
               <<" <inputfile> [-dense|-spr|-superlu[<nt>]|-samg|-petsc]\n"
-              <<"       [-lag|-spec|-LR] [-1D|-2D] [-nGauss <n>]\n"
-              <<"       [-hdf5] [-vtf <format> [-nviz <nviz>]"
-              <<" [-nu <nu>] [-nv <nv>] [-nw <nw>]]\n       [-adap[<i>]]"
+              <<"       [-lag|-spec|-LR] [-1D|-2D] [-nGauss <n>] [-hdf5]\n"
+              <<"       [-vtf <format> [-nviz <nviz>] [-nu <nu>] [-nv <nv>]"
+              <<" [-nw <nw>] [-vizRHS]]\n       [-adap]"
               <<" [-eig <iop> [-nev <nev>] [-ncv <ncv] [-shift <shf>] [-free]]"
               <<"\n       [-ignore <p1> <p2> ...] [-fixDup]"
               <<" [-checkRHS] [-check] [-dumpASC]\n";
@@ -190,25 +186,30 @@ int main (int argc, char** argv)
 
   utl::profiler->stop("Initialization");
 
-  if (args.adap) {
-    if (args.dim == 1)
+  if (args.adap)
+    switch (args.dim) {
+    case 1:
       return runSimulator<SIM1D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
                                                fixDup, vizRHS, dumpASCII);
-    else if (args.dim == 2)
+    case 2:
       return runSimulator<SIM2D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
                                                fixDup, vizRHS, dumpASCII);
-    else
+    case 3:
       return runSimulator<SIM3D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
                                                fixDup, vizRHS, dumpASCII);
-  } else {
-    if (args.dim == 1)
+  }
+  else
+    switch (args.dim) {
+    case 1:
       return runSimulator<SIM1D>(infile, checkRHS, ignoredPatches,
                                  fixDup, vizRHS, dumpASCII);
-    else if (args.dim == 2)
+    case 2:
       return runSimulator<SIM2D>(infile, checkRHS, ignoredPatches,
                                  fixDup, vizRHS, dumpASCII);
-    else
+    case 3:
       return runSimulator<SIM3D>(infile, checkRHS, ignoredPatches,
                                  fixDup, vizRHS, dumpASCII);
-  }
+    }
+
+  return 0;
 }

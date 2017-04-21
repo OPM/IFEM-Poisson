@@ -36,7 +36,6 @@ Parsing <poisson>
 	Secondary=2\*x/(r^4) | 2\*y/(r^4)
 Parsing <adaptive>
 Parsing input file succeeded.
-1. Time integration driver
 Parsing input file lshape-r2-3patch-LR-adap.xinp
 Parsing <messageLevel>
 Parsing <geometry>
@@ -64,7 +63,6 @@ Number of dofs        225
 Number of constraints 64
 Number of unknowns    161
  >>> Starting adaptive simulation based on exact errors <<<
-Solving Poisson problem
 Adaptive step 1
  >>> Solution summary <<<
 L2-norm            : 5.32233e+06
