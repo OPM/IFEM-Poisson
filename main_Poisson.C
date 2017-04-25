@@ -29,13 +29,15 @@
   \param[in] dumpASCII If \e true, dump model and solution to ASCII files
 */
 
-template<class Dim, template<class T> class Solver=SIMSolver>
+template<class Dim, template<class T> class Solver=SIMSolverStat>
 int runSimulator(char* infile, bool checkRHS,
                  const std::vector<int>& ignoredPatches,
                  bool fixDup, bool vizRHS, bool dumpASCII)
 {
   SIMPoisson<Dim> model(checkRHS);
   Solver<SIMPoisson<Dim>> solver(model);
+
+  utl::profiler->start("Model input");
 
   if (!model.read(infile) || !solver.read(infile))
     return 1;
@@ -51,7 +53,11 @@ int runSimulator(char* infile, bool checkRHS,
     else if (model.opt.nViz[i] > 2)
       vizRHS = false;
 
-  if (!model.preprocess(ignoredPatches, fixDup))
+  model.opt.print(IFEM::cout,true) << std::endl;
+
+  utl::profiler->stop("Model input");
+
+  if (!model.preprocess(ignoredPatches,fixDup))
     return 2;
 
   model.setVizRHS(vizRHS);
@@ -61,7 +67,7 @@ int runSimulator(char* infile, bool checkRHS,
   if (model.opt.dumpHDF5(infile))
     solver.handleDataOutput(model.opt.hdf5);
 
-  return solver.solveProblem(infile,"Solving Poisson problem",false);
+  return solver.solveProblem(infile,"Solving the Poisson problem");
 }
 
 
