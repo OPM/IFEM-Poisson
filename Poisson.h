@@ -21,8 +21,7 @@
 
 /*!
   \brief Class representing the integrand of the Poisson problem.
-  \details This class supports constant isotropic constitutive properties only.
-  Properties with spatial variation has to be implemented as sub-classes.
+  \details This class supports constant isotropic conductivity only.
 */
 
 class Poisson : public IntegrandBase
@@ -43,7 +42,7 @@ public:
   //! \brief Defines the heat source field.
   void setSource(RealFunc* src) { heatSrc = src; }
 
-  //! \brief Defines the conductivity (constitutive property).
+  //! \brief Defines the conductivity.
   void setMaterial(double K) { kappa = K; }
   //! \brief Returns the conductivity.
   double getMaterial() const { return kappa; }
@@ -122,9 +121,6 @@ public:
   virtual bool hasTractionValues() const { return !fluxVal.empty(); }
 
   //! \brief Returns a pointer to an Integrand for solution norm evaluation.
-  //! \note The Integrand object is allocated dynamically and has to be deleted
-  //! manually when leaving the scope of the pointer variable receiving the
-  //! returned pointer value.
   //! \param[in] asol Pointer to analytical solution (optional)
   virtual NormBase* getNormIntegrand(AnaSol* asol = nullptr) const;
 
@@ -139,14 +135,11 @@ public:
   //! \param[in] prefix Name prefix for all components
   virtual std::string getField2Name(size_t i, const char* prefix) const;
 
-  //! \brief Sets up the constitutive matrix at current point.
-  //! \param[out] C \f$ nsd\times nsd\f$-matrix
-  //! \param[in] X Cartesian coordinates of current point
-  //! \param[in] invers If \e true, set up the inverse matrix instead
-  virtual bool formCmatrix(Matrix& C, const Vec3& X, bool invers = false) const;
-
-  //! \brief Return linear system type
-  virtual LinAlg::LinearSystemType getLinearSystemType() const { return LinAlg::SPD; }
+  //! \brief Defines the properties of the resulting linear system.
+  virtual LinAlg::LinearSystemType getLinearSystemType() const
+  {
+    return LinAlg::SPD;
+  }
 
   //! \brief Set the integrand type for the norm class.
   //! \param itype Integrand type to use for norm class
@@ -156,7 +149,6 @@ private:
   // Physical properties (constant)
   double kappa; //!< Conductivity
 
-protected:
   VecFunc*  tracFld; //!< Pointer to boundary traction field
   RealFunc* fluxFld; //!< Pointer to boundary normal flux field
   RealFunc* heatSrc; //!< Pointer to interior heat source
@@ -177,6 +169,7 @@ class PoissonNorm : public NormBase
 public:
   //! \brief The only constructor initializes its data members.
   //! \param[in] p The Poisson problem to evaluate norms for
+  //! \param[in] integrandType Integrand type flag
   //! \param[in] a The analytical heat flux (optional)
   PoissonNorm(Poisson& p, int integrandType, VecFunc* a = nullptr);
   //! \brief Empty destructor.
@@ -222,7 +215,7 @@ public:
   //! \brief Returns whether a norm quantity stores element contributions.
   virtual bool hasElementContributions(size_t i, size_t j) const;
 
-  //!< \brief Returns the integrand type.
+  //! \brief Returns the integrand type.
   virtual int getIntegrandType() const { return integrandType; }
 
 private:

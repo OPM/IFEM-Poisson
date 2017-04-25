@@ -104,13 +104,10 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
   if (!elMat.A.empty())
   {
-    // Evaluate the constitutive matrix at this point
-    Matrix C, CB;
-    this->formCmatrix(C,X);
-
-    // Integrate the coefficient matrix
-    CB.multiply(C,fe.dNdX,false,true).multiply(fe.detJxW); // = C*dNdX^T*|J|*w
-    elMat.A.front().multiply(fe.dNdX,CB,false,false,true); // EK += dNdX * CB
+    // Conductivity scaled by integration point weight at this point
+    double cw = kappa*fe.detJxW;
+    // Integrate the coefficient matrix // EK += kappa * dNdX * dNdX^T * |J|*w
+    elMat.A.front().multiply(fe.dNdX,fe.dNdX,false,true,true,cw);
   }
 
   // Integrate heat source, if defined
@@ -180,13 +177,6 @@ bool Poisson::writeGlvT (VTF* vtf, int iStep, int& geoBlk, int& nBlock) const
 }
 
 
-bool Poisson::formCmatrix (Matrix& C, const Vec3&, bool invers) const
-{
-  C.diag(invers && kappa != 0.0 ? 1.0/kappa : kappa, nsd);
-  return true;
-}
-
-
 bool Poisson::evalSol (Vector& q, const FiniteElement& fe,
                        const Vec3& X, const std::vector<int>& MNPC) const
 {
@@ -212,22 +202,14 @@ bool Poisson::evalSol (Vector& q, const FiniteElement& fe,
 bool Poisson::evalSol (Vector& q, const Vector& eV,
                        const Matrix& dNdX, const Vec3& X) const
 {
-  if (eV.size() != dNdX.rows())
+  // Evaluate the heat flux vector, q = -kappa*du/dX = -kappa*dNdX^T*eV
+  if (!dNdX.multiply(eV,q,true))
   {
-    std::cerr <<" *** Poisson::evalSol: Invalid solution vector."
-              <<"\n     size(eV) = "<< eV.size() <<"   size(dNdX) = "
-              << dNdX.rows() <<","<< dNdX.cols() << std::endl;
+    std::cerr <<" *** Poisson::evalSol: Invalid solution vector."<< std::endl;
     return false;
   }
 
-  // Evaluate the constitutive matrix at this point
-  Matrix C, CB;
-  this->formCmatrix(C,X);
-
-  // Evaluate the heat flux vector
-  CB.multiply(C,dNdX,false,true).multiply(eV,q); // q = C*dNdX^T*eV
-  q *= -1.0;
-
+  q *= -kappa;
   return true;
 }
 
@@ -251,11 +233,17 @@ std::string Poisson::getField2Name (size_t i, const char* prefix) const
 }
 
 
+/*!
+  \note The Integrand object is allocated dynamically and has to be deleted
+  manually when leaving the scope of the pointer variable receiving the
+  returned pointer value.
+*/
+
 NormBase* Poisson::getNormIntegrand (AnaSol* asol) const
 {
   if (asol)
-    return new PoissonNorm(*const_cast<Poisson*>(this),
-                          normIntegrandType, asol->getScalarSecSol());
+    return new PoissonNorm(*const_cast<Poisson*>(this), normIntegrandType,
+                           asol->getScalarSecSol());
   else
     return new PoissonNorm(*const_cast<Poisson*>(this), normIntegrandType);
 }
@@ -283,54 +271,55 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   Poisson& problem = static_cast<Poisson&>(myProblem);
   ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
 
-  // Evaluate the inverse constitutive matrix at this point
-  Matrix Cinv;
-  problem.formCmatrix(Cinv,X,true);
-
   // Evaluate the finite element heat flux field
   Vector sigmah, sigma, error;
   if (!problem.evalSol(sigmah,pnorm.vec.front(),fe.dNdX,X))
     return false;
 
-  size_t ip = 0;
-  // Integrate the energy norm a(u^h,u^h)
-  pnorm[ip++] += sigmah.dot(Cinv*sigmah)*fe.detJxW;
   // Evaluate the temperature field
   double u = pnorm.vec.front().dot(fe.N);
+  // Evaluate the heat source field
+  double h = problem.getHeat(X);
+
+  // Evaluate the inverse conductivity scaled by the integration point weight
+  double cwInv = fe.detJxW / problem.getMaterial();
+
+  size_t ip = 0;
+  // Integrate the energy norm a(u^h,u^h)
+  pnorm[ip++] += sigmah.dot(sigmah)*cwInv;
   // Integrate the external energy (h,u^h)
-  pnorm[ip++] += problem.getHeat(X)*u*fe.detJxW;
+  pnorm[ip++] += h*u*fe.detJxW;
 
   if (anasol)
   {
     // Evaluate the analytical heat flux
     sigma.fill((*anasol)(X).ptr(),nrcmp);
     // Integrate the energy norm a(u,u)
-    pnorm[ip++] += sigma.dot(Cinv*sigma)*fe.detJxW;
+    pnorm[ip++] += sigma.dot(sigma)*cwInv;
     // Integrate the error in energy norm a(u-u^h,u-u^h)
     error = sigma - sigmah;
-    pnorm[ip++] += error.dot(Cinv*error)*fe.detJxW;
+    pnorm[ip++] += error.dot(error)*cwInv;
   }
 
-  size_t i, j;
-  for (i = 0; i < pnorm.psol.size(); i++)
+  for (size_t i = 0; i < pnorm.psol.size(); i++)
     if (!pnorm.psol[i].empty())
     {
       // Evaluate projected heat flux field
       Vector sigmar(nrcmp);
-      for (j = 0; j < nrcmp; j++)
+      for (size_t j = 0; j < nrcmp; j++)
         sigmar[j] = pnorm.psol[i].dot(fe.N,j,nrcmp);
 
       // Integrate the energy norm a(u^r,u^r)
-      pnorm[ip++] += sigmar.dot(Cinv*sigmar)*fe.detJxW;
+      pnorm[ip++] += sigmar.dot(sigmar)*cwInv;
       // Integrate the estimated error in energy norm a(u^r-u^h,u^r-u^h)
       error = sigmar - sigmah;
-      pnorm[ip++] += error.dot(Cinv*error)*fe.detJxW;
+      pnorm[ip++] += error.dot(error)*cwInv;
 
       if (anasol)
       {
         // Integrate the error in the projected solution a(u-u^r,u-u^r)
         error = sigma - sigmar;
-        pnorm[ip++] += error.dot(Cinv*error)*fe.detJxW;
+        pnorm[ip++] += error.dot(error)*cwInv;
         ip++; // Make room for the local effectivity index here
       }
     }
