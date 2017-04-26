@@ -35,6 +35,9 @@ public:
   //! \brief The destructor deletes the functions to be Galerkin-projected.
   virtual ~Poisson() { this->clearGalerkinProjections(); }
 
+  //! \brief Parses a data section from an XML-element.
+  virtual bool parse(const TiXmlElement* elem);
+
   //! \brief Defines the traction field to use in Neumann boundary conditions.
   void setTraction(VecFunc* tf) { tracFld = tf; }
   //! \brief Defines the heat flux field to use in Neumann boundary conditions.
@@ -47,8 +50,6 @@ public:
   //! \brief Returns the conductivity.
   double getMaterial() const { return kappa; }
 
-  //! \brief Adds a function subjected to Galerkin projection.
-  void addGalerkin(VecFunc* g) { galerkin.push_back(g); }
   //! \brief Returns the number of Galerkin projections.
   size_t getNoGalerkin() const { return galerkin.size(); }
   //! \brief Clears up the Galerkin projections.
@@ -141,10 +142,6 @@ public:
     return LinAlg::SPD;
   }
 
-  //! \brief Set the integrand type for the norm class.
-  //! \param itype Integrand type to use for norm class
-  void setNormIntegrandType(int itype) { normIntegrandType = itype; }
-
 private:
   // Physical properties (constant)
   double kappa; //!< Conductivity
@@ -215,7 +212,7 @@ public:
   //! \brief Returns whether a norm quantity stores element contributions.
   virtual bool hasElementContributions(size_t i, size_t j) const;
 
-  //! \brief Returns the integrand type.
+  //! \brief Defines which FE quantities are needed by the integrand.
   virtual int getIntegrandType() const { return integrandType; }
 
 private:

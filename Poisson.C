@@ -13,13 +13,15 @@
 
 #include "Poisson.h"
 #include "FiniteElement.h"
-#include "Utilities.h"
 #include "ElmMats.h"
 #include "ElmNorm.h"
+#include "AnaSol.h"
 #include "Tensor.h"
 #include "Vec3Oper.h"
-#include "AnaSol.h"
+#include "ExprFunctions.h"
+#include "Utilities.h"
 #include "VTF.h"
+#include "tinyxml.h"
 
 
 Poisson::Poisson (unsigned short int n)
@@ -32,7 +34,23 @@ Poisson::Poisson (unsigned short int n)
   tracFld = nullptr;
   fluxFld = nullptr;
   heatSrc = nullptr;
-  normIntegrandType = Integrand::STANDARD;
+
+  normIntegrandType = ELEMENT_CORNERS;
+}
+
+
+bool Poisson::parse (const TiXmlElement* elem)
+{
+  if (!elem) return false;
+
+  if (elem->FirstChildElement("residual"))
+    normIntegrandType |= SECOND_DERIVATIVES;
+  else if (strcasecmp(elem->Value(),"galerkin"))
+    return false;
+  else if (elem->FirstChild() && elem->FirstChild()->Value())
+    galerkin.push_back(new VecFuncExpr(elem->FirstChild()->Value()));
+
+  return true;
 }
 
 
@@ -143,6 +161,7 @@ bool Poisson::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
 
   // Evaluate the Neumann value h = -q(X)*n
   double h = -this->getFlux(X,normal);
+  if (h == 0.0) return true; // Skip for homogeneous Neumann
 
   // Store flux value for visualization
   if (fe.iGP < fluxVal.size() && fabs(h) > 1.0e-8)
@@ -251,9 +270,7 @@ NormBase* Poisson::getNormIntegrand (AnaSol* asol) const
 
 void Poisson::clearGalerkinProjections ()
 {
-  for (size_t i = 0; i < galerkin.size(); i++)
-    delete galerkin[i];
-
+  for (VecFunc* f : galerkin) delete f;
   galerkin.clear();
 }
 
@@ -262,6 +279,7 @@ PoissonNorm::PoissonNorm (Poisson& p, int itype, VecFunc* a) :
   NormBase(p), anasol(a), integrandType(itype)
 {
   nrcmp = myProblem.getNoFields(2);
+  projBou = true;
 }
 
 
@@ -315,12 +333,25 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       error = sigmar - sigmah;
       pnorm[ip++] += error.dot(error)*cwInv;
 
+      // Evaluate the projected heat flux gradient.
+      // Notice that the matrix multiplication method used here treats
+      // the element vector, pnorm.psol[i], as a matrix whose number of columns
+      // equals the number of rows in the matrix fe.dNdX.
+      Matrix dSigmadX;
+      if (!dSigmadX.multiplyMat(pnorm.psol[i],fe.dNdX)) // dSigmadX = psol*dNdX
+        return false;
+
+      // Evaluate the interior residual of the projected solution
+      double Res = h - dSigmadX.sum(nrcmp+1);
+      // Integrate the residual error in the projected solution
+      pnorm[ip++] += fe.h*fe.h*Res*Res*fe.detJxW;
+
       if (anasol)
       {
         // Integrate the error in the projected solution a(u-u^r,u-u^r)
         error = sigma - sigmar;
         pnorm[ip++] += error.dot(error)*cwInv;
-        ip++; // Make room for the local effectivity index here
+        ip += 2; // Make room for the local effectivity indices here
       }
     }
     else // residual estimator
@@ -357,6 +388,22 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
 
   // Integrate the external energy (h,u^h)
   pnorm[1] += h*u*fe.detJxW;
+
+  size_t ip = anasol ? 6 : 4;
+  for (size_t i = 0; i < pnorm.psol.size(); i++, ip += (anasol ? 6 : 3))
+    if (!pnorm.psol[i].empty())
+    {
+      // Evaluate projected heat flux field
+      Vec3 sigmar;
+      for (size_t j = 0; j < nrcmp; j++)
+        sigmar[j] = pnorm.psol[i].dot(fe.N,j,nrcmp);
+
+      // Evaluate the boundary jump term
+      double Jump = h - sigmar*normal;
+      // Integrate the residual error in the projected solution
+      pnorm[ip] += 0.5*fe.h*Jump*Jump*fe.detJxW;
+    }
+
   return true;
 }
 
@@ -369,8 +416,11 @@ bool PoissonNorm::finalizeElement (LocalIntegral& elmInt)
 
   // Evaluate local effectivity indices as a(e^r,e^r)/a(e,e)
   // with e^r = u^r - u^h  and  e = u - u^h
-  for (size_t ip = 7; ip < pnorm.size(); ip += 4)
-    pnorm[ip] = pnorm[ip-2] / pnorm[3];
+  for (size_t ip = 9; ip < pnorm.size(); ip += 6)
+  {
+    pnorm[ip-1] = pnorm[ip-4] / pnorm[3];
+    pnorm[ip] = (pnorm[ip-4]+pnorm[ip-3]) / pnorm[3];
+  }
 
   return true;
 }
@@ -380,6 +430,8 @@ size_t PoissonNorm::getNoFields (int group) const
 {
   if (group < 1)
     return this->NormBase::getNoFields();
+  else if (group > 1)
+    return anasol ? 6 : 3;
   else
     return anasol ? 4 : 2;
 }
@@ -387,18 +439,20 @@ size_t PoissonNorm::getNoFields (int group) const
 
 std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
 {
-  if (i == 0 || j == 0 || j > 4)
+  if (i == 0 || j == 0 || j > 6)
     return this->NormBase::getName(i,j,prefix);
 
-  static const char* s[8] = {
+  static const char* s[10] = {
     "a(u^h,u^h)^0.5",
     "(h,u^h)^0.5",
     "a(u,u)^0.5",
     "a(e,e)^0.5, e=u-u^h",
     "a(u^r,u^r)^0.5",
     "a(e,e)^0.5, e=u^r-u^h",
+    "res(u^r)^0.5",
     "a(e,e)^0.5, e=u-u^r",
-    "effectivity index"
+    "effectivity index^*",
+    "effectivity index^RES"
   };
 
   size_t k = i > 1 ? j+3 : j-1;

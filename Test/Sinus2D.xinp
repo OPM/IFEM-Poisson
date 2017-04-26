@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2D">
+    <raiseorder patch="1" u="1" v="1"/>
+    <refine patch="1" u="7" v="7"/>
+    <topologysets>
+      <set name="Boundary" type="edge">
+        <item patch="1">1 2 3 4</item>
+      </set>
+    </topologysets>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1"/>
+  </boundaryconditions>
+
+  <!-- General - numerical integration scheme !-->
+  <discretization>
+    <nGauss>3 4</nGauss>
+  </discretization>
+
+  <!-- General - gradient projection scheme !-->
+  <postprocessing>
+    <projection type="CGL2"/>
+  </postprocessing>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">8*PI*PI*sin(2*PI*x)*sin(2*PI*y)</source>
+    <anasol type="expression">
+      <primary>sin(2*PI*x)*sin(2*PI*y)</primary>
+      <secondary>-2*PI*cos(2*PI*x)*sin(2*PI*y) |
+                 -2*PI*sin(2*PI*x)*cos(2*PI*y)
+      </secondary>
+    </anasol>
+  </poisson>
+
+</simulation>

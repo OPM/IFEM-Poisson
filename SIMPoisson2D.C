@@ -13,10 +13,7 @@
 
 #include "SIMPoisson.h"
 #include "PoissonSolutions.h"
-#include "Functions.h"
-#include "Utilities.h"
-#include "AnaSol.h"
-#include "tinyxml.h"
+#include "ExprFunctions.h"
 
 #ifdef HAS_LRSPLINE
 #include "LR/ASMu2D.h"

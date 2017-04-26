@@ -21,8 +21,6 @@
 #include "SIM2D.h"
 #include "SIM3D.h"
 #include "Utilities.h"
-#include "Functions.h"
-#include "ExprFunctions.h"
 #include "DataExporter.h"
 #include "IFEM.h"
 #include "tinyxml.h"
@@ -188,9 +186,6 @@ public:
     return true;
   }
 
-  //! \brief No time stepping.
-  bool advanceStep(TimeStep&) { return true; }
-
   //! \brief Saves solution-dependent quantities to file for postprocessing.
   bool saveStep(TimeStep&, int& nBlock)
   {
@@ -268,23 +263,30 @@ public:
   virtual void printNormGroup(const Vector& gNorm, const Vector& fNorm,
                               const std::string& name) const
   {
+    double Rel = 100.0/(this->haveAnaSol() ? fNorm(3) : gNorm(1));
+    const char* uRef = this->haveAnaSol() ? "|u|)  " : "|u^r|)";
     IFEM::cout <<"\n>>> Error estimates based on "<< name <<" <<<";
     if (name == "Pure residuals")
       IFEM::cout <<"\nResidual norm |u|_res = |f+nabla^2 u|: "<< gNorm(2);
     else
       IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm(1)
                  <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(2)
-                 <<"\n- relative error (% of |u^r|) : "
-                 << gNorm(2)/gNorm(1)*100.0;
+                 <<"\n- relative error (% of "<< uRef <<" : "<< gNorm(2)*Rel
+                 <<"\nResidual error (r(u^r) + J(u^r))^0.5 : "<< gNorm(3)
+                 <<"\n- relative error (% of "<< uRef <<" : "<< gNorm(3)*Rel;
 
     if (this->haveAnaSol())
     {
-      if (gNorm.size() > 2 && fNorm.size() > 2 && name != "Pure residuals")
-        IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(3)
-                   <<"\n- relative error (% of |u|)   : "
-                   << gNorm(3)/fNorm(3)*100.0;
-      if (fNorm.size() > 3 && gNorm.size() > 1)
-        IFEM::cout <<"\nEffectivity index             : " << gNorm(2)/fNorm(4);
+      if (gNorm.size() > 3 && name != "Pure residuals")
+        IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(4)
+                   <<"\n- relative error (% of |u|)   : "<< gNorm(4)*Rel;
+      if (fNorm.size() > 3 && gNorm.size() > 3)
+        IFEM::cout <<"\nEffectivity index, theta^*           : "
+                   << gNorm(2)/fNorm(4)
+                   <<"\nEffectivity index, theta^EX          : "
+                   << (gNorm(2)+gNorm(4))/fNorm(4)
+                   <<"\nEffectivity index, theta^RES         : "
+                   << (gNorm(2)+gNorm(3))/fNorm(4);
     }
     IFEM::cout << std::endl;
   }
@@ -368,16 +370,13 @@ protected:
   //! \param[in] elem The XML element to parse
   virtual bool parse(const TiXmlElement* elem)
   {
-    if (!strcasecmp(elem->Value(),"postprocessing")) {
-      const TiXmlElement* child = elem->FirstChildElement("projection");
-      if (child && child->FirstChildElement("residual"))
-        prob.setNormIntegrandType(Integrand::ELEMENT_CORNERS |
-                                  Integrand::SECOND_DERIVATIVES);
-      return this->Dim::parse(elem);
-    }
+    if (!strcasecmp(elem->Value(),"postprocessing"))
+      prob.parse(elem->FirstChildElement("projection"));
+
     if (strcasecmp(elem->Value(),"poisson"))
       return this->Dim::parse(elem);
 
+    bool result = true;
     const TiXmlElement* child = elem->FirstChildElement();
     for (; child; child = child->NextSiblingElement())
       if (this->parseDimSpecific(child))
@@ -392,15 +391,11 @@ protected:
         mVec.push_back(kappa);
         std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
       }
-      else if (!strcasecmp(child->Value(),"galerkin")) {
-        if (child->FirstChild() && child->FirstChild()->Value())
-          prob.addGalerkin(new VecFuncExpr(child->FirstChild()->Value()));
-      }
 
-      else
-        this->Dim::parse(child);
+      else if (!prob.parse(child))
+        result &= this->Dim::parse(child);
 
-    return true;
+    return result;
   }
 
 private:

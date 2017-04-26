@@ -22,41 +22,30 @@
     <dirichlet set="Corner" comp="1" type="anasol"/>
   </boundaryconditions>
 
-<!--
-  <postprocessing>
-    <vtfformat nu="2" nv="2" nw="2">BINARY</vtfformat>
-    <projection type="grlv"/>
-  </postprocessing>
--->
-
   <!-- Problem-specific block !-->
   <poisson>
-    <source type="expression">r=sqrt(x*x+y*y+z*z); eps=0.05; -8*eps*(1 + 4*eps*eps - 2*r)/r/(-4*r + 4*r*r + 4*eps*eps + 1)^2</source>
+    <source type="expression">r=sqrt(x*x+y*y+z*z); eps=0.05;
+      -8*eps*(1 + 4*eps*eps - 2*r)/r/(4*(r*r - r + eps*eps) + 1)^2
+    </source>
     <anasol type="expression">
-      <primary>  r=sqrt(x*x+y*y+z*z); eps=0.05;  atan((r-0.5)/eps)</primary>
-      <secondary>r=sqrt(x*x+y*y+z*z); eps=0.05; -x/eps/r/(((r-0.5)/eps)^2+1) |
-                 r=sqrt(x*x+y*y+z*z); eps=0.05; -y/eps/r/(((r-0.5)/eps)^2+1) |
-                 r=sqrt(x*x+y*y+z*z); eps=0.05; -z/eps/r/(((r-0.5)/eps)^2+1)
+      <variables>r=sqrt(x*x+y*y+z*z); eps=0.05</variables>
+      <primary>atan((r-0.5)/eps)</primary>
+      <secondary>
+        -x/eps/r/(((r-0.5)/eps)^2+1) |
+        -y/eps/r/(((r-0.5)/eps)^2+1) |
+        -z/eps/r/(((r-0.5)/eps)^2+1)
       </secondary>
     </anasol>
-
   </poisson>
-
 
   <!--General - adaptive refinement parameters -->
   <adaptive>
+    <beta>7.0</beta>
     <maxstep>3</maxstep>
-    <beta>7</beta>
     <maxdof>10000</maxdof>
     <errtol>0.000001</errtol>
     <knot_mult>1</knot_mult>
     <scheme>isotropic_function</scheme>
-    <!--
-      <use_norm>1</use_norm>
-      <use_sub_norm>1</use_sub_norm>
-      <store_eps_mesh/>
-      <test_linear_independence/>
-    -->
   </adaptive>
 
 </simulation>

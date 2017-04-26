@@ -15,4 +15,4 @@ Exact relative error (%) : 4.78848
 >>> Error estimates based on Continuous global L2-projection <<<
 Error norm a(e,e)^0.5, e=u^r-u^h     : 0.0911959
 Exact error a(e,e)^0.5, e=u-u^r      : 0.0470598
-Effectivity index             : 0.989948
+Effectivity index, theta^\*           : 0.989948
