@@ -1,0 +1,18 @@
+Square-2-LR.xinp
+
+Input file: Square-2-LR.xinp
+Equation solver: 2
+Number of Gauss points: 4
+LR-spline basis functions are used
+	Connecting P2 E1 to P1 E2 reversed? 0
+Number of elements    68
+Number of nodes       82
+Number of dofs        82
+Number of unknowns    71
+L2-norm            : 1.21884
+Max displacement   : 1.91905
+Energy norm           a(u^h,u^h)^0.5 : 4.56123
+External energy          (h,u^h)^0.5 : 4.1223
+Exact norm                a(u,u)^0.5 : 4.90195
+Exact error      a(e,e)^0.5, e=u-u^h : 1.79561
+Exact relative error (%) : 36.6305

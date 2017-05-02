@@ -1,0 +1,16 @@
+Backstep-3-LR.xinp
+
+Input file: Backstep-3-LR.xinp
+Equation solver: 2
+Number of Gauss points: 4
+LR-spline basis functions are used
+	Connecting P2 E1 to P1 E2 reversed? 0
+	Connecting P3 E4 to P2 E3 reversed? 0
+Number of elements    36
+Number of nodes       183
+Number of dofs        183
+Number of unknowns    125
+L2-norm            : 0.0738111
+Max displacement   : 0.167043
+Energy norm           a(u^h,u^h)^0.5 : 0.462569
+External energy          (h,u^h)^0.5 : 0.462569

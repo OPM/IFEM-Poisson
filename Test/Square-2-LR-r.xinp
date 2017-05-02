@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2">
+    <patchfile type="lrspline">square-2-r.lr</patchfile>
+    <topology>
+      <connection master="1" midx="2" slave="2" sidx="3" orient="1"/>
+    </topology>
+    <topologysets>
+      <set name="Edge3" type="edge">
+        <item patch="1">3</item>
+        <item patch="2">2</item>
+      </set>
+      <set name="Edge4" type="edge">
+        <item patch="1">4</item>
+        <item patch="2">1</item>
+      </set>
+    </topologysets>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Edge4" comp="1"/>
+    <neumann set="Edge3" comp="1" type="anasol"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">PI*PI*cos(PI*x)*(2-y)</source>
+    <anasol type="expression">
+      <primary>cos(PI*x)*(2-y)</primary>
+      <secondary>PI*sin(PI*x)*(2-y)|cos(PI*x)</secondary>
+    </anasol>
+  </poisson>
+
+</simulation>
