@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2">
+    <patchfile type="lrspline">backstep-3.lr</patchfile>
+    <topology>
+      <connection master="1" midx="2" slave="2" sidx="1"/>
+      <connection master="2" midx="3" slave="3" sidx="4"/>
+    </topology>
+    <topologysets>
+      <set name="Boundary" type="edge">
+        <item patch="1">1 3 4</item>
+        <item patch="2">2 4</item>
+        <item patch="3">1 2 3</item>
+      </set>
+    </topologysets>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">1.0</source>
+  </poisson>
+
+  <nGauss>6</nGauss>
+
+</simulation>

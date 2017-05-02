@@ -1,0 +1,17 @@
+Cube-3-LR.xinp
+
+Input file: Cube-3-LR.xinp
+Equation solver: 2
+Number of Gauss points: 4
+LR-spline basis functions are used
+Number of elements    3720
+Number of nodes       3348
+Number of dofs        3348
+Number of unknowns    2324
+L2-norm            : 0.416771
+Max displacement   : 1.00027
+Energy norm           a(u^h,u^h)^0.5 : 3.33175
+External energy          (h,u^h)^0.5 : 3.33175
+Exact norm                a(u,u)^0.5 : 3.33216
+Exact error      a(e,e)^0.5, e=u-u^h : 0.0525713
+Exact relative error (%) : 1.57769
