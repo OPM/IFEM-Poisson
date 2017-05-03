@@ -9,7 +9,7 @@ Number of equations   71 (42 on process)
 L2-norm            : 1.21884
 Max displacement   : 1.91905
 Energy norm           a(u^h,u^h)^0.5 : 4.56123
-External energy          (h,u^h)^0.5 : 4.1223
+External energy          (h,u^h)^0.5 : 4.56123
 Exact norm                a(u,u)^0.5 : 4.90195
 Exact error      a(e,e)^0.5, e=u-u^h : 1.79561
 Exact relative error (%) : 36.6305

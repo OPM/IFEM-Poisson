@@ -5,7 +5,7 @@
   <!-- General - geometry definitions !-->
   <geometry dim="2" scale="2.0">
     <raiseorder patch="1" u="2" v="2"/>
-    <refine type="uniform" patch="1" u="7" v="7"/>
+    <refine patch="1" u="7" v="7"/>
     <topologysets>
       <set name="Homogenous" type="edge">
         <item patch="1">4</item>
@@ -19,7 +19,7 @@
   <!-- General - boundary conditions !-->
   <boundaryconditions>
     <dirichlet set="Homogenous" comp="1"/>
-    <neumann set="Neumann" comp="1" type="anasol"/>
+    <neumann set="Neumann" type="anasol"/>
   </boundaryconditions>
 
   <!-- Problem-specific block !-->

@@ -382,7 +382,7 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
   ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
 
   // Evaluate the surface heat flux
-  double h = problem.getFlux(X,normal);
+  double h = -problem.getFlux(X,normal);
   // Evaluate the temperature field
   double u = pnorm.vec.front().dot(fe.N);
 
@@ -399,7 +399,7 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
         sigmar[j] = pnorm.psol[i].dot(fe.N,j,nrcmp);
 
       // Evaluate the boundary jump term
-      double Jump = h - sigmar*normal;
+      double Jump = h + sigmar*normal;
       // Integrate the residual error in the projected solution
       pnorm[ip] += 0.5*fe.h*Jump*Jump*fe.detJxW;
     }

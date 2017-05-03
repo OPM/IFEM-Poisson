@@ -6,14 +6,14 @@
   <geometry dim="1" L="2.0" sets="true">
     <subdivision nx="2">
       <raiseorder patch="1" u="2"/>
-      <refine type="uniform" patch="1" u="7"/>
+      <refine patch="1" u="7"/>
     </subdivision>
   </geometry>
 
   <!-- General - boundary conditions !-->
   <boundaryconditions>
     <dirichlet set="Vertex1" comp="1"/>
-    <neumann set="Vertex2" comp="1" type="anasol"/>
+    <neumann set="Vertex2" type="anasol"/>
   </boundaryconditions>
 
   <!-- Problem-specific block !-->

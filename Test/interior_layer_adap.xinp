@@ -5,7 +5,7 @@
     <!--General - geometry definitions-->
     <geometry dim="2">
         <raiseorder patch="1" u="2" v="2"/>
-        <refine patch="1" type="uniform" u="15" v="15"/>
+        <refine patch="1" u="15" v="15"/>
         <topologysets>
             <set name="bottom_right" type="edge">
                 <item patch="1">2 3</item>
@@ -23,8 +23,8 @@
 
     <!--General - boundary conditions-->
     <boundaryconditions>
-        <neumann comp="1" set="bottom_right" type="anasol"/>
-        <dirichlet comp="1" set="top_left" type="anasol"/>
+        <neumann set="bottom_right" type="anasol"/>
+        <dirichlet set="top_left" comp="1" type="anasol"/>
     </boundaryconditions>
 
     <!--General - adaptive refinement parameters -->
