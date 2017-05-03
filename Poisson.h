@@ -21,7 +21,11 @@
 
 /*!
   \brief Class representing the integrand of the Poisson problem.
+
   \details This class supports constant isotropic conductivity only.
+
+  See the document doc/Integrands/Poisson.pdf for the theoretical foundation
+  of the integrand implemented in the evalInt() and evalBou() methods.
 */
 
 class Poisson : public IntegrandBase

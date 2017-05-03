@@ -11,18 +11,28 @@
 //!
 //==============================================================================
 
-/*! \mainpage Isogeometric FEM Poisson application
+/*! \mainpage Isogeometric FEM %Poisson application
 
 \author Einar Christensen, SINTEF ICT, Trondheim
 
 \section intro Introduction
-This is a Poisson application built on top of the IFEM library.
+This is a %Poisson application built on top of the IFEM library.
+It solves the linear stationary %Poisson equation in a 1D, 2D or 3D domain,
+subjected to an arbitrary heat source function and
+Dirichlet as well as Neumann boundary conditions.
+The application can also perform adaptive analysis, based on either
+the exact error distributions (for problems with known analytical solution)
+or recovery-based error estimates.
+
+Refer to the document <i>doc/Integrands/Poisson.pdf</i>
+for the underlying equations forming the basis of the integrand implementation
+in the class Poisson.
 
 IFEM is an object-oriented toolbox for implementing isogeometric finite element
-solvers for linear and nonlinear partial differential equations.
+(FE) solvers for linear and nonlinear partial differential equations (PDEs).
 The toolbox is developed through the ICADA project at SINTEF ICT, Trondheim.
 The purpose of this code is to serve as a common base for isogeometric
-PDE-simulators, using splines and NURBS as basis functions in the finite element
-formulations. The toolbox contains methods for doing linear and non-linear,
+PDE-simulators, using splines and NURBS as basis functions in the FE
+formulations. The toolbox contains methods for doing linear and nonlinear,
 stationary and dynamic time-domain analyses, as well as eigenvalue analyses.
 */

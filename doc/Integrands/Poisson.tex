@@ -1,0 +1,127 @@
+% $Id$
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{article}
+\usepackage{eqalign}
+\topmargin    -13mm
+\oddsidemargin  0mm
+\evensidemargin 0mm
+\textheight   247mm
+\textwidth    160mm
+\def\n{{n_{\rm d}}}
+\def\R{{\rm I\mkern-4muR}}
+\def\deriv#1#2{\frac{\partial#1}{\partial#2}}
+\def\dV{\:{\rm d}V}
+\def\dA{\:{\rm d}A}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{The Poisson problem}
+\author{\sl IFEM development team}
+\begin{document}
+\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+This document describes the strong- and associated weak form of the Poisson
+problem, which forms the theoretical foundation of this {\sl IFEM} application.
+Refer to the class {\tt Poisson} of the source code for the actual integrand
+implementation.
+To better see the correspondence with the implementation, we here employ the
+tensor notation assuming Einstein's summation convention, i.e., double indices
+automatically implies a sum, e.g., $a_ib_i := \sum_{j=1}^\n a_j b_j$, where
+$\n$ denotes the number of spatial dimensions (1, 2 or 3).
+Furthermore, partial derivation with respect to a given coordinate direction
+is indicated by a subscript comma, i.e., $a_{,i} := \deriv{a}{x_i}$.
+
+\section{Strong form}
+
+Given a heat source function $f(x_i)$ defined over a domain $\Omega\in\R^\n$,
+a heat flux function $h(x_i)$ defined over the boundary $\partial\Omega_h$,
+and a function $g(x_i)$ defined over the boundary
+$\partial\Omega_g=\partial\Omega\setminus\partial\Omega_h$,
+find the scalar function $u(x_i)\in{\cal U}(\Omega)$ satisfying
+%
+\begin{eqnarray}
+  \label{eq:strong}
+  \left.\eqalign{
+    q_{i,i} &= f \cr
+    q_i & = -\kappa_{ij} u_{,j}
+  }\right\} &\forall& x_i\in\overline{\Omega} \\[2mm]
+  \label{eq:neumann}
+  q_i n_i = h &\forall& x_i\in\partial\Omega_h \\
+  u = g &\forall&x_i\in\partial\Omega_g
+\end{eqnarray}
+%
+where $\kappa_{ij}$ is the conductivity tensor and
+$n_i$ is the outward-directed unit normal vector on $\partial\Omega_h$.
+If the conductivity tensor equals the identity tensor, $\kappa_{ij}=\delta_{ij}$,
+we have $q_i=-u_{,i}$ and Equation~(\ref{eq:strong}) reduces to
+%
+\begin{equation}
+  -u_{,ii} = f \quad\forall\quad x_i\in\overline{\Omega}
+\end{equation}
+%
+The solution space ${\cal U}(\Omega)$ defines the set of all admissible solution
+functions on the domain $\Omega$, with the additional constraint $u(x_i)=g(x_i)
+\;\forall x_i\in\partial\Omega_g$.
+
+\section{Weak form}
+
+The weak form is obtained by multiplying Equation~(\ref{eq:strong}) by a test
+function $v(x_i)\in{\cal V}(x_i)$ and integrating over the domain $\Omega$, viz.
+%
+\begin{equation}
+  -\int_\Omega \kappa_{ij}\,u_{,ji}\,v\dV = \int_\Omega f\,v\dV
+\end{equation}
+%
+where the test space ${\cal V}(x_i)$ is the same as ${\cal U}(x_i)$, except that
+their functions $v(x_i)$ have the constraint $v(x_i)=0\;\forall x_i\in\Omega_g$.
+By applying the Green's identity (integration by parts), this is transformed to
+%
+\begin{equation}
+  \int_\Omega \kappa_{ij}\,u_{,j}\,v_{,i}\dV -
+  \int_{\partial\Omega} \kappa_{ij}\,u_{,j}\,n_i\,v\dA =
+  \int_\Omega f\,v\dV
+\end{equation}
+%
+The boundary integral of the second term can be further transformed by using
+that $v(x_i)=0\;\forall x_i\in\Omega_g$ and substituting
+Equation~(\ref{eq:neumann}), resulting in
+%
+\begin{equation}
+  \int\limits_\Omega \kappa_{ij}\,u_{,j}\,v_{,i}\dV =
+  \int\limits_\Omega f\,v\dV -
+  \int\limits_{\partial\Omega_h} h\,v\dA
+\end{equation}
+%
+or simply
+%
+\begin{equation}
+  a(u,v) = l(v)
+\end{equation}
+%
+where we introduce the bilinear form $(a,v)$ and the linear functional $l(v)$ as
+%
+\begin{eqnarray}
+  a(u,v) &:=& \int\limits_\Omega \kappa_{ij}\,u_{,j}\,v_{,i}\dV \\
+  l(v)   &:=& \int\limits_\Omega f\,v\dV - \int\limits_{\partial\Omega_h}h\,v\dA
+\end{eqnarray}
+
+\section{Energy norms}
+
+The computed finite element solution can be assessed by evaluating some norms.
+For a given finite element solution $u^h$ we therefore define its energy norm as
+%
+\begin{equation}
+  U^h = \sqrt{a(u^h,u^h)}
+\end{equation}
+%
+and the corresponding external energy is
+%
+\begin{equation}
+  U_{ext}^h = \sqrt{l(u^h)}
+\end{equation}
+%
+The implementation can therefore be verified by always asserting that
+$U^h=U_{ext}^h$ for any problem setup.
+
+\end{document}
