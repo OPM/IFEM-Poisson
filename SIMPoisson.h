@@ -24,6 +24,7 @@
 #include "tinyxml.h"
 #include "TimeStep.h"
 #include "Functions.h"
+#include "ExprFunctions.h"
 #include "DataExporter.h"
 #include "IFEM.h"
 #include <fstream>
