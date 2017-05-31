@@ -14,9 +14,6 @@ if(NOT IFEM_CONFIGURED)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IFEM_CXX_FLAGS}")
 endif()
 
-# Generate regtest script with correct paths
-configure_file(${IFEM_REGTEST_SCRIPT} regtest.sh)
-
 set(Poisson_SRCS Poisson.C
                  PoissonArgs.C
                  PoissonSolutions.C
@@ -29,6 +26,7 @@ include_directories(${IFEM_INCLUDES} ../Common ${PROJECT_SOURCE_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 add_library(CommonPoisson STATIC ${Poisson_SRCS})
+list(APPEND CHECK_SOURCES ${Poisson_SRCS} main_Poisson.C)
 
 enable_testing()
 include(IFEMTesting)
