@@ -32,7 +32,7 @@ public:
 
   //! \brief The default constructor initializes all pointers to zero.
   //! \param[in] n Number of spatial dimensions
-  Poisson(unsigned short int n = 3);
+  explicit Poisson(unsigned short int n = 3);
   //! \brief The destructor deletes the functions to be Galerkin-projected.
   virtual ~Poisson() { this->clearGalerkinProjections(); }
 
