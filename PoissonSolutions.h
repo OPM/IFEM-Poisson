@@ -25,7 +25,7 @@ class Square2D : public VecFunc
 {
 public:
   //! \brief Empty constructor.
-  Square2D(double = 1.0) {}
+  explicit Square2D(double = 1.0) {}
   //! \brief Empty destructor.
   virtual ~Square2D() {}
 
@@ -43,7 +43,7 @@ class Square2DHeat : public RealFunc
 {
 public:
   //! \brief Empty constructor.
-  Square2DHeat(double = 1.0) {}
+  explicit Square2DHeat(double = 1.0) {}
   //! \brief Empty destructor.
   virtual ~Square2DHeat() {}
 
@@ -115,7 +115,7 @@ class PoissonInteriorLayer : public VecFunc
 {
 public:
   //! \brief Default constructor.
-  PoissonInteriorLayer(double s = 60.0) : SLOPE(s) {}
+  explicit PoissonInteriorLayer(double s = 60.0) : SLOPE(s) {}
   //! \brief Empty destructor.
   virtual ~PoissonInteriorLayer() {}
 
@@ -136,7 +136,7 @@ class PoissonInteriorLayerSol : public RealFunc
 {
 public:
   //! \brief Default constructor.
-  PoissonInteriorLayerSol(double s = 60.0) : SLOPE(s) {}
+  explicit PoissonInteriorLayerSol(double s = 60.0) : SLOPE(s) {}
   //! \brief Empty destructor.
   virtual ~PoissonInteriorLayerSol() {}
 
@@ -157,7 +157,7 @@ class PoissonInteriorLayerSource : public RealFunc
 {
 public:
   //! \brief Default constructor.
-  PoissonInteriorLayerSource(double s = 60.0) : SLOPE(s) {}
+  explicit PoissonInteriorLayerSource(double s = 60.0) : SLOPE(s) {}
   //! \brief Empty destructor.
   virtual ~PoissonInteriorLayerSource() {}
 
@@ -177,7 +177,7 @@ class PoissonWaterfall : public VecFunc
 {
 public:
   //! \brief Default constructor.
-  PoissonWaterfall(double eps = 0.002) : epsilon(eps) {}
+  explicit PoissonWaterfall(double eps = 0.002) : epsilon(eps) {}
   //! \brief Empty destructor.
   virtual ~PoissonWaterfall() {}
 
@@ -198,7 +198,7 @@ class PoissonWaterfallSol : public RealFunc
 {
 public:
   //! \brief Default constructor.
-  PoissonWaterfallSol(double eps = 0.002) : epsilon(eps) {}
+  explicit PoissonWaterfallSol(double eps = 0.002) : epsilon(eps) {}
   //! \brief Empty destructor.
   virtual ~PoissonWaterfallSol() {}
 
@@ -219,7 +219,7 @@ class PoissonWaterfallSource : public RealFunc
 {
 public:
   //! \brief Default constructor.
-  PoissonWaterfallSource(double eps = 0.002) : epsilon(eps) {}
+  explicit PoissonWaterfallSource(double eps = 0.002) : epsilon(eps) {}
   //! \brief Empty destructor.
   virtual ~PoissonWaterfallSource() {}
 
@@ -276,7 +276,7 @@ class PoissonLine : public VecFunc
 {
 public:
   //! \brief Default constructor.
-  PoissonLine(double r = 1.0) : L(r) {}
+  explicit PoissonLine(double r = 1.0) : L(r) {}
   //! \brief Empty destructor.
   virtual ~PoissonLine() {}
 
@@ -297,7 +297,7 @@ class PoissonLineSource : public RealFunc
 {
 public:
   //! \brief Default constructor.
-  PoissonLineSource(double r = 1.0) : L(r) {}
+  explicit PoissonLineSource(double r = 1.0) : L(r) {}
   //! \brief Empty destructor.
   virtual ~PoissonLineSource() {}
 
