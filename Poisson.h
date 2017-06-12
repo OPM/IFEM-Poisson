@@ -45,8 +45,7 @@ public:
 
   //! \brief Defines the conductivity (constitutive property).
   void setMaterial(double K) { kappa = K; }
-
-  //! \brief Obtain current conductivity.
+  //! \brief Returns the conductivity.
   double getMaterial() const { return kappa; }
 
   //! \brief Adds a function subjected to Galerkin projection.
@@ -69,7 +68,7 @@ public:
   using IntegrandBase::getLocalIntegral;
   //! \brief Returns a local integral container for the given element.
   //! \param[in] nen Number of nodes on element
-  //! \param[in] neumann Whether or not we are assembling Neumann BC's
+  //! \param[in] neumann Whether or not we are assembling Neumann BCs
   virtual LocalIntegral* getLocalIntegral(size_t nen, size_t,
                                           bool neumann) const;
 
@@ -127,18 +126,18 @@ public:
   //! manually when leaving the scope of the pointer variable receiving the
   //! returned pointer value.
   //! \param[in] asol Pointer to analytical solution (optional)
-  virtual NormBase* getNormIntegrand(AnaSol* asol = 0) const;
+  virtual NormBase* getNormIntegrand(AnaSol* asol = nullptr) const;
 
   //! \brief Returns the number of primary/secondary solution field components.
   //! \param[in] fld which field set to consider (1=primary, 2=secondary)
   virtual size_t getNoFields(int fld = 2) const { return fld > 1 ? nsd : 1; }
   //! \brief Returns the name of the primary solution field.
   //! \param[in] prefix Name prefix
-  virtual std::string getField1Name(size_t, const char* prefix = 0) const;
+  virtual std::string getField1Name(size_t, const char* prefix) const;
   //! \brief Returns the name of a secondary solution field component.
   //! \param[in] i Field component index
   //! \param[in] prefix Name prefix for all components
-  virtual std::string getField2Name(size_t i, const char* prefix = 0) const;
+  virtual std::string getField2Name(size_t i, const char* prefix) const;
 
   //! \brief Sets up the constitutive matrix at current point.
   //! \param[out] C \f$ nsd\times nsd\f$-matrix
@@ -174,7 +173,7 @@ public:
   //! \brief The only constructor initializes its data members.
   //! \param[in] p The Poisson problem to evaluate norms for
   //! \param[in] a The analytical heat flux (optional)
-  PoissonNorm(Poisson& p, VecFunc* a = 0);
+  PoissonNorm(Poisson& p, VecFunc* a = nullptr);
   //! \brief Empty destructor.
   virtual ~PoissonNorm() {}
 
@@ -189,10 +188,10 @@ public:
   using NormBase::evalBou;
   //! \brief Evaluates the integrand at a boundary point.
   //! \param elmInt The local integral object to receive the contributions
-  //! \param[in] fe Finite Element quantities
+  //! \param[in] fe Finite element data of current integration point
   //! \param[in] X Cartesian coordinates of current integration point
   //! \param[in] normal Boundary normal vector at current integration point
-  virtual bool evalBou(LocalIntegral& elmInt,  const FiniteElement& fe,
+  virtual bool evalBou(LocalIntegral& elmInt, const FiniteElement& fe,
                        const Vec3& X, const Vec3& normal) const;
 
   using NormBase::finalizeElement;
@@ -203,11 +202,6 @@ public:
 
   //! \brief Returns whether this norm has explicit boundary contributions.
   virtual bool hasBoundaryTerms() const { return true; }
-
-  //! \brief Adds external energy terms to relevant norms.
-  //! \param gNorm Global norm quantities
-  //! \param[in] energy Global external energy
-  virtual void addBoundaryTerms(Vectors& gNorm, double energy) const;
 
   //! \brief Returns the number of norm groups or size of a specified group.
   //! \param[in] group The norm group to return the size of

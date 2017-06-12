@@ -29,9 +29,9 @@ Poisson::Poisson (unsigned short int n)
 
   kappa = 1.0;
 
-  tracFld = 0;
-  fluxFld = 0;
-  heatSrc = 0;
+  tracFld = nullptr;
+  fluxFld = nullptr;
+  heatSrc = nullptr;
 }
 
 
@@ -200,7 +200,7 @@ bool Poisson::evalSol (Vector& q, const FiniteElement& fe,
   if (ierr > 0)
   {
     std::cerr <<" *** Poisson::evalSol: Detected "<< ierr
-	      <<" node numbers out of range."<< std::endl;
+              <<" node numbers out of range."<< std::endl;
     return false;
   }
 
@@ -241,7 +241,7 @@ std::string Poisson::getField1Name (size_t, const char* prefix) const
 
 std::string Poisson::getField2Name (size_t i, const char* prefix) const
 {
-  if (i >= nsd) return 0;
+  if (i >= nsd) return "";
 
   static const char* s[3] = { "q_x","q_y","q_z" };
   if (!prefix) return s[i];
@@ -366,12 +366,6 @@ bool PoissonNorm::finalizeElement (LocalIntegral& elmInt)
     pnorm[ip] = sqrt(pnorm[ip-2] / pnorm[3]);
 
   return true;
-}
-
-
-void PoissonNorm::addBoundaryTerms (Vectors& gNorm, double energy) const
-{
-  gNorm.front()[1] += energy;
 }
 
 
