@@ -34,6 +34,8 @@ include(IFEMTesting)
 # Regression tests
 if(MPI_FOUND)
   ifem_add_test(MPI/Cube-subdivision.reg Poisson 4)
+  ifem_add_test(MPI/Square-2-LR.reg Poisson 2)
+  ifem_add_test(MPI/Cube-3-LR.reg Poisson 3)
 endif()
 IF(NOT MPI_FOUND OR IFEM_SERIAL_TESTS_IN_PARALLEL)
   ifem_add_test(Cube.reg Poisson)
