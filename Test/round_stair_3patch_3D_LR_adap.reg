@@ -1,0 +1,57 @@
+round_stair_3patch_3D_LR_adap.xinp -adap
+
+LR-spline basis functions are used
+Number of elements    192
+Number of nodes       576
+Number of dofs        576
+Number of constraints 352
+Number of unknowns    224
+Adaptive step 1
+L2-norm            : 3.4321
+Energy norm           a(u^h,u^h)^0.5 : 18.2488
+External energy          (h,u^h)^0.5 : -13.3065
+Exact norm                a(u,u)^0.5 : 18.6217
+Exact error      a(e,e)^0.5, e=u-u^h : 5.45176
+Exact relative error (%) : 29.2763
+Root mean square (RMS) of error      : 4.53829
+Min element error                    : 0.000110697
+Max element error                    : 3.56512
+Average element error                : 0.0846641
+Refining 24 basis functions
+Refined mesh: 253 elements 405 nodes.
+Refined mesh: 253 elements 405 nodes.
+Adaptive step 2
+Number of elements    570
+Number of nodes       927
+Number of dofs        927
+Number of constraints 448
+Number of unknowns    479
+L2-norm            : 4.7949
+Energy norm           a(u^h,u^h)^0.5 : 18.5104
+External energy          (h,u^h)^0.5 : -13.1859
+Exact norm                a(u,u)^0.5 : 18.6687
+Exact error      a(e,e)^0.5, e=u-u^h : 2.99933
+Exact relative error (%) : 16.0661
+Root mean square (RMS) of error      : 5.00528
+Min element error                    : 0.000108599
+Max element error                    : 1.71113
+Average element error                : 0.0246127
+Refining 38 basis functions
+Refined mesh: 505 elements 657 nodes.
+Refined mesh: 505 elements 657 nodes.
+Adaptive step 3
+Number of elements    1074
+Number of nodes       1395
+Number of dofs        1395
+Number of constraints 561
+Number of unknowns    834
+L2-norm            : 7.54682
+Energy norm           a(u^h,u^h)^0.5 : 18.6515
+External energy          (h,u^h)^0.5 : -13.2012
+Exact norm                a(u,u)^0.5 : 18.67
+Exact error      a(e,e)^0.5, e=u-u^h : 0.865969
+Exact relative error (%) : 4.63829
+Root mean square (RMS) of error      : 3.20162
+Min element error                    : 0.000108717
+Max element error                    : 0.373825
+Average element error                : 0.00787801
