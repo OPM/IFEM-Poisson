@@ -134,9 +134,9 @@ public:
                 pit != this->opt.project.end(); ++i, ++pit) {
         Matrix ssol;
         if (!this->project(ssol,*solution,pit->first))
-          return 4;
+          return false;
         else
-          myProj[i] = ssol;
+          myProj.push_back(ssol);
       }
 
       // Evaluate solution norms
