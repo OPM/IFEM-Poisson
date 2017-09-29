@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry sets="True">
+    <raiseorder patch="1" u="1" v="1" w="1"/>
+    <refine patch="1" u="2" v="2" w="2"/>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1"/>
+  </boundaryconditions>
+
+  <postprocessing>
+    <projection>
+      <cgl2/>
+    </projection>
+  </postprocessing>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">3*PI*PI*sin(x*PI)*sin(y*PI)*sin(z*PI)</source>
+    <anasol type="expression">
+      <primary>sin(PI*x)*sin(PI*y)*sin(z*PI)</primary>
+      <secondary>-PI*cos(PI*x)*sin(PI*y)*sin(z*PI) |
+                 -PI*sin(PI*x)*cos(PI*y)*sin(PI*z) |
+                 -PI*sin(PI*x)*sin(PI*y)*cos(PI*z)
+      </secondary>
+    </anasol>
+  </poisson>
+
+</simulation>
