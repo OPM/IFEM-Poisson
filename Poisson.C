@@ -378,10 +378,10 @@ bool PoissonNorm::finalizeElement (LocalIntegral& elmInt)
 
   ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
 
-  // Evaluate local effectivity indices as sqrt(a(e^r,e^r)/a(e,e))
+  // Evaluate local effectivity indices as a(e^r,e^r)/a(e,e)
   // with e^r = u^r - u^h  and  e = u - u^h
   for (size_t ip = 7; ip < pnorm.size(); ip += 4)
-    pnorm[ip] = sqrt(pnorm[ip-2] / pnorm[3]);
+    pnorm[ip] = pnorm[ip-2] / pnorm[3];
 
   return true;
 }
