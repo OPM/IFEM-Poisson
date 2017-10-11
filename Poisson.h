@@ -148,6 +148,10 @@ public:
   //! \brief Return linear system type
   virtual LinAlg::LinearSystemType getLinearSystemType() const { return LinAlg::SPD; }
 
+  //! \brief Set the integrand type for the norm class.
+  //! \param itype Integrand type to use for norm class
+  void setNormIntegrandType(int itype) { normIntegrandType = itype; }
+
 private:
   // Physical properties (constant)
   double kappa; //!< Conductivity
@@ -156,6 +160,7 @@ protected:
   VecFunc*  tracFld; //!< Pointer to boundary traction field
   RealFunc* fluxFld; //!< Pointer to boundary normal flux field
   RealFunc* heatSrc; //!< Pointer to interior heat source
+  int normIntegrandType; //!< Integrand type for norm class
 
   mutable std::vector<Vec3Pair> fluxVal; //!< Heat flux point values
 
@@ -173,7 +178,7 @@ public:
   //! \brief The only constructor initializes its data members.
   //! \param[in] p The Poisson problem to evaluate norms for
   //! \param[in] a The analytical heat flux (optional)
-  PoissonNorm(Poisson& p, VecFunc* a = nullptr);
+  PoissonNorm(Poisson& p, int integrandType, VecFunc* a = nullptr);
   //! \brief Empty destructor.
   virtual ~PoissonNorm() {}
 
@@ -217,8 +222,12 @@ public:
   //! \brief Returns whether a norm quantity stores element contributions.
   virtual bool hasElementContributions(size_t i, size_t j) const;
 
+  //!< \brief Returns the integrand type.
+  virtual int getIntegrandType() const { return integrandType; }
+
 private:
   VecFunc* anasol; //!< Analytical heat flux
+  int integrandType; //!< Integrand type
 };
 
 #endif
