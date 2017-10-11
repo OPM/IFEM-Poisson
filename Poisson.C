@@ -32,6 +32,7 @@ Poisson::Poisson (unsigned short int n)
   tracFld = nullptr;
   fluxFld = nullptr;
   heatSrc = nullptr;
+  normIntegrandType = Integrand::STANDARD;
 }
 
 
@@ -254,9 +255,9 @@ NormBase* Poisson::getNormIntegrand (AnaSol* asol) const
 {
   if (asol)
     return new PoissonNorm(*const_cast<Poisson*>(this),
-			   asol->getScalarSecSol());
+                          normIntegrandType, asol->getScalarSecSol());
   else
-    return new PoissonNorm(*const_cast<Poisson*>(this));
+    return new PoissonNorm(*const_cast<Poisson*>(this), normIntegrandType);
 }
 
 
@@ -269,7 +270,8 @@ void Poisson::clearGalerkinProjections ()
 }
 
 
-PoissonNorm::PoissonNorm (Poisson& p, VecFunc* a) : NormBase(p), anasol(a)
+PoissonNorm::PoissonNorm (Poisson& p, int itype, VecFunc* a) :
+  NormBase(p), anasol(a), integrandType(itype)
 {
   nrcmp = myProblem.getNoFields(2);
 }
@@ -316,7 +318,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       // Evaluate projected heat flux field
       Vector sigmar(nrcmp);
       for (j = 0; j < nrcmp; j++)
-	sigmar[j] = pnorm.psol[i].dot(fe.N,j,nrcmp);
+        sigmar[j] = pnorm.psol[i].dot(fe.N,j,nrcmp);
 
       // Integrate the energy norm a(u^r,u^r)
       pnorm[ip++] += sigmar.dot(Cinv*sigmar)*fe.detJxW;
@@ -326,11 +328,25 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
       if (anasol)
       {
-	// Integrate the error in the projected solution a(u-u^r,u-u^r)
-	error = sigma - sigmar;
-	pnorm[ip++] += error.dot(Cinv*error)*fe.detJxW;
-	ip++; // Make room for the local effectivity index here
+        // Integrate the error in the projected solution a(u-u^r,u-u^r)
+        error = sigma - sigmar;
+        pnorm[ip++] += error.dot(Cinv*error)*fe.detJxW;
+        ip++; // Make room for the local effectivity index here
       }
+    }
+    else // residual estimator
+    {
+      double f = problem.getHeat(X);
+      double hessu = 0.0;
+      for (size_t j = 1; j <= fe.basis(1).size(); j++) { // basis function
+        double laplace = 0;
+        for (size_t l = 1; l <= problem.getNoSpaceDim(); l++) // hessian component
+          laplace += fe.hess(1)(j,l,l);
+        hessu += laplace*pnorm.vec.front()(j);
+      }
+
+      ip++; // dummy entry in order to get norm in the right place.
+      pnorm[ip++] += fe.h*fe.h*(f+hessu)*(f+hessu)*fe.detJxW;
     }
 
   return true;

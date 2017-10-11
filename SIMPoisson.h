@@ -376,6 +376,14 @@ protected:
   //! \param[in] elem The XML element to parse
   virtual bool parse(const TiXmlElement* elem)
   {
+    if (!strcasecmp(elem->Value(),"postprocessing")) {
+      const TiXmlElement* child = elem->FirstChildElement("projection");
+      if (child)
+        if (child->FirstChildElement("residual"))
+          prob.setNormIntegrandType(Integrand::ELEMENT_CORNERS |
+                                    Integrand::SECOND_DERIVATIVES);
+      return this->Dim::parse(elem);
+    }
     if (strcasecmp(elem->Value(),"poisson"))
       return this->Dim::parse(elem);
 

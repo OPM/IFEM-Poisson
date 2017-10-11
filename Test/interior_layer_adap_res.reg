@@ -1,0 +1,68 @@
+interior_layer_adap_res.xinp -adap
+
+Number of elements    256
+Number of nodes       361
+Number of dofs        361
+Number of constraints 37
+Number of unknowns    324
+ >>> Starting adaptive simulation based on
+     Pure residuals error estimates (norm group 1) <<<
+Adaptive step 1
+L2-norm            : 1.50744
+Max displacement   : 2.70399
+Energy norm           a(u^h,u^h)^0.5 : 9.48035
+External energy          (h,u^h)^0.5 : 9.49767
+Exact norm                a(u,u)^0.5 : 10.3681
+Exact error      a(e,e)^0.5, e=u-u^h : 4.04787
+Exact relative error (%) : 39.0415
+Error estimate a(e,e)^0.5, e=u^r-u^h : 32.3017
+Relative error (%) : 95.9527
+Effectivity index  : 7.97992
+Root mean square (RMS) of error      : 1.83564
+Min element error                    : 2.93802e-05
+Max element error                    : 7.15081
+Average element error                : 0.965798
+Refining 134 basis functions
+Refined mesh: 811 elements 922 nodes.
+Adaptive step 2
+Number of elements    811
+Number of nodes       922
+Number of dofs        922
+Number of constraints 51
+Number of unknowns    871
+L2-norm            : 1.43047
+Max displacement   : 1.54844
+Energy norm           a(u^h,u^h)^0.5 : 10.2396
+External energy          (h,u^h)^0.5 : 10.2102
+Exact norm                a(u,u)^0.5 : 10.3653
+Exact error      a(e,e)^0.5, e=u-u^h : 1.62087
+Exact relative error (%) : 15.6374
+Error estimate a(e,e)^0.5, e=u^r-u^h : 10.3297
+Relative error (%) : 71.0198
+Effectivity index  : 6.37295
+Root mean square (RMS) of error      : 1.9764
+Min element error                    : 2.59886e-06
+Max element error                    : 1.56028
+Average element error                : 0.16376
+Refining 285 basis functions
+Refined mesh: 2077 elements 2074 nodes.
+Adaptive step 3
+Number of elements    2077
+Number of nodes       2074
+Number of dofs        2074
+Number of constraints 51
+Number of unknowns    2023
+L2-norm            : 1.34098
+Max displacement   : 1.54767
+Energy norm           a(u^h,u^h)^0.5 : 10.3607
+External energy          (h,u^h)^0.5 : 10.3326
+Exact norm                a(u,u)^0.5 : 10.3655
+Exact error      a(e,e)^0.5, e=u-u^h : 0.314731
+Exact relative error (%) : 3.03635
+Error estimate a(e,e)^0.5, e=u^r-u^h : 1.78797
+Relative error (%) : 17.0059
+Effectivity index  : 5.68093
+Root mean square (RMS) of error      : 2.21051
+Min element error                    : 2.88101e-07
+Max element error                    : 0.215676
+Average element error                : 0.0161703
