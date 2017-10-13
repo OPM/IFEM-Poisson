@@ -18,6 +18,11 @@ Refined mesh: 46 elements 133 nodes.
 Refined mesh: 55 elements 150 nodes.
 Refined mesh: 46 elements 133 nodes.
 Adaptive step 2
+Number of elements    261
+Number of nodes       529
+Number of dofs        529
+Number of constraints 84
+Number of unknowns    445
 L2-norm            : 3.93411e+06
 Energy norm           a(u^h,u^h)^0.5 : 5.53149e+07
 External energy          (h,u^h)^0.5 : -3.14493e+06
@@ -32,19 +37,36 @@ Refining 64 basis functions
 Refined mesh: 79 elements 175 nodes.
 Refined mesh: 100 elements 209 nodes.
 Refined mesh: 79 elements 175 nodes.
+Adaptive step 3
+Number of elements    261
+Number of nodes       529
+Number of dofs        529
+Number of constraints 84
+Number of unknowns    445
+L2-norm            : 3.53514e+06
+Energy norm           a(u^h,u^h)^0.5 : 5.52037e+07
+External energy          (h,u^h)^0.5 : -6.25205e+06
+Exact norm                a(u,u)^0.5 : 159547
+Exact error      a(e,e)^0.5, e=u-u^h : 5.51164e+07
+Exact relative error (%) : 34545.6
+Root mean square (RMS) of error      : 2.9595
+Min element error                    : 139193
+Max element error                    : 3.1222e+07
+Average element error                : 1.09211e+06
+Refining 83 basis functions
 Adaptive step 4
-Number of elements    609
-Number of nodes       914
-Number of dofs        914
+Number of elements    621
+Number of nodes       931
+Number of dofs        931
 Number of constraints 96
-Number of unknowns    818
-L2-norm            : 2.9288e+06
+Number of unknowns    835
+L2-norm            : 2.90588e+06
 Energy norm           a(u^h,u^h)^0.5 : 5.51267e+07
 External energy          (h,u^h)^0.5 : -1.23177e+07
 Exact norm                a(u,u)^0.5 : 624882
 Exact error      a(e,e)^0.5, e=u-u^h : 5.47862e+07
 Exact relative error (%) : 8767.44
-Root mean square (RMS) of error      : 3.91269
-Min element error                    : 86234.2
+Root mean square (RMS) of error      : 3.94103
+Min element error                    : 86234
 Max element error                    : 3.10499e+07
-Average element error                : 549727
+Average element error                : 540712
