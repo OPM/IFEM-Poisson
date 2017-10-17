@@ -130,6 +130,8 @@ public:
       // Project the FE stresses onto the splines basis
       this->setMode(SIM::RECOVERY);
       size_t i = 0;
+      if (projections == &myProj)
+        myProj.resize(this->opt.project.size());
       for (auto pit  = this->opt.project.begin();
                 pit != this->opt.project.end(); ++i, ++pit) {
         Matrix ssol;
