@@ -138,7 +138,7 @@ public:
         if (!this->project(ssol,*solution,pit->first))
           return false;
         else
-          myProj.push_back(ssol);
+          myProj[i] = ssol;
       }
 
       // Evaluate solution norms
@@ -234,11 +234,13 @@ public:
                  << gNorm[j](2)/gNorm[j](1)*100.0;
       if (this->haveAnaSol() && j <= gNorm.size())
       {
-        IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm[j](3)
-                   <<"\n- relative error (% of |u|)   : "
-                   << gNorm[j](3)/gNorm[0](3)*100.0;
-        IFEM::cout <<"\nEffectivity index             : "
-                   << gNorm[j](2)/gNorm[0](4);
+        if(gNorm[j].size() > 2 && gNorm[0].size() > 2)
+          IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm[j](3)
+                     <<"\n- relative error (% of |u|)   : "
+                     << gNorm[j](3)/gNorm[0](3)*100.0;
+        if(gNorm[0].size() > 3 && gNorm[j].size() > 1)
+          IFEM::cout <<"\nEffectivity index             : "
+                     << gNorm[j](2)/gNorm[0](4);
       }
       IFEM::cout << std::endl;
       ++j;
