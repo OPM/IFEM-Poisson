@@ -146,7 +146,7 @@ public:
       if (!this->solutionNorms(Vectors(1,*solution),*projections,eNorm,gNorm))
         return false;
 
-      this->printSummary();
+      this->printNorms(gNorm);
     } else {
       this->setMode(SIM::VIBRATION);
       if (!this->systemModes(modes))
@@ -219,32 +219,29 @@ public:
     return true;
   }
 
-  //! \brief Print a summary of the solution to terminal
-  void printSummary()
+  virtual void printNormGroup(const Vector& gNorm, const Vector& fNorm,
+                              const std::string& name) const
   {
-    this->printNorms(gNorm);
-    size_t j = 1;
-
-    for (auto& pit : this->opt.project)
-    {
-      IFEM::cout <<"\n>>> Error estimates based on "<< pit.second <<" <<<";
-      IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm[j](1);
-      IFEM::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm[j](2);
+    IFEM::cout <<"\n>>> Error estimates based on "<< name <<" <<<";
+    if (name == "Pure residuals")
+      IFEM::cout <<"\nResidual norm |u|_res = |f+nabla^2 u|: "<< gNorm(2);
+    else {
+      IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm(1);
+      IFEM::cout <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(2);
       IFEM::cout <<"\n- relative error (% of |u^r|) : "
-                 << gNorm[j](2)/gNorm[j](1)*100.0;
-      if (this->haveAnaSol() && j <= gNorm.size())
-      {
-        if(gNorm[j].size() > 2 && gNorm[0].size() > 2)
-          IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm[j](3)
-                     <<"\n- relative error (% of |u|)   : "
-                     << gNorm[j](3)/gNorm[0](3)*100.0;
-        if(gNorm[0].size() > 3 && gNorm[j].size() > 1)
-          IFEM::cout <<"\nEffectivity index             : "
-                     << gNorm[j](2)/gNorm[0](4);
-      }
-      IFEM::cout << std::endl;
-      ++j;
+                 << gNorm(2)/gNorm(1)*100.0;
     }
+
+    if (this->haveAnaSol())
+    {
+      if (gNorm.size() > 2 && fNorm.size() > 2 && name != "Pure residuals")
+        IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(3)
+                   <<"\n- relative error (% of |u|)   : "
+                   << gNorm(3)/fNorm(3)*100.0;
+      if (fNorm.size() > 3 && gNorm.size() > 1)
+        IFEM::cout <<"\nEffectivity index             : " << gNorm(2)/fNorm(4);
+    }
+    IFEM::cout << std::endl;
   }
 
   //! \brief Set whether or not to dump results to ascii files

@@ -347,6 +347,8 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
       ip++; // dummy entry in order to get norm in the right place.
       pnorm[ip++] += fe.h*fe.h*(f+hessu)*(f+hessu)*fe.detJxW;
+      ip++; // dummy entry in order to get norm in the right place.
+      ip++; // Make room for the local effectivity index here
     }
 
   return true;
