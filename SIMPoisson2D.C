@@ -251,6 +251,15 @@ bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* child)
         aCode[0] = code;
       }
     }
+    else if (type == "fields") {
+      std::cout <<"\tAnalytical solution: Fields"<< std::endl;
+      if (child->Attribute("file"))
+        if (!mySol)
+          mySol = new AnaSol(child);
+      if (!mySol)
+        std::cerr <<"  ** SIMPoisson::parse: Invalid analytical solution definition"
+                  << " (ignored)"<< std::endl;
+    }
     else if (type == "expression") {
       std::cout <<"\tAnalytical solution: Expression"<< std::endl;
       if (!mySol)
