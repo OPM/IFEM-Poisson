@@ -57,7 +57,7 @@ void Poisson::setMode (SIM::SolutionMode mode)
 {
   m_mode = mode;
 
-  if (mode == SIM::RECOVERY)
+  if (mode >= SIM::RECOVERY)
     primsol.resize(1);
   else
     primsol.clear();
