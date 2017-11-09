@@ -1,0 +1,88 @@
+interior_layer_adap_rec.xinp -adap
+
+LR-spline basis functions are used
+Number of elements    16
+Number of nodes       49
+Number of dofs        49
+Number of constraints 13
+Number of unknowns    36
+ >>> Starting adaptive simulation based on
+     Continuous global L2-projection error estimates (norm group 1) <<<
+Adaptive step 1
+L2-norm            : 2.90269
+Max displacement   : 10.9144 node 49
+Energy norm           a(u^h,u^h)^0.5 : 9.05556
+External energy          (h,u^h)^0.5 : 10.1744
+Exact norm                a(u,u)^0.5 : 9.51175
+Exact error      a(e,e)^0.5, e=u-u^h : 10.7961
+Exact relative error (%) : 113.503
+>>> Error estimates based on Continuous global L2-projection <<<
+Energy norm |u^r| = a(u^r,u^r)^0.5   : 8.96203
+Error norm a(e,e)^0.5, e=u^r-u^h     : 1.29817
+relative error (% of |u^r|) : 14.4852
+Exact error a(e,e)^0.5, e=u-u^r      : 10.8347
+relative error (% of |u|)   : 113.908
+Effectivity index             : 0.120244
+Error estimate a(e,e)^0.5, e=u^r-u^h : 1.29817
+Relative error (%) : 14.1905
+Effectivity index  : 0.120244
+Root mean square (RMS) of error      : 0.316825
+Min element error                    : 0.0209438
+Max element error                    : 0.442049
+Average element error                : 0.309386
+Refining 43 basis functions with errors in range \[0.515916,4.95017\] 10% of max error (0.495017)
+Adaptive step 2
+Number of elements    64
+Number of nodes       121
+Number of dofs        121
+Number of constraints 21
+Number of unknowns    100
+L2-norm            : 2.37839
+Max displacement   : 6.24758 node 88
+Energy norm           a(u^h,u^h)^0.5 : 10.0324
+External energy          (h,u^h)^0.5 : 9.22202
+Exact norm                a(u,u)^0.5 : 10.2534
+Exact error      a(e,e)^0.5, e=u-u^h : 7.24069
+Exact relative error (%) : 70.6173
+>>> Error estimates based on Continuous global L2-projection <<<
+Energy norm |u^r| = a(u^r,u^r)^0.5   : 9.85011
+Error norm a(e,e)^0.5, e=u^r-u^h     : 1.90361
+relative error (% of |u^r|) : 19.3258
+Exact error a(e,e)^0.5, e=u-u^r      : 7.40743
+relative error (% of |u|)   : 72.2435
+Effectivity index             : 0.262905
+Error estimate a(e,e)^0.5, e=u^r-u^h : 1.90361
+Relative error (%) : 18.6421
+Effectivity index  : 0.262905
+Root mean square (RMS) of error      : 0.632504
+Min element error                    : 0.00445992
+Max element error                    : 0.429363
+Average element error                : 0.201101
+Refining 84 basis functions with errors in range \[0.601073,5.44994\] 10% of max error (0.544994)
+Adaptive step 3
+Number of elements    256
+Number of nodes       361
+Number of dofs        361
+Number of constraints 37
+Number of unknowns    324
+L2-norm            : 1.50744
+Max displacement   : 2.70399 node 218
+Energy norm           a(u^h,u^h)^0.5 : 9.48035
+External energy          (h,u^h)^0.5 : 9.49767
+Exact norm                a(u,u)^0.5 : 10.3681
+Exact error      a(e,e)^0.5, e=u-u^h : 4.04787
+Exact relative error (%) : 39.0415
+>>> Error estimates based on Continuous global L2-projection <<<
+Energy norm |u^r| = a(u^r,u^r)^0.5   : 9.2862
+Error norm a(e,e)^0.5, e=u^r-u^h     : 1.90883
+relative error (% of |u^r|) : 20.5555
+Exact error a(e,e)^0.5, e=u-u^r      : 4.3069
+relative error (% of |u|)   : 41.5398
+Effectivity index             : 0.471564
+Error estimate a(e,e)^0.5, e=u^r-u^h : 1.90883
+Relative error (%) : 19.7384
+Effectivity index  : 0.471564
+Root mean square (RMS) of error      : 0.971878
+Min element error                    : 1.22464e-05
+Max element error                    : 0.300647
+Average element error                : 0.0855534
