@@ -143,7 +143,7 @@ public:
 
       // Evaluate solution norms
       this->setQuadratureRule(this->opt.nGauss[1]);
-      if (!this->solutionNorms(Vectors(1,*solution),*projections,eNorm,gNorm))
+      if (!this->solutionNorms(*solution,*projections,eNorm,gNorm))
         return false;
 
       this->printNorms(gNorm);

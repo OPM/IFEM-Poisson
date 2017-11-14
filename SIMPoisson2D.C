@@ -87,7 +87,7 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(nullptr," ");
-      std::cout <<"\nHeat source function: " << cline << std::endl;
+      std::cout <<"\nHeat source function: "<< cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
     else
@@ -166,8 +166,8 @@ bool SIMPoisson2D::parseDimSpecific(char* keyWord, std::istream& is)
       myVectors[code] = mySol->getScalarSecSol();
       aCode[1] = code;
     }
-
-  } else
+  }
+  else
     return false;
 
   return true;
@@ -195,20 +195,22 @@ bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* child)
     else if (type == "interiorlayer") {
       double s = 60;
       utl::getAttribute(child,"slope",s);
-      std::cout <<"\tHeat source function: InteriorLayer, slope = "<< s
-        << std::endl;
+      std::cout <<"\tHeat source function: InteriorLayer, slope="<< s
+                << std::endl;
       myScalars[code] = new PoissonInteriorLayerSource(s);
     }
     else if (type == "expression" && child->FirstChild()) {
       std::cout <<"\tHeat source function: "
-        << child->FirstChild()->Value() << std::endl;
+                << child->FirstChild()->Value() << std::endl;
       myScalars[code] = new EvalFunction(child->FirstChild()->Value());
     }
     else
     {
       std::cerr <<"  ** SIMPoisson2D::parse: Invalid source function "
-        << type <<" (ignored)"<< std::endl;
+                << type <<" (ignored)"<< std::endl;
+      return true;
     }
+
     prob.setSource(myScalars[code]);
   }
 
@@ -236,8 +238,8 @@ bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* child)
     else if (type == "interiorlayer") {
       double s = 60;
       utl::getAttribute(child,"slope",s);
-      std::cout <<"\tAnalytical solution: InteriorLayer, slope = "<< s
-        << std::endl;
+      std::cout <<"\tAnalytical solution: InteriorLayer, slope="<< s
+                << std::endl;
       if (!mySol)
         mySol = new AnaSol(new PoissonInteriorLayerSol(s),
                            new PoissonInteriorLayer(s));
@@ -251,23 +253,15 @@ bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* child)
         aCode[0] = code;
       }
     }
-    else if (type == "fields") {
-      std::cout <<"\tAnalytical solution: Fields"<< std::endl;
-      if (child->Attribute("file"))
-        if (!mySol)
-          mySol = new AnaSol(child);
-      if (!mySol)
-        std::cerr <<"  ** SIMPoisson::parse: Invalid analytical solution definition"
-                  << " (ignored)"<< std::endl;
-    }
-    else if (type == "expression") {
-      std::cout <<"\tAnalytical solution: Expression"<< std::endl;
+    else if (type == "expression" || type == "fields") {
+      type[0] = toupper(type[0]);
+      std::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
         mySol = new AnaSol(child);
     }
     else
       std::cerr <<"  ** SIMPoisson2D::parse: Invalid analytical solution "
-        << type <<" (ignored)"<< std::endl;
+                << type <<" (ignored)"<< std::endl;
 
     // Define the analytical boundary traction field
     if (code == 0 && utl::getAttribute(child,"code",code))
@@ -277,7 +271,8 @@ bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* child)
         myVectors[code] = mySol->getScalarSecSol();
         aCode[1] = code;
       }
-  } else
+  }
+  else
     return false;
 
   return true;

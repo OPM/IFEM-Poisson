@@ -42,7 +42,7 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(nullptr," ");
-      std::cout <<"\nHeat source function: " << cline << std::endl;
+      std::cout <<"\nHeat source function: "<< cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
     else
@@ -108,7 +108,8 @@ bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is)
       myVectors[code] = mySol->getScalarSecSol();
       aCode[1] = code;
     }
-  }  else
+  }
+  else
     return false;
 
   return true;
@@ -130,8 +131,8 @@ bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* child)
     else if (type == "waterfall") {
       double eps = 0.002;
       utl::getAttribute(child,"epsilon",eps);
-      std::cout <<"\tHeat source function: Waterfall, epsilon = "<< eps
-        << std::endl;
+      std::cout <<"\tHeat source function: Waterfall, epsilon="<< eps
+                << std::endl;
       myScalars[code] = new PoissonWaterfallSource(eps);
     }
     else if (type == "expression" && child->FirstChild()) {
@@ -141,8 +142,9 @@ bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* child)
     }
     else
     {
-      std::cerr <<"  ** SIMPoisson::parse: Invalid source function "
+      std::cerr <<"  ** SIMPoisson3D::parse: Invalid source function "
                 << type <<" (ignored)"<< std::endl;
+      return true;
     }
     prob.setSource(myScalars[code]);
   }
@@ -159,8 +161,8 @@ bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* child)
     else if (type == "waterfall") {
       double eps = 0.002;
       utl::getAttribute(child,"epsilon",eps);
-      std::cout <<"\tAnalytical solution: Waterfall, epsilon = "<< eps
-        << std::endl;
+      std::cout <<"\tAnalytical solution: Waterfall, epsilon="<< eps
+                << std::endl;
       if (!mySol)
         mySol = new AnaSol(new PoissonWaterfallSol(eps),
                            new PoissonWaterfall(eps));
@@ -174,33 +176,26 @@ bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* child)
         aCode[0] = code;
       }
     }
-    else if (type == "fields") {
-      std::cout <<"\tAnalytical solution: Fields"<< std::endl;
-      if (child->Attribute("file"))
-        if (!mySol)
-          mySol = new AnaSol(child);
-      if (!mySol)
-        std::cerr <<"  ** SIMPoisson::parse: Invalid analytical solution definition"
-                  << " (ignored)"<< std::endl;
-    }
-    else if (type == "expression") {
-      std::cout <<"\tAnalytical solution: Expression"<< std::endl;
+    else if (type == "expression" || type == "fields") {
+      type[0] = toupper(type[0]);
+      std::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
         mySol = new AnaSol(child);
     }
     else
-      std::cerr <<"  ** SIMPoisson::parse: Invalid analytical solution "
-        << type <<" (ignored)"<< std::endl;
+      std::cerr <<"  ** SIMPoisson3D::parse: Invalid analytical solution "
+                << type <<" (ignored)"<< std::endl;
 
     // Define the analytical boundary traction field
-    if (utl::getAttribute(child,"code",code))
+    if (code == 0 && utl::getAttribute(child,"code",code))
       if (code > 0 && mySol && mySol->getScalarSecSol())
       {
         this->setPropertyType(code,Property::NEUMANN);
         myVectors[code] = mySol->getScalarSecSol();
         aCode[1] = code;
       }
-  } else
+  }
+  else
     return false;
 
   return true;

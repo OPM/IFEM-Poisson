@@ -38,7 +38,7 @@ bool SIMPoisson1D::parseDimSpecific(char* keyWord, std::istream& is)
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(nullptr," ");
-      std::cout <<"\nHeat source function: " << cline << std::endl;
+      std::cout <<"\nHeat source function: "<< cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
     else
@@ -85,7 +85,8 @@ bool SIMPoisson1D::parseDimSpecific(char* keyWord, std::istream& is)
       myVectors[code] = mySol->getScalarSecSol();
       aCode[1] = code;
     }
-  } else
+  }
+  else
     return false;
 
   return true;
@@ -114,7 +115,8 @@ bool SIMPoisson1D::parseDimSpecific(const TiXmlElement* child)
     else
     {
       std::cerr <<"  ** SIMPoisson1D::parse: Invalid source function "
-        << type <<" (ignored)"<< std::endl;
+                << type <<" (ignored)"<< std::endl;
+      return false;
     }
     prob.setSource(myScalars[code]);
   }
@@ -130,24 +132,26 @@ bool SIMPoisson1D::parseDimSpecific(const TiXmlElement* child)
       if (!mySol)
         mySol = new AnaSol(nullptr,new PoissonLine(L));
     }
-    else if (type == "expression") {
-      std::cout <<"\tAnalytical solution: Expression"<< std::endl;
+    else if (type == "expression" || type == "fields") {
+      type[0] = toupper(type[0]);
+      std::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
         mySol = new AnaSol(child);
     }
     else
       std::cerr <<"  ** SIMPoisson1D::parse: Invalid analytical solution "
-        << type <<" (ignored)"<< std::endl;
+                << type <<" (ignored)"<< std::endl;
 
     // Define the analytical boundary traction field
-    if (utl::getAttribute(child,"code",code))
+    if (code == 0 && utl::getAttribute(child,"code",code))
       if (code > 0 && mySol && mySol->getScalarSecSol())
       {
         this->setPropertyType(code,Property::NEUMANN);
         myVectors[code] = mySol->getScalarSecSol();
         aCode[1] = code;
       }
-  } else
+  }
+  else
     return false;
 
   return true;
