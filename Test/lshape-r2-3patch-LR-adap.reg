@@ -1,15 +1,74 @@
 lshape-r2-3patch-LR-adap.xinp -adap
 
+Input file: lshape-r2-3patch-LR-adap.xinp
+Equation solver: 2
+Number of Gauss points: 4
 LR-spline basis functions are used
+Parsing input file lshape-r2-3patch-LR-adap.xinp
+Parsing <geometry>
+  Parsing <patchfile>
+	Reading data file lshape2.g2
+	Reading patch 1
+	Reading patch 2
+	Reading patch 3
+  Parsing <raiseorder>
+  Parsing <topology>
+  Parsing <topologysets>
+	Topology sets: Boundary (1,1,1D) (1,3,1D) (1,4,1D) (2,2,1D) (2,4,1D) (3,1,1D) (3,2,1D) (3,3,1D)
+  Parsing <patchfile>
+  Parsing <raiseorder>
+	Raising order of P1 1 1
+	Raising order of P2 1 1
+	Raising order of P3 1 1
+  Parsing <topology>
+	Connecting P2 E1 to P1 E2 reversed? 0
+	Connecting P3 E4 to P2 E3 reversed? 0
+  Parsing <topologysets>
+Parsing <messageLevel>
+Parsing <boundaryconditions>
+  Parsing <dirichlet>
+	Dirichlet code 1: (analytic)
+Parsing <poisson>
+	Heat source function: r=sqrt(x^2+y^2); -4/(r^4)
+	Analytical solution: Expression
+	Variables=r=sqrt(x^2+y^2);
+	Primary=1/(r^2)
+	Secondary=2\*x/(r^4) | 2\*y/(r^4)
+Parsing <adaptive>
+Parsing input file succeeded.
+1. Time integration driver
+Parsing input file lshape-r2-3patch-LR-adap.xinp
+Parsing <messageLevel>
+Parsing <geometry>
+Parsing <boundaryconditions>
+Parsing <poisson>
+Parsing <adaptive>
+	Refinement percentage: 100 type=2
+	Refinement scheme: 2
+Parsing input file succeeded.
+Renumbered 152 nodes.
+Resolving Dirichlet boundary conditions
+	Constraining P1 E1 in direction(s) 1 code = 1
+	Constraining P1 E3 in direction(s) 1 code = 1
+	Constraining P1 E4 in direction(s) 1 code = 1
+	Constraining P2 E2 in direction(s) 1 code = 1
+	Constraining P2 E4 in direction(s) 1 code = 1
+	Constraining P3 E1 in direction(s) 1 code = 1
+	Constraining P3 E2 in direction(s) 1 code = 1
+	Constraining P3 E3 in direction(s) 1 code = 1
+Deleted 3 MPC equations.
+ >>> SAM model summary <<<
 Number of elements    48
 Number of nodes       225
 Number of dofs        225
 Number of constraints 64
 Number of unknowns    161
  >>> Starting adaptive simulation based on exact errors <<<
+Solving Poisson problem
 Adaptive step 1
+ >>> Solution summary <<<
 L2-norm            : 5.32233e+06
-Max displacement   : 5e+07 node 2
+Max displacement   : 5e+07
 Energy norm           a(u^h,u^h)^0.5 : 5.49598e+07
 External energy          (h,u^h)^0.5 : -1.56397e+06
 Exact norm                a(u,u)^0.5 : 10138.3
@@ -19,15 +78,53 @@ Root mean square (RMS) of error      : 1.74551
 Min element error                    : 375782
 Max element error                    : 3.11784e+07
 Average element error                : 3.94296e+06
-Refining 48 basis functions with errors in range \[8.3337e+06,8.9587e+07\] 100% of average error
+Refining 48 basis functions with errors in range \[8.3337e+06,8.9587e+07\] 100% of average error (7.57049e+06)
+Refined mesh: 46 elements 133 nodes.
+Refined mesh: 55 elements 150 nodes.
+Refined mesh: 46 elements 133 nodes.
 Adaptive step 2
+Parsing input file lshape-r2-3patch-LR-adap.xinp
+Parsing <geometry>
+  Parsing <patchfile>
+  Parsing <raiseorder>
+  Parsing <topology>
+  Parsing <topologysets>
+	Topology sets: Boundary (1,1,1D) (1,3,1D) (1,4,1D) (2,2,1D) (2,4,1D) (3,1,1D) (3,2,1D) (3,3,1D)
+  Parsing <patchfile>
+  Parsing <raiseorder>
+  Parsing <topology>
+	Connecting P2 E1 to P1 E2 reversed? 0
+	Connecting P3 E4 to P2 E3 reversed? 0
+  Parsing <topologysets>
+Parsing <messageLevel>
+Parsing <boundaryconditions>
+  Parsing <dirichlet>
+	Dirichlet code 1: (analytic)
+Parsing <poisson>
+	Heat source function: r=sqrt(x^2+y^2); -4/(r^4)
+	Analytical solution: Expression
+Parsing <adaptive>
+Parsing input file succeeded.
+Renumbered 269 nodes.
+Resolving Dirichlet boundary conditions
+	Constraining P1 E1 in direction(s) 1 code = 1
+	Constraining P1 E3 in direction(s) 1 code = 1
+	Constraining P1 E4 in direction(s) 1 code = 1
+	Constraining P2 E2 in direction(s) 1 code = 1
+	Constraining P2 E4 in direction(s) 1 code = 1
+	Constraining P3 E1 in direction(s) 1 code = 1
+	Constraining P3 E2 in direction(s) 1 code = 1
+	Constraining P3 E3 in direction(s) 1 code = 1
+Deleted 3 MPC equations.
+ >>> SAM model summary <<<
 Number of elements    147
 Number of nodes       390
 Number of dofs        390
 Number of constraints 78
 Number of unknowns    312
+ >>> Solution summary <<<
 L2-norm            : 3.93411e+06
-Max displacement   : 5e+07 node 2
+Max displacement   : 5e+07
 Energy norm           a(u^h,u^h)^0.5 : 5.53149e+07
 External energy          (h,u^h)^0.5 : -3.14493e+06
 Exact norm                a(u,u)^0.5 : 40326.3
@@ -38,38 +135,114 @@ Min element error                    : 226215
 Max element error                    : 3.12595e+07
 Average element error                : 1.70305e+06
 Refining 64 basis functions with errors in range \[6.27229e+06,8.92806e+07\] 100% of average error (5.78159e+06)
+Refined mesh: 85 elements 182 nodes.
+Refined mesh: 112 elements 223 nodes.
+Refined mesh: 85 elements 182 nodes.
 Adaptive step 3
-Number of elements    258
-Number of nodes       525
-Number of dofs        525
+Parsing input file lshape-r2-3patch-LR-adap.xinp
+Parsing <geometry>
+  Parsing <patchfile>
+  Parsing <raiseorder>
+  Parsing <topology>
+  Parsing <topologysets>
+	Topology sets: Boundary (1,1,1D) (1,3,1D) (1,4,1D) (2,2,1D) (2,4,1D) (3,1,1D) (3,2,1D) (3,3,1D)
+  Parsing <patchfile>
+  Parsing <raiseorder>
+  Parsing <topology>
+	Connecting P2 E1 to P1 E2 reversed? 0
+	Connecting P3 E4 to P2 E3 reversed? 0
+  Parsing <topologysets>
+Parsing <messageLevel>
+Parsing <boundaryconditions>
+  Parsing <dirichlet>
+	Dirichlet code 1: (analytic)
+Parsing <poisson>
+	Heat source function: r=sqrt(x^2+y^2); -4/(r^4)
+	Analytical solution: Expression
+Parsing <adaptive>
+Parsing input file succeeded.
+Renumbered 386 nodes.
+Resolving Dirichlet boundary conditions
+	Constraining P1 E1 in direction(s) 1 code = 1
+	Constraining P1 E3 in direction(s) 1 code = 1
+	Constraining P1 E4 in direction(s) 1 code = 1
+	Constraining P2 E2 in direction(s) 1 code = 1
+	Constraining P2 E4 in direction(s) 1 code = 1
+	Constraining P3 E1 in direction(s) 1 code = 1
+	Constraining P3 E2 in direction(s) 1 code = 1
+	Constraining P3 E3 in direction(s) 1 code = 1
+Deleted 3 MPC equations.
+ >>> SAM model summary <<<
+Number of elements    282
+Number of nodes       551
+Number of dofs        551
 Number of constraints 84
-Number of unknowns    441
-L2-norm            : 3.54622e+06
-Max displacement   : 5e+07 node 2
+Number of unknowns    467
+ >>> Solution summary <<<
+L2-norm            : 3.48525e+06
+Max displacement   : 5e+07
 Energy norm           a(u^h,u^h)^0.5 : 5.52037e+07
 External energy          (h,u^h)^0.5 : -6.25205e+06
 Exact norm                a(u,u)^0.5 : 159547
 Exact error      a(e,e)^0.5, e=u-u^h : 5.51164e+07
 Exact relative error (%) : 34545.6
-Root mean square (RMS) of error      : 2.94686
+Root mean square (RMS) of error      : 3.03416
 Min element error                    : 139194
 Max element error                    : 3.1222e+07
-Average element error                : 1.10267e+06
-Refining 83 basis functions with errors in range \[4.88656e+06,8.89032e+07\] 100% of average error (4.88392e+06)
+Average element error                : 1.02737e+06
+Refining 85 basis functions with errors in range \[4.80591e+06,8.89032e+07\] 100% of average error (4.7398e+06)
+Refined mesh: 202 elements 316 nodes.
+Refined mesh: 271 elements 404 nodes.
+Refined mesh: 202 elements 316 nodes.
 Adaptive step 4
-Number of elements    615
-Number of nodes       922
-Number of dofs        922
+Parsing input file lshape-r2-3patch-LR-adap.xinp
+Parsing <geometry>
+  Parsing <patchfile>
+  Parsing <raiseorder>
+  Parsing <topology>
+  Parsing <topologysets>
+	Topology sets: Boundary (1,1,1D) (1,3,1D) (1,4,1D) (2,2,1D) (2,4,1D) (3,1,1D) (3,2,1D) (3,3,1D)
+  Parsing <patchfile>
+  Parsing <raiseorder>
+  Parsing <topology>
+	Connecting P2 E1 to P1 E2 reversed? 0
+	Connecting P3 E4 to P2 E3 reversed? 0
+  Parsing <topologysets>
+Parsing <messageLevel>
+Parsing <boundaryconditions>
+  Parsing <dirichlet>
+	Dirichlet code 1: (analytic)
+Parsing <poisson>
+	Heat source function: r=sqrt(x^2+y^2); -4/(r^4)
+	Analytical solution: Expression
+Parsing <adaptive>
+Parsing input file succeeded.
+Renumbered 692 nodes.
+Resolving Dirichlet boundary conditions
+	Constraining P1 E1 in direction(s) 1 code = 1
+	Constraining P1 E3 in direction(s) 1 code = 1
+	Constraining P1 E4 in direction(s) 1 code = 1
+	Constraining P2 E2 in direction(s) 1 code = 1
+	Constraining P2 E4 in direction(s) 1 code = 1
+	Constraining P3 E1 in direction(s) 1 code = 1
+	Constraining P3 E2 in direction(s) 1 code = 1
+	Constraining P3 E3 in direction(s) 1 code = 1
+Deleted 3 MPC equations.
+ >>> SAM model summary <<<
+Number of elements    675
+Number of nodes       982
+Number of dofs        982
 Number of constraints 96
-Number of unknowns    826
-L2-norm            : 2.91849e+06
-Max displacement   : 5e+07 node 2
+Number of unknowns    886
+ >>> Solution summary <<<
+L2-norm            : 2.84375e+06
+Max displacement   : 5e+07
 Energy norm           a(u^h,u^h)^0.5 : 5.51267e+07
 External energy          (h,u^h)^0.5 : -1.23177e+07
 Exact norm                a(u,u)^0.5 : 624882
 Exact error      a(e,e)^0.5, e=u-u^h : 5.47862e+07
 Exact relative error (%) : 8767.44
-Root mean square (RMS) of error      : 3.92748
-Min element error                    : 86234.2
+Root mean square (RMS) of error      : 4.05001
+Min element error                    : 86234.4
 Max element error                    : 3.10499e+07
-Average element error                : 545105
+Average element error                : 505489
