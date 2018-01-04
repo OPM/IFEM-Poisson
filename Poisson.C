@@ -319,13 +319,13 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
     pnorm[ip++] += error.dot(error)*cwInv;
   }
 
-  for (size_t i = 0; i < pnorm.psol.size(); i++)
-    if (!pnorm.psol[i].empty())
+  for (const Vector& psol : pnorm.psol)
+    if (!psol.empty())
     {
       // Evaluate projected heat flux field
       Vector sigmar(nrcmp);
       for (size_t j = 0; j < nrcmp; j++)
-        sigmar[j] = pnorm.psol[i].dot(fe.N,j,nrcmp);
+        sigmar[j] = psol.dot(fe.N,j,nrcmp);
 
       // Integrate the energy norm a(u^r,u^r)
       pnorm[ip++] += sigmar.dot(sigmar)*cwInv;
@@ -335,14 +335,14 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
       // Evaluate the projected heat flux gradient.
       // Notice that the matrix multiplication method used here treats
-      // the element vector, pnorm.psol[i], as a matrix whose number of columns
+      // the element vector (psol) as a matrix whose number of columns
       // equals the number of rows in the matrix fe.dNdX.
       Matrix dSigmadX;
-      if (!dSigmadX.multiplyMat(pnorm.psol[i],fe.dNdX)) // dSigmadX = psol*dNdX
+      if (!dSigmadX.multiplyMat(psol,fe.dNdX)) // dSigmadX = psol*dNdX
         return false;
 
       // Evaluate the interior residual of the projected solution
-      double Res = h - dSigmadX.sum(nrcmp+1);
+      double Res = h - dSigmadX.trace();
       // Integrate the residual error in the projected solution
       pnorm[ip++] += fe.h*fe.h*Res*Res*fe.detJxW;
 
@@ -354,21 +354,15 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
         ip += 2; // Make room for the local effectivity indices here
       }
     }
-    else // residual estimator
+    else if (integrandType & SECOND_DERIVATIVES)
     {
-      double f = problem.getHeat(X);
-      double hessu = 0.0;
-      for (size_t j = 1; j <= fe.basis(1).size(); j++) { // basis function
-        double laplace = 0;
-        for (size_t l = 1; l <= problem.getNoSpaceDim(); l++) // hessian component
-          laplace += fe.hess(1)(j,l,l);
-        hessu += laplace*pnorm.vec.front()(j);
-      }
+      // Integrate the residual error in the FE solution
+      double Res = h;
+      for (size_t j = 1; j <= fe.N.size(); j++)
+        Res += fe.d2NdX2.trace(j)*pnorm.vec.front()(j);
 
-      ip++; // dummy entry in order to get norm in the right place.
-      pnorm[ip++] += fe.h*fe.h*(f+hessu)*(f+hessu)*fe.detJxW;
-      ip++; // dummy entry in order to get norm in the right place.
-      ip++; // Make room for the local effectivity index here
+      pnorm[ip+1] += fe.h*fe.h*Res*Res*fe.detJxW;
+      ip += anasol ? 6 : 3; // Dummy entries in order to get norm in right place
     }
 
   return true;
@@ -390,19 +384,22 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
   pnorm[1] += h*u*fe.detJxW;
 
   size_t ip = anasol ? 6 : 4;
-  for (size_t i = 0; i < pnorm.psol.size(); i++, ip += (anasol ? 6 : 3))
-    if (!pnorm.psol[i].empty())
+  for (const Vector& psol : pnorm.psol)
+    if (!psol.empty())
     {
       // Evaluate projected heat flux field
       Vec3 sigmar;
       for (size_t j = 0; j < nrcmp; j++)
-        sigmar[j] = pnorm.psol[i].dot(fe.N,j,nrcmp);
+        sigmar[j] = psol.dot(fe.N,j,nrcmp);
 
       // Evaluate the boundary jump term
       double Jump = h + sigmar*normal;
       // Integrate the residual error in the projected solution
       pnorm[ip] += 0.5*fe.h*Jump*Jump*fe.detJxW;
+      ip += anasol ? 6 : 3;
     }
+    else if (integrandType & SECOND_DERIVATIVES)
+      ip += anasol ? 6 : 3; // TODO: Add residual jump terms?
 
   return true;
 }
