@@ -13,7 +13,7 @@
 
 #include "IFEM.h"
 #include "SIMPoisson.h"
-#include "PoissonArgs.h"
+#include "SIMargsBase.h"
 #include "SIMSolverAdap.h"
 #include "Utilities.h"
 #include "Profiler.h"
@@ -120,12 +120,13 @@ int main (int argc, char** argv)
   bool fixDup = false;
   bool dumpASCII = false;
   char* infile = nullptr;
-  PoissonArgs args;
+  SIMargsBase args("poisson");
 
   int myPid = IFEM::Init(argc,argv,"Poisson solver");
-  int ignoreArg = -1;
   for (int i = 1; i < argc; i++)
-    if (i == ignoreArg || SIMoptions::ignoreOldOptions(argc,argv,i))
+    if (argv[i] == infile || args.parseArg(argv[i]))
+      ; // ignore the input file on the second pass
+    else if (SIMoptions::ignoreOldOptions(argc,argv,i))
       ; // ignore the obsolete option
     else if (!strcmp(argv[i],"-dumpASC"))
       dumpASCII = myPid == 0; // not for parallel runs
@@ -140,15 +141,8 @@ int main (int argc, char** argv)
       vizRHS = true;
     else if (!strcmp(argv[i],"-fixDup"))
       fixDup = true;
-    else if (!strcmp(argv[i],"-1D"))
-      args.dim = 1;
-    else if (!strcmp(argv[i],"-2D"))
-      args.dim = 2;
-    else if (!strncmp(argv[i],"-adap",5))
-      args.adap = true;
     else if (!infile) {
       infile = argv[i];
-      ignoreArg = i;
       if (strcasestr(infile,".xinp")) {
         if (!args.readXML(infile,false))
           return 1;

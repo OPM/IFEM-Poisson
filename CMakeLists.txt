@@ -15,7 +15,6 @@ if(NOT IFEM_CONFIGURED)
 endif()
 
 set(Poisson_SRCS Poisson.C
-                 PoissonArgs.C
                  PoissonSolutions.C
                  SIMPoisson1D.C
                  SIMPoisson2D.C
