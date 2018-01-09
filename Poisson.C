@@ -130,7 +130,7 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
   // Integrate heat source, if defined
   if (heatSrc && !elMat.b.empty())
-    WeakOps::Source(elMat.b.front(), fe, (*heatSrc)(X));
+    elMat.b.front().add(fe.N,(*heatSrc)(X)*fe.detJxW); // EV += N*h(x)*|J|*w
 
   // Galerkin projections a(u^h,v^h) = a(Pu,v^h) = a(w,v^h)
   for (size_t a = 1; a <= galerkin.size(); a++)
