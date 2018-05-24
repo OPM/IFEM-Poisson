@@ -24,11 +24,8 @@
 #include "tinyxml.h"
 
 
-Poisson::Poisson (unsigned short int n)
+Poisson::Poisson (unsigned short int n) : IntegrandBase(n)
 {
-  npv = 1; // One primary unknown per node (scalar equation)
-  nsd = n;
-
   kappa = 1.0;
 
   tracFld = nullptr;
