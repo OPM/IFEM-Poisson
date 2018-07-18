@@ -1,0 +1,149 @@
+round_stair_3patch_3D_LR_adap.xinp -adap
+
+Step 1
+  Element block 1
+    512 nodes
+    64 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
+  Element block 2
+    512 nodes
+    64 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
+  Element block 3
+    512 nodes
+    64 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
+Step 2
+  Element block 1
+    2024 nodes
+    253 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
+  Element block 2
+    2024 nodes
+    253 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
+  Element block 3
+    512 nodes
+    64 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
+Step 3
+  Element block 1
+    4040 nodes
+    505 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
+  Element block 2
+    4040 nodes
+    505 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
+  Element block 3
+    512 nodes
+    64 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'Exact q_y'
+    Scalar: 'Exact q_z'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'FE q_z'
+    Scalar: 'Exact q_x'
