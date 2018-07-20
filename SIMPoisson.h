@@ -77,13 +77,24 @@ public:
   //! \brief Registers data fields for output.
   void registerFields(DataExporter& exporter)
   {
-    int results = DataExporter::PRIMARY | DataExporter::NORMS;
+    if (Dim::opt.eig > 0) {
+      exporter.registerField("eigenmodes", "eigenmodes",
+                             DataExporter::SIM, DataExporter::EIGENMODES);
+      exporter.setFieldValue("eigenmodes", this, &modes);
+    } else {
+      int results = DataExporter::PRIMARY;
 
-    if (!Dim::opt.pSolOnly && Dim::opt.project.empty())
-      results |= DataExporter::SECONDARY;
+      if (!Dim::opt.pSolOnly)
+        results |= DataExporter::SECONDARY;
 
-    exporter.registerField("u", "solution", DataExporter::SIM, results);
-    exporter.setFieldValue("u", this, solution);
+      if (Dim::opt.saveNorms)
+        results |= DataExporter::NORMS;
+
+      exporter.registerField("u", "solution", DataExporter::SIM, results);
+      exporter.setFieldValue("u", this, solution,
+                             Dim::opt.project.empty() ? nullptr : &myProj,
+                             results & DataExporter::NORMS ? &myNorm : nullptr);
+    }
   }
 
   //! \brief Sets the solution vector for output.
@@ -167,7 +178,6 @@ public:
     {
       // Project the secondary solution onto the splines basis
       size_t j = 0;
-      myProj.resize(Dim::opt.project.size());
       for (auto& pit : Dim::opt.project)
         if (!this->project(myProj[j++],mySolVec,pit.first))
           return false;
@@ -221,7 +231,7 @@ public:
     size_t i = 0;
     int iBlk = 100, iGrad = -1;
     std::string grdName;
-    std::vector<const char*> prefix(Dim::opt.project.size(),nullptr);
+    std::vector<std::string> prefix(Dim::opt.project.size());
     for (auto& pit : Dim::opt.project)
       if (i >= myProj.size())
         break;
@@ -250,7 +260,7 @@ public:
         return false;
 
     // Write element norms
-    if (!this->writeGlvN(myNorm,1,nBlock,prefix.data()))
+    if (!this->writeGlvN(myNorm,1,nBlock,prefix))
       return false;
 
     return this->writeGlvStep(1,0.0,1);
@@ -291,12 +301,19 @@ public:
     IFEM::cout << std::endl;
   }
 
+  //! \brief Returns the name of this simulator.
+  //! \details This method is typically reimplemented in sub-classes that are
+  //! parts of a partitioned solution method and are used to identify the basis
+  //! for the result fields associated with each simulator in the HDF5 output.
+  virtual std::string getName() const { return "Poisson"; }
+
 protected:
   //! \brief Performs some pre-processing tasks on the FE model.
   //! \details This method is reimplemented to resolve inhomogeneous boundary
   //! condition fields in case they are derived from the analytical solution.
   virtual void preprocessA()
   {
+    myProj.resize(Dim::opt.project.size());
     if (!Dim::mySol) return;
 
     // Define analytical boundary condition fields
