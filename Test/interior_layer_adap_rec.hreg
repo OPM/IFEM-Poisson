@@ -1,0 +1,105 @@
+interior_layer_adap_rec.xinp
+
+/                        Group
+/0                       Group
+/0/Poisson-1             Group
+/0/Poisson-1/basis       Group
+/0/Poisson-1/basis/1     Dataset {5407}
+/0/Poisson-1/fields      Group
+/0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x Group
+/0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {49}
+/0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
+/0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y/1 Dataset {49}
+/0/Poisson-1/fields/q_x  Group
+/0/Poisson-1/fields/q_x/1 Dataset {49}
+/0/Poisson-1/fields/q_y  Group
+/0/Poisson-1/fields/q_y/1 Dataset {49}
+/0/Poisson-1/fields/u    Group
+/0/Poisson-1/fields/u/1  Dataset {49}
+/0/Poisson-1/knotspan    Group
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r Group
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {16}
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h Group
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {16}
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5 Group
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5/1 Dataset {16}
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^* Group
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^*/1 Dataset {16}
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^RES Group
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^RES/1 Dataset {16}
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ res(u^r)^0.5 Group
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ res(u^r)^0.5/1 Dataset {16}
+/0/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h Group
+/0/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h/1 Dataset {16}
+/0/Poisson-1/knotspan/a(u,u)^0.5 Group
+/0/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {16}
+/0/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
+/0/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {16}
+/1                       Group
+/1/Poisson-1             Group
+/1/Poisson-1/basis       Group
+/1/Poisson-1/basis/1     Dataset {17073}
+/1/Poisson-1/fields      Group
+/1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x Group
+/1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {121}
+/1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
+/1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y/1 Dataset {121}
+/1/Poisson-1/fields/q_x  Group
+/1/Poisson-1/fields/q_x/1 Dataset {121}
+/1/Poisson-1/fields/q_y  Group
+/1/Poisson-1/fields/q_y/1 Dataset {121}
+/1/Poisson-1/fields/u    Group
+/1/Poisson-1/fields/u/1  Dataset {121}
+/1/Poisson-1/knotspan    Group
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r Group
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {64}
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h Group
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {64}
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5 Group
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5/1 Dataset {64}
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^* Group
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^*/1 Dataset {64}
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^RES Group
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^RES/1 Dataset {64}
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ res(u^r)^0.5 Group
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ res(u^r)^0.5/1 Dataset {64}
+/1/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h Group
+/1/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h/1 Dataset {64}
+/1/Poisson-1/knotspan/a(u,u)^0.5 Group
+/1/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {64}
+/1/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
+/1/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {64}
+/2                       Group
+/2/Poisson-1             Group
+/2/Poisson-1/basis       Group
+/2/Poisson-1/basis/1     Dataset {65299}
+/2/Poisson-1/fields      Group
+/2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x Group
+/2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {361}
+/2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
+/2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y/1 Dataset {361}
+/2/Poisson-1/fields/q_x  Group
+/2/Poisson-1/fields/q_x/1 Dataset {361}
+/2/Poisson-1/fields/q_y  Group
+/2/Poisson-1/fields/q_y/1 Dataset {361}
+/2/Poisson-1/fields/u    Group
+/2/Poisson-1/fields/u/1  Dataset {361}
+/2/Poisson-1/knotspan    Group
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r Group
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {256}
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h Group
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {256}
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5 Group
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5/1 Dataset {256}
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^* Group
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^*/1 Dataset {256}
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^RES Group
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ effectivity\ index^RES/1 Dataset {256}
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ res(u^r)^0.5 Group
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ res(u^r)^0.5/1 Dataset {256}
+/2/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h Group
+/2/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h/1 Dataset {256}
+/2/Poisson-1/knotspan/a(u,u)^0.5 Group
+/2/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {256}
+/2/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
+/2/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {256}
