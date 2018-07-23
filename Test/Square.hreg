@@ -1,0 +1,14 @@
+Square.xinp
+
+/                        Group
+/0                       Group
+/0/Poisson-1             Group
+/0/Poisson-1/basis       Group
+/0/Poisson-1/basis/1     Dataset {1673}
+/0/Poisson-1/fields      Group
+/0/Poisson-1/fields/q_x  Group
+/0/Poisson-1/fields/q_x/1 Dataset {121}
+/0/Poisson-1/fields/q_y  Group
+/0/Poisson-1/fields/q_y/1 Dataset {121}
+/0/Poisson-1/fields/u    Group
+/0/Poisson-1/fields/u/1  Dataset {121}

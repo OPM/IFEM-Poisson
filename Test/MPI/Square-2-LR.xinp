@@ -41,4 +41,8 @@
     <pc>asm</pc>
   </linearsolver>
 
+  <postprocessing>
+    <saveNorms/>
+  </postprocessing>
+
 </simulation>

@@ -1,0 +1,93 @@
+interior_layer_adap_res.xinp
+
+/                        Group
+/0                       Group
+/0/Poisson-1             Group
+/0/Poisson-1/basis       Group
+/0/Poisson-1/basis/1     Dataset {65409}
+/0/Poisson-1/fields      Group
+/0/Poisson-1/fields/q_x  Group
+/0/Poisson-1/fields/q_x/1 Dataset {361}
+/0/Poisson-1/fields/q_y  Group
+/0/Poisson-1/fields/q_y/1 Dataset {361}
+/0/Poisson-1/fields/u    Group
+/0/Poisson-1/fields/u/1  Dataset {361}
+/0/Poisson-1/knotspan    Group
+/0/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u-u^r Group
+/0/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {256}
+/0/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u^r-u^h Group
+/0/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {256}
+/0/Poisson-1/knotspan/Pure\ residuals\ a(u^r,u^r)^0.5 Group
+/0/Poisson-1/knotspan/Pure\ residuals\ a(u^r,u^r)^0.5/1 Dataset {256}
+/0/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^* Group
+/0/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^*/1 Dataset {256}
+/0/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^RES Group
+/0/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^RES/1 Dataset {256}
+/0/Poisson-1/knotspan/Pure\ residuals\ res(u^r)^0.5 Group
+/0/Poisson-1/knotspan/Pure\ residuals\ res(u^r)^0.5/1 Dataset {256}
+/0/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h Group
+/0/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h/1 Dataset {256}
+/0/Poisson-1/knotspan/a(u,u)^0.5 Group
+/0/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {256}
+/0/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
+/0/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {256}
+/1                       Group
+/1/Poisson-1             Group
+/1/Poisson-1/basis       Group
+/1/Poisson-1/basis/1     Dataset {204505}
+/1/Poisson-1/fields      Group
+/1/Poisson-1/fields/q_x  Group
+/1/Poisson-1/fields/q_x/1 Dataset {922}
+/1/Poisson-1/fields/q_y  Group
+/1/Poisson-1/fields/q_y/1 Dataset {922}
+/1/Poisson-1/fields/u    Group
+/1/Poisson-1/fields/u/1  Dataset {922}
+/1/Poisson-1/knotspan    Group
+/1/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u-u^r Group
+/1/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {811}
+/1/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u^r-u^h Group
+/1/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {811}
+/1/Poisson-1/knotspan/Pure\ residuals\ a(u^r,u^r)^0.5 Group
+/1/Poisson-1/knotspan/Pure\ residuals\ a(u^r,u^r)^0.5/1 Dataset {811}
+/1/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^* Group
+/1/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^*/1 Dataset {811}
+/1/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^RES Group
+/1/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^RES/1 Dataset {811}
+/1/Poisson-1/knotspan/Pure\ residuals\ res(u^r)^0.5 Group
+/1/Poisson-1/knotspan/Pure\ residuals\ res(u^r)^0.5/1 Dataset {811}
+/1/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h Group
+/1/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h/1 Dataset {811}
+/1/Poisson-1/knotspan/a(u,u)^0.5 Group
+/1/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {811}
+/1/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
+/1/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {811}
+/2                       Group
+/2/Poisson-1             Group
+/2/Poisson-1/basis       Group
+/2/Poisson-1/basis/1     Dataset {550502}
+/2/Poisson-1/fields      Group
+/2/Poisson-1/fields/q_x  Group
+/2/Poisson-1/fields/q_x/1 Dataset {2074}
+/2/Poisson-1/fields/q_y  Group
+/2/Poisson-1/fields/q_y/1 Dataset {2074}
+/2/Poisson-1/fields/u    Group
+/2/Poisson-1/fields/u/1  Dataset {2074}
+/2/Poisson-1/knotspan    Group
+/2/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u-u^r Group
+/2/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {2077}
+/2/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u^r-u^h Group
+/2/Poisson-1/knotspan/Pure\ residuals\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {2077}
+/2/Poisson-1/knotspan/Pure\ residuals\ a(u^r,u^r)^0.5 Group
+/2/Poisson-1/knotspan/Pure\ residuals\ a(u^r,u^r)^0.5/1 Dataset {2077}
+/2/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^* Group
+/2/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^*/1 Dataset {2077}
+/2/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^RES Group
+/2/Poisson-1/knotspan/Pure\ residuals\ effectivity\ index^RES/1 Dataset {2077}
+/2/Poisson-1/knotspan/Pure\ residuals\ res(u^r)^0.5 Group
+/2/Poisson-1/knotspan/Pure\ residuals\ res(u^r)^0.5/1 Dataset {2077}
+/2/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h Group
+/2/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h/1 Dataset {2077}
+/2/Poisson-1/knotspan/a(u,u)^0.5 Group
+/2/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {2077}
+/2/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
+/2/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {2077}

@@ -1,0 +1,28 @@
+Square-2-LR.xinp
+
+/                        Group
+/0                       Group
+/0/Poisson-1             Group
+/0/Poisson-1/basis       Group
+/0/Poisson-1/basis/1     Dataset {6064}
+/0/Poisson-1/basis/2     Dataset {6039}
+/0/Poisson-1/fields      Group
+/0/Poisson-1/fields/q_x  Group
+/0/Poisson-1/fields/q_x/1 Dataset {48}
+/0/Poisson-1/fields/q_x/2 Dataset {48}
+/0/Poisson-1/fields/q_y  Group
+/0/Poisson-1/fields/q_y/1 Dataset {48}
+/0/Poisson-1/fields/q_y/2 Dataset {48}
+/0/Poisson-1/fields/u    Group
+/0/Poisson-1/fields/u/1  Dataset {48}
+/0/Poisson-1/fields/u/2  Dataset {48}
+/0/Poisson-1/knotspan    Group
+/0/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h Group
+/0/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h/1 Dataset {34}
+/0/Poisson-1/knotspan/a(e,e)^0.5,\ e=u-u^h/2 Dataset {34}
+/0/Poisson-1/knotspan/a(u,u)^0.5 Group
+/0/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {34}
+/0/Poisson-1/knotspan/a(u,u)^0.5/2 Dataset {34}
+/0/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
+/0/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {34}
+/0/Poisson-1/knotspan/a(u^h,u^h)^0.5/2 Dataset {34}
