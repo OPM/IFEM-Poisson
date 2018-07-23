@@ -130,7 +130,7 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
     elMat.b.front().add(fe.N,(*heatSrc)(X)*fe.detJxW); // EV += N*h(x)*|J|*w
 
   // Galerkin projections a(u^h,v^h) = a(Pu,v^h) = a(w,v^h)
-  for (size_t a = 1; a <= galerkin.size(); a++)
+  for (size_t a = 1; a <= galerkin.size() && a < elMat.b.size(); a++)
   {
     Vec3 Gw = (*galerkin[a-1])(X) * fe.detJxW;
     fe.dNdX.multiply(Gw.vec(nsd),elMat.b[a],false,true); // b += dNdX * Gw
