@@ -1,0 +1,59 @@
+interior_layer_adap_dorfel.xinp -adap
+
+LR-spline basis functions are used
+	Analytical solution: InteriorLayer, slope=60
+	Heat source function: InteriorLayer, slope=60
+Number of elements    256
+Number of nodes       361
+Number of dofs        361
+Number of constraints 37
+Number of unknowns    324
+ >>> Starting adaptive simulation based on exact errors <<<
+Adaptive step 1
+L2-norm            : 1.50744
+Max displacement   : 2.70399
+Energy norm           a(u^h,u^h)^0.5 : 9.48035
+External energy          (h,u^h)^0.5 : 9.49128
+Exact norm                a(u,u)^0.5 : 10.3681
+Exact error      a(e,e)^0.5, e=u-u^h : 4.04787
+Exact relative error (%) : 39.0415
+Root mean square (RMS) of error      : 1.66862
+Min element error                    : 0.000106334
+Max element error                    : 0.931335
+Average element error                : 0.130051
+Refining 9 basis functions with errors in range \[6.6737,7.17804\] 10% of total error
+Adaptive step 2
+Number of elements    463
+Number of nodes       520
+Number of dofs        520
+Number of constraints 37
+Number of unknowns    483
+L2-norm            : 1.43407
+Max displacement   : 2.78737
+Energy norm           a(u^h,u^h)^0.5 : 10.1178
+External energy          (h,u^h)^0.5 : 10.0969
+Exact norm                a(u,u)^0.5 : 10.3682
+Exact error      a(e,e)^0.5, e=u-u^h : 2.27235
+Exact relative error (%) : 21.9165
+Root mean square (RMS) of error      : 1.55013
+Min element error                    : 3.90094e-05
+Max element error                    : 0.651031
+Average element error                : 0.0572479
+Refining 8 basis functions with errors in range \[6.19184,7.62275\] 10% of total error
+Adaptive step 3
+Number of elements    532
+Number of nodes       583
+Number of dofs        583
+Number of constraints 37
+Number of unknowns    546
+L2-norm            : 1.3965
+Max displacement   : 1.54844
+Energy norm           a(u^h,u^h)^0.5 : 10.239
+External energy          (h,u^h)^0.5 : 10.2215
+Exact norm                a(u,u)^0.5 : 10.3653
+Exact error      a(e,e)^0.5, e=u-u^h : 1.62467
+Exact relative error (%) : 15.6741
+Root mean square (RMS) of error      : 1.49927
+Min element error                    : 1.50083e-05
+Max element error                    : 0.279833
+Average element error                : 0.0390852
