@@ -16,15 +16,22 @@
 
 #include "SIMMultiPatchModelGen.h"
 #include "Poisson.h"
+#include "AlgEqSystem.h"
 #include "AnaSol.h"
+#include "ASMbase.h"
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
 #include "Utilities.h"
 #include "DataExporter.h"
 #include "IFEM.h"
+#include "LinSolParams.h"
 #include "tinyxml.h"
+#include "TimeStep.h"
 #include <fstream>
+#ifdef HAS_PETSC
+#include "PETScMatrix.h"
+#endif
 
 
 /*!
@@ -34,6 +41,8 @@
 template<class Dim> class SIMPoisson : public SIMMultiPatchModelGen<Dim>
 {
 public:
+  using SetupProps = bool; //!< A bool is the only setup property
+
   //! \brief Default constructor.
   explicit SIMPoisson(bool checkRHS = false)
     : SIMMultiPatchModelGen<Dim>(1,checkRHS),
@@ -137,8 +146,8 @@ public:
     return this->writeGlvBC(nBlock);
   }
 
-  //! \brief Assembles and solves the linear system.
-  bool solveStep(TimeStep&)
+  //! \brief Initialize simulator.
+  bool init()
   {
     if (!this->setMode(Dim::opt.eig == 0 ? SIM::STATIC : SIM::VIBRATION))
       return false;
@@ -149,6 +158,12 @@ public:
       this->initSystem(Dim::opt.solver,1,0);
     this->setQuadratureRule(Dim::opt.nGauss[0],true);
 
+    return true;
+  }
+
+  //! \brief Assembles and solves the linear system.
+  bool solveStep(TimeStep&)
+  {
     if (!this->assembleSystem())
       return false;
     else if (vizRHS && Dim::opt.eig == 0)
@@ -187,7 +202,7 @@ public:
   }
 
   //! \brief Saves solution-dependent quantities to file for postprocessing.
-  bool saveStep(TimeStep&, int& nBlock)
+  bool saveStep(TimeStep& tp, int& nBlock)
   {
     if (!asciiFile.empty())
     {
@@ -253,7 +268,10 @@ public:
     if (!this->writeGlvN(myNorm,1,nBlock,prefix.data()))
       return false;
 
-    return this->writeGlvStep(1,0.0,1);
+    if (tp.iter == 0)
+      return this->writeGlvStep(1,0.0,1);
+    else
+      return this->writeGlvStep(tp.iter,tp.iter,1);
   }
 
   //! \brief Prints a norm group to the log stream.
