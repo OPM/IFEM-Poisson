@@ -1,0 +1,44 @@
+Square-kref.xinp -kref
+
+	Doing 3 k-refinement cycles.
+	K-solver tolerance 1e-07
+Number of elements    64
+Number of nodes       81
+Number of dofs        81
+Number of unknowns    72
+K-refinement cycle 1
+Number of elements    64
+Number of nodes       100
+Number of dofs        100
+Number of unknowns    90
+L2-norm            : 0.986916
+Max displacement   : 2.00012
+Energy norm           a(u^h,u^h)^0.5 : 5.32009
+External energy          (h,u^h)^0.5 : 5.32009
+Exact norm                a(u,u)^0.5 : 5.32155
+Exact error      a(e,e)^0.5, e=u-u^h : 0.125387
+Exact relative error (%) : 2.3562
+K-refinement cycle 2
+Number of elements    64
+Number of nodes       121
+Number of dofs        121
+Number of unknowns    110
+L2-norm            : 1.02204
+Max displacement   : 2.2147
+Energy norm           a(u^h,u^h)^0.5 : 5.32152
+External energy          (h,u^h)^0.5 : 5.32152
+Exact norm                a(u,u)^0.5 : 5.32155
+Exact error      a(e,e)^0.5, e=u-u^h : 0.0180157
+Exact relative error (%) : 0.338542
+K-refinement cycle 3
+Number of elements    64
+Number of nodes       144
+Number of dofs        144
+Number of unknowns    132
+L2-norm            : 1.04048
+Max displacement   : 2.10254
+Energy norm           a(u^h,u^h)^0.5 : 5.32155
+External energy          (h,u^h)^0.5 : 5.32155
+Exact norm                a(u,u)^0.5 : 5.32155
+Exact error      a(e,e)^0.5, e=u-u^h : 0.00224356
+Exact relative error (%) : 0.0421598

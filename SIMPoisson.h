@@ -16,15 +16,22 @@
 
 #include "SIMMultiPatchModelGen.h"
 #include "Poisson.h"
+#include "AlgEqSystem.h"
 #include "AnaSol.h"
+#include "ASMbase.h"
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
 #include "Utilities.h"
 #include "DataExporter.h"
 #include "IFEM.h"
+#include "LinSolParams.h"
 #include "tinyxml.h"
+#include "TimeStep.h"
 #include <fstream>
+#ifdef HAS_PETSC
+#include "PETScMatrix.h"
+#endif
 
 
 /*!
@@ -137,8 +144,8 @@ public:
     return this->writeGlvBC(nBlock);
   }
 
-  //! \brief Assembles and solves the linear system.
-  bool solveStep(TimeStep&)
+  //! \brief Initialize simulator.
+  bool init()
   {
     if (!this->setMode(Dim::opt.eig == 0 ? SIM::STATIC : SIM::VIBRATION))
       return false;
@@ -149,6 +156,12 @@ public:
       this->initSystem(Dim::opt.solver,1,0);
     this->setQuadratureRule(Dim::opt.nGauss[0],true);
 
+    return true;
+  }
+
+  //! \brief Assembles and solves the linear system.
+  bool solveStep(TimeStep&)
+  {
     if (!this->assembleSystem())
       return false;
     else if (vizRHS && Dim::opt.eig == 0)
@@ -187,7 +200,7 @@ public:
   }
 
   //! \brief Saves solution-dependent quantities to file for postprocessing.
-  bool saveStep(TimeStep&, int& nBlock)
+  bool saveStep(TimeStep& tp, int& nBlock)
   {
     if (!asciiFile.empty())
     {
@@ -253,7 +266,10 @@ public:
     if (!this->writeGlvN(myNorm,1,nBlock,prefix.data()))
       return false;
 
-    return this->writeGlvStep(1,0.0,1);
+    if (tp.iter == 0)
+      return this->writeGlvStep(1,0.0,1);
+    else
+      return this->writeGlvStep(tp.iter,tp.iter,1);
   }
 
   //! \brief Prints a norm group to the log stream.
@@ -473,5 +489,83 @@ template<> bool SIMPoisson2D::parseDimSpecific(const TiXmlElement* elem);
 template<> bool SIMPoisson3D::parseDimSpecific(char* keyWord, std::istream& is);
 //! \brief Template specialization - 3D specific input parsing.
 template<> bool SIMPoisson3D::parseDimSpecific(const TiXmlElement* elem);
+
+
+/*!
+  \brief Driver class for K-refined NURBS-based FEM analysis of Poisson problems.
+*/
+
+template<class Dim>
+class SIMPoissonKRef : public SIMPoisson<Dim>
+{
+public:
+  //! \brief Default constructor.
+  explicit SIMPoissonKRef(bool checkRHS = false) : SIMPoisson<Dim>(checkRHS) {}
+
+  //! \brief Clears out patches, FE model and linear system.
+  void clearModel()
+  {
+    this->clearProperties();
+    delete this->mySam;
+    this->mySam=nullptr;
+    for (ASMbase* patch : this->myModel)
+      delete patch;
+    this->myModel.clear();
+    delete this->myEqSys;
+    this->myEqSys = nullptr;
+  }
+
+  //! \brief Set a linear solver parameter.
+  //! \param key Parameter to set
+  //! \param value Value for parameter
+  //! \param old If non-null, previous value is stored here
+  void setLinSolParam(const std::string& key, const std::string& value, std::string* old = nullptr)
+  {
+    if (!this->mySolParams)
+      this->mySolParams = new LinSolParams;
+
+    if (old)
+      *old = this->mySolParams->getStringValue(key);
+
+    this->mySolParams->addValue(key, value);
+  }
+
+  //! \brief Remove shell matrix-vector product.
+  //! \param oldSolver Solver used before it was overridden with PETSc for shell solver
+  //! \param oldRtol Old relative tolerance before it was overridden with shell solver tolerance
+  void clearMxV(int oldSolver, const std::string& oldRtol)
+  {
+    this->mySolParams->addValue("matrixfree", "0");
+    this->mySolParams->addValue("rtol", oldRtol);
+    this->getMatrix()->clearMxV();
+
+#ifdef HAS_PETSC
+    // We have to flag that we want to solve using sparse direct solver for preconditioner.
+    // We have assembled into a PETSc matrix previously.
+    if (oldSolver != SystemMatrix::PETSC)
+      static_cast<PETScMatrix*>(this->myEqSys->getMatrix(0))->setSolveSparse(true);
+#endif
+  }
+
+#ifdef HAS_PETSC
+  //! \brief Obtain a pointer to current PETSc system matrix.
+  PETScMatrix* getMatrix()
+  {
+    return dynamic_cast<PETScMatrix*>(this->myEqSys->getMatrix(0));
+  }
+
+  //! \brief Obtain a pointer to current system vector.
+  StdVector* getVector()
+  {
+    return dynamic_cast<StdVector*>(this->myEqSys->getVector(0));
+  }
+#endif
+
+  //! \brief Assemble system.
+  bool assembleStep()
+  {
+    return this->assembleSystem();
+  }
+};
 
 #endif

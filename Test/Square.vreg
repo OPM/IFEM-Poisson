@@ -16,3 +16,7 @@ Step 1
     Scalar: 'FE q_y'
     Scalar: 'Exact q_x'
     Scalar: 'Exact q_y'
+  Element block 2
+    32 nodes
+    32 elements
+    Vector: 'Heat flux'

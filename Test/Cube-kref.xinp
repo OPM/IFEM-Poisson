@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry>
+    <raiseorder patch="1" u="0" v="0" w="0"/>
+    <refine type="uniform" patch="1" u="3" v="3" w="3"/>
+    <topologysets>
+      <set name="Boundary" type="face">
+        <item patch="1">1 2 3 4 5 6</item>
+      </set>
+    </topologysets>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">3*PI*PI*sin(x*PI)*sin(y*PI)*sin(z*PI)</source>
+    <anasol type="expression">
+      <primary>sin(PI*x)*sin(PI*y)*sin(z*PI)</primary>
+      <secondary>-PI*cos(PI*x)*sin(PI*y)*sin(z*PI) |
+                 -PI*sin(PI*x)*cos(PI*y)*sin(PI*z) |
+                 -PI*sin(PI*x)*sin(PI*y)*cos(PI*z)
+      </secondary>
+    </anasol>
+  </poisson>
+
+  <krefinement cycles="3" rtol="1e-7"/>
+
+  <linearsolver>
+    <type>cg</type>
+    <rtol>1e-9</rtol>
+  </linearsolver>
+
+</simulation>

@@ -15,6 +15,7 @@
 #include "SIMPoisson.h"
 #include "SIMargsBase.h"
 #include "SIMSolverAdap.h"
+#include "SIMSolverKRef.h"
 #include "Utilities.h"
 #include "Profiler.h"
 
@@ -67,8 +68,29 @@ int runSimulator(char* infile, bool checkRHS,
   if (model.opt.dumpHDF5(infile))
     solver.handleDataOutput(model.opt.hdf5);
 
+  model.init();
   return solver.solveProblem(infile,"Solving the Poisson problem");
 }
+
+
+#ifdef HAS_PETSC
+template<class Dim>
+int runSimulatorK(char* infile, bool checkRHS,
+                  const std::vector<int>& ignoredPatches,
+                  bool fixDup, bool vizRHS, bool dumpASCII)
+{
+  SIMPoissonKRef<Dim> model(checkRHS), model2;
+  SIMSolverKRef<SIMPoissonKRef<Dim>> solver(model, model2);
+
+  if (!solver.read(infile))
+    return 1;
+
+  if (model.opt.dumpHDF5(infile))
+    solver.handleDataOutput(model.opt.hdf5);
+
+  return solver.solveProblem(infile,"Solving the Poisson problem");
+}
+#endif
 
 
 /*!
@@ -119,6 +141,7 @@ int main (int argc, char** argv)
   bool vizRHS = false;
   bool fixDup = false;
   bool dumpASCII = false;
+  bool kref = false;
   char* infile = nullptr;
   SIMargsBase args("poisson");
 
@@ -137,6 +160,8 @@ int main (int argc, char** argv)
       SIMbase::ignoreDirichlet = true;
     else if (!strcmp(argv[i],"-checkRHS"))
       checkRHS = true;
+    else if (!strcmp(argv[i],"-kref"))
+      kref = true;
     else if (!strcmp(argv[i],"-vizRHS"))
       vizRHS = true;
     else if (!strcmp(argv[i],"-fixDup"))
@@ -197,7 +222,23 @@ int main (int argc, char** argv)
     case 3:
       return runSimulator<SIM3D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
                                                fixDup, vizRHS, dumpASCII);
-  }
+    }
+  else if (kref)
+#ifndef HAS_PETSC
+    std::cerr << "K-refinement requested, but built without PETSc support. Bailing.." << std::endl;
+    return 1;
+#endif
+    switch (args.dim) {
+    case 1:
+      return runSimulatorK<SIM1D>(infile, checkRHS, ignoredPatches,
+                                  fixDup, vizRHS, dumpASCII);
+    case 2:
+      return runSimulatorK<SIM2D>(infile, checkRHS, ignoredPatches,
+                                  fixDup, vizRHS, dumpASCII);
+    case 3:
+      return runSimulatorK<SIM3D>(infile, checkRHS, ignoredPatches,
+                                  fixDup, vizRHS, dumpASCII);
+    }
   else
     switch (args.dim) {
     case 1:
