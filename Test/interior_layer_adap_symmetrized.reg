@@ -1,0 +1,63 @@
+interior_layer_adap_symmetrized.xinp
+
+LR-spline basis functions are used
+	Analytical solution: InteriorLayer, slope=60
+	Heat source function: InteriorLayer, slope=60
+	Refinement percentage: 10 type=6 (eps = 1e-06)
+	Refinement scheme: 2
+Number of elements    256
+Number of nodes       361
+Number of dofs        361
+Number of constraints 37
+Number of unknowns    324
+ >>> Starting adaptive simulation based on exact errors <<<
+Adaptive step 1
+L2-norm            : 1.50744
+Max displacement   : 2.70399
+Energy norm           a(u^h,u^h)^0.5 : 9.48035
+External energy          (h,u^h)^0.5 : 9.49128
+Exact norm                a(u,u)^0.5 : 10.3681
+Exact error      a(e,e)^0.5, e=u-u^h : 4.04787
+Exact relative error (%) : 39.0415
+Root mean square (RMS) of error      : 1.66862
+Min element error                    : 0.000106334
+Max element error                    : 0.931335
+Average element error                : 0.130051
+Refining 37 basis functions with errors in range \[5.31884,7.17804\]
+Refined mesh: 604 elements 661 nodes.
+Adaptive step 2
+Number of elements    604
+Number of nodes       661
+Number of dofs        661
+Number of constraints 37
+Number of unknowns    624
+L2-norm            : 1.4036
+Max displacement   : 1.54844
+Energy norm           a(u^h,u^h)^0.5 : 10.2395
+External energy          (h,u^h)^0.5 : 10.222
+Exact norm                a(u,u)^0.5 : 10.3653
+Exact error      a(e,e)^0.5, e=u-u^h : 1.62122
+Exact relative error (%) : 15.6408
+Root mean square (RMS) of error      : 1.62979
+Min element error                    : 3.42269e-06
+Max element error                    : 0.27947
+Average element error                : 0.034499
+Refining 68 basis functions with errors in range \[1.64618,2.36023\]
+Refined mesh: 1216 elements 1153 nodes.
+Adaptive step 3
+Number of elements    1216
+Number of nodes       1153
+Number of dofs        1153
+Number of constraints 37
+Number of unknowns    1116
+L2-norm            : 1.27288
+Max displacement   : 1.54767
+Energy norm           a(u^h,u^h)^0.5 : 10.3525
+External energy          (h,u^h)^0.5 : 10.3358
+Exact norm                a(u,u)^0.5 : 10.3655
+Exact error      a(e,e)^0.5, e=u-u^h : 0.517355
+Exact relative error (%) : 4.99113
+Root mean square (RMS) of error      : 1.956
+Min element error                    : 5.81368e-07
+Max element error                    : 0.14356
+Average element error                : 0.00675353
