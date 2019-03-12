@@ -31,6 +31,8 @@ Poisson::Poisson (unsigned short int n) : IntegrandBase(n)
   tracFld = nullptr;
   fluxFld = nullptr;
   heatSrc = nullptr;
+  reacInt = nullptr;
+  extEner = false;
 
   normIntegrandType = ELEMENT_CORNERS;
 }
@@ -72,10 +74,16 @@ void Poisson::setMode (SIM::SolutionMode mode)
 {
   m_mode = mode;
 
-  if (mode >= SIM::RECOVERY)
-    primsol.resize(1);
-  else
-    primsol.clear();
+  primsol.resize(mode >= SIM::RHS_ONLY ? 1 : 0);
+}
+
+
+GlobalIntegral& Poisson::getGlobalInt (GlobalIntegral* gq) const
+{
+  if (m_mode == SIM::RHS_ONLY && reacInt)
+    return *reacInt;
+
+  return this->IntegrandBase::getGlobalInt(gq);
 }
 
 
@@ -125,18 +133,32 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
     elMat.A.front().multiply(fe.dNdX,fe.dNdX,false,true,true,cw);
   }
 
-  // Integrate heat source, if defined
-  if (heatSrc && !elMat.b.empty())
-    elMat.b.front().add(fe.N,(*heatSrc)(X)*fe.detJxW); // EV += N*h(x)*|J|*w
-
-  // Galerkin projections a(u^h,v^h) = a(Pu,v^h) = a(w,v^h)
-  for (size_t a = 1; a <= galerkin.size() && a < elMat.b.size(); a++)
+  if (!elMat.b.empty())
   {
-    Vec3 Gw = (*galerkin[a-1])(X) * fe.detJxW;
-    fe.dNdX.multiply(Gw.vec(nsd),elMat.b[a],false,true); // b += dNdX * Gw
+    // Integrate heat source, if defined
+    if (heatSrc)
+      elMat.b.front().add(fe.N,(*heatSrc)(X)*fe.detJxW); // EV += N*h(x)*|J|*w
+
+    if (m_mode == SIM::RHS_ONLY && !elmInt.vec.empty())
+    {
+      // Integrate the internal forces based on current solution
+      Vector q;
+      if (!this->evalSol(q,elmInt.vec.front(),fe.dNdX,X))
+        return false;
+      if (!fe.dNdX.multiply(q,elMat.b.front(),fe.detJxW,1.0)) // b += dNdX * q
+        return false;
+    }
   }
 
-  return true;
+  // Galerkin projections a(u^h,v^h) = a(Pu,v^h) = a(w,v^h)
+  bool ok = true;
+  for (size_t a = 1; a <= galerkin.size() && a < elMat.b.size() && ok; a++)
+  {
+    Vec3 Gw = (*galerkin[a-1])(X) * fe.detJxW;
+    ok = fe.dNdX.multiply(Gw.vec(nsd),elMat.b[a],false,true); // b += dNdX * Gw
+  }
+
+  return ok;
 }
 
 
@@ -300,12 +322,13 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   // Evaluate the inverse conductivity scaled by the integration point weight
   double cwInv = fe.detJxW / problem.getMaterial();
 
-  size_t ip = 0;
   // Integrate the energy norm a(u^h,u^h)
-  pnorm[ip++] += sigmah.dot(sigmah)*cwInv;
+  pnorm[0] += sigmah.dot(sigmah)*cwInv;
   // Integrate the external energy (h,u^h)
-  pnorm[ip++] += h*u*fe.detJxW;
+  if (problem.extEner)
+    pnorm[1] += h*u*fe.detJxW;
 
+  size_t ip = 2;
   if (anasol)
   {
     // Evaluate the analytical heat flux
@@ -379,7 +402,8 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
   double u = pnorm.vec.front().dot(fe.N);
 
   // Integrate the external energy (h,u^h)
-  pnorm[1] += h*u*fe.detJxW;
+  if (problem.extEner)
+    pnorm[1] += h*u*fe.detJxW;
 
   size_t ip = anasol ? 6 : 4;
   for (const Vector& psol : pnorm.psol)

@@ -16,10 +16,12 @@
 
 #include "SIMMultiPatchModelGen.h"
 #include "Poisson.h"
-#include "AnaSol.h"
+#include "ReactionsOnly.h"
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
+#include "ASMbase.h"
+#include "AnaSol.h"
 #include "Utilities.h"
 #include "DataExporter.h"
 #include "IFEM.h"
@@ -81,12 +83,11 @@ public:
       exporter.registerField("eigenmodes", "eigenmodes",
                              DataExporter::SIM, DataExporter::EIGENMODES);
       exporter.setFieldValue("eigenmodes", this, &modes);
-    } else {
+    }
+    else {
       int results = DataExporter::PRIMARY;
-
       if (!Dim::opt.pSolOnly)
         results |= DataExporter::SECONDARY;
-
       if (Dim::opt.saveNorms)
         results |= DataExporter::NORMS;
 
@@ -155,7 +156,7 @@ public:
       return false;
 
     if (Dim::opt.eig == 0)
-      this->initSystem(Dim::opt.solver,1,1,0,true);
+      this->initSystem(Dim::opt.solver,1,1);
     else
       this->initSystem(Dim::opt.solver,1,0);
     this->setQuadratureRule(Dim::opt.nGauss[0],true);
@@ -266,6 +267,44 @@ public:
     return this->writeGlvStep(1,0.0,1);
   }
 
+  using SIMMultiPatchModelGen<Dim>::solveSystem;
+  //! \brief Solves the assembled linear system of equations for a given load.
+  //! \param[out] solution Global primary solution vector
+  //! \param[in] printSol Print solution if its size is less than \a printSol
+  //! \param[out] rCond Reciprocal condition number
+  //! \param[in] compName Solution name to be used in norm output
+  //! \param[in] newLHS If \e false, reuse the LHS-matrix from previous call
+  //! \param[in] idxRHS Index to the right-hand-side vector to solve for
+  //!
+  //! This overloaded version also computes the reaction forces along a given
+  //! boundary. This requires an additional assembly loop calculating the
+  //! internal forces only, since we only are doing a linear solve here.
+  virtual bool solveSystem(Vector& solution, int printSol, double* rCond,
+                           const char* compName, bool newLHS, size_t idxRHS)
+  {
+    if (!this->Dim::solveSystem(solution,printSol,rCond,compName,newLHS,idxRHS))
+      return false;
+    else if (idxRHS > 0 || !this->haveReactions() || prob.extEner != 'R')
+      return true;
+
+    // Assemble the reaction forces. Strictly, we only need to assemble those
+    // elements that have nodes on the Dirichlet boundaries, but...
+    prob.setReactionIntegral(new ReactionsOnly(myReact,Dim::mySam));
+    AlgEqSystem* tmpEqSys = Dim::myEqSys;
+    Dim::myEqSys = nullptr;
+    bool ok = this->setMode(SIM::RHS_ONLY) && this->assembleSystem({solution});
+    Dim::myEqSys = tmpEqSys;
+    prob.setReactionIntegral(nullptr);
+
+    return ok;
+  }
+
+  //! \brief Returns current reaction force vector.
+  virtual const Vector* getReactionForces() const
+  {
+    return myReact.empty() ? nullptr : &myReact;
+  }
+
   //! \brief Prints a norm group to the log stream.
   //! \param[in] gNorm The global norm values
   //! \param[in] fNorm Global reference norm values
@@ -351,6 +390,16 @@ protected:
       }
   }
 
+  //! \brief Performs some pre-processing tasks on the FE model.
+  virtual bool preprocessB()
+  {
+    // Check if the model has constraints.
+    // If not, we can calculate external energy also without reaction forces.
+    if (this->getNoConstraints() == 0 && !prob.extEner)
+      prob.extEner = 'y';
+    return true;
+  }
+
   //! \brief Parses a data section from the input stream.
   //! \param[in] keyWord Keyword of current data section to read
   //! \param is The file stream to read from
@@ -409,6 +458,8 @@ protected:
         std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
       }
 
+      else if (!strcasecmp(child->Value(),"reactions"))
+        prob.extEner = 'R';
       else if (!prob.parse(child))
         result &= this->Dim::parse(child);
 
@@ -460,6 +511,7 @@ private:
 
   Vector    myLoad;   //!< External load vector (for VTF export)
   Vector    mySolVec; //!< Primary solution vector
+  Vector    myReact;  //!< Nodal reaction forces
   Vectors   myProj;   //!< Projected solution vectors
   Matrix    myNorm;   //!< Element norms
 

@@ -15,6 +15,7 @@
 #define _POISSON_H
 
 #include "IntegrandBase.h"
+#include "GlobalIntegral.h"
 #include "Vec3.h"
 
 class RealFunc;
@@ -68,6 +69,11 @@ public:
   //! \param[in] nGp Total number of interior integration points
   //! \param[in] nBp Total number of boundary integration points
   virtual void initIntegration(size_t nGp, size_t nBp);
+
+  //! \brief Defines the global integral for calculating reaction forces only.
+  void setReactionIntegral(GlobalIntegral* gq) { delete reacInt; reacInt = gq; }
+  //! \brief Returns the system quantity to be integrated by \a *this.
+  virtual GlobalIntegral& getGlobalInt(GlobalIntegral* gq) const;
 
   using IntegrandBase::getLocalIntegral;
   //! \brief Returns a local integral container for the given element.
@@ -153,11 +159,17 @@ private:
   VecFunc*  tracFld; //!< Pointer to boundary traction field
   RealFunc* fluxFld; //!< Pointer to boundary normal flux field
   RealFunc* heatSrc; //!< Pointer to interior heat source
+
+  GlobalIntegral* reacInt; //!< Reaction-forces-only integral
+
   int normIntegrandType; //!< Integrand type for norm class
 
   mutable std::vector<Vec3Pair> fluxVal; //!< Heat flux point values
 
   std::vector<VecFunc*> galerkin; //!< Functions to be Galerkin-projected
+
+public:
+  char extEner; //!< If \e true, external energy is to be computed
 };
 
 
