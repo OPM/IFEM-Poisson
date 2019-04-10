@@ -1,0 +1,14 @@
+../Square.xinp -petsc
+
+Equation solver: 4
+Number of elements    64
+Number of nodes       121
+Number of dofs        121
+Number of unknowns    110
+ *** SIMbase::preprocess: No partitioning information for 4 processors found. Using graph partitioning
+L2-norm            : 1.02205
+Max displacement   : 2.21757
+Energy norm           a(u^h,u^h)^0.5 : 5.32153
+Exact norm                a(u,u)^0.5 : 5.32155
+Exact error      a(e,e)^0.5, e=u-u^h : 0.0150364
+Exact relative error (%) : 0.282556
