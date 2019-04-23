@@ -45,6 +45,9 @@ Parsing <adaptive>
 	Refinement percentage: 100 type=2
 	Refinement scheme: 2
 Parsing input file succeeded.
+Equation solver: 2
+Number of Gauss points: 4
+LR-spline basis functions are used
 Renumbered 152 nodes.
 Resolving Dirichlet boundary conditions
 	Constraining P1 E1 in direction(s) 1 code = 1
@@ -133,9 +136,9 @@ Min element error                    : 226215
 Max element error                    : 3.12595e+07
 Average element error                : 1.70305e+06
 Refining 64 basis functions with errors in range \[6.27229e+06,8.92806e+07\] 100% of average error (5.78159e+06)
-Refined mesh: 85 elements 182 nodes.
-Refined mesh: 112 elements 223 nodes.
-Refined mesh: 85 elements 182 nodes.
+Refined mesh: 79 elements 175 nodes.
+Refined mesh: 100 elements 209 nodes.
+Refined mesh: 79 elements 175 nodes.
 Adaptive step 3
 Parsing input file lshape-r2-3patch-LR-adap.xinp
 Parsing <geometry>
@@ -159,7 +162,7 @@ Parsing <poisson>
 	Analytical solution: Expression
 Parsing <adaptive>
 Parsing input file succeeded.
-Renumbered 386 nodes.
+Renumbered 366 nodes.
 Resolving Dirichlet boundary conditions
 	Constraining P1 E1 in direction(s) 1 code = 1
 	Constraining P1 E3 in direction(s) 1 code = 1
@@ -171,27 +174,27 @@ Resolving Dirichlet boundary conditions
 	Constraining P3 E3 in direction(s) 1 code = 1
 Deleted 3 MPC equations.
  >>> SAM model summary <<<
-Number of elements    282
-Number of nodes       551
-Number of dofs        551
+Number of elements    258
+Number of nodes       525
+Number of dofs        525
 Number of constraints 84
-Number of unknowns    467
+Number of unknowns    441
  >>> Solution summary <<<
-L2-norm            : 3.48525e+06
+L2-norm            : 3.54622e+06
 Max displacement   : 5e+07
 Energy norm           a(u^h,u^h)^0.5 : 5.52037e+07
 External energy          (h,u^h)^0.5 : -6.25205e+06
 Exact norm                a(u,u)^0.5 : 159547
 Exact error      a(e,e)^0.5, e=u-u^h : 5.51164e+07
 Exact relative error (%) : 34545.6
-Root mean square (RMS) of error      : 3.03416
+Root mean square (RMS) of error      : 2.94686
 Min element error                    : 139194
 Max element error                    : 3.1222e+07
-Average element error                : 1.02737e+06
-Refining 85 basis functions with errors in range \[4.80591e+06,8.89032e+07\] 100% of average error (4.7398e+06)
-Refined mesh: 202 elements 316 nodes.
-Refined mesh: 271 elements 404 nodes.
-Refined mesh: 202 elements 316 nodes.
+Average element error                : 1.10267e+06
+Refining 83 basis functions with errors in range \[4.88656e+06,8.89032e+07\] 100% of average error (4.88392e+06)
+Refined mesh: 187 elements 300 nodes.
+Refined mesh: 241 elements 372 nodes.
+Refined mesh: 187 elements 300 nodes.
 Adaptive step 4
 Parsing input file lshape-r2-3patch-LR-adap.xinp
 Parsing <geometry>
@@ -215,7 +218,7 @@ Parsing <poisson>
 	Analytical solution: Expression
 Parsing <adaptive>
 Parsing input file succeeded.
-Renumbered 692 nodes.
+Renumbered 646 nodes.
 Resolving Dirichlet boundary conditions
 	Constraining P1 E1 in direction(s) 1 code = 1
 	Constraining P1 E3 in direction(s) 1 code = 1
@@ -227,20 +230,20 @@ Resolving Dirichlet boundary conditions
 	Constraining P3 E3 in direction(s) 1 code = 1
 Deleted 3 MPC equations.
  >>> SAM model summary <<<
-Number of elements    675
-Number of nodes       982
-Number of dofs        982
+Number of elements    615
+Number of nodes       922
+Number of dofs        922
 Number of constraints 96
-Number of unknowns    886
+Number of unknowns    826
  >>> Solution summary <<<
-L2-norm            : 2.84375e+06
+L2-norm            : 2.91849e+06
 Max displacement   : 5e+07
 Energy norm           a(u^h,u^h)^0.5 : 5.51267e+07
 External energy          (h,u^h)^0.5 : -1.23177e+07
 Exact norm                a(u,u)^0.5 : 624882
 Exact error      a(e,e)^0.5, e=u-u^h : 5.47862e+07
 Exact relative error (%) : 8767.44
-Root mean square (RMS) of error      : 4.05001
-Min element error                    : 86234.4
+Root mean square (RMS) of error      : 3.92748
+Min element error                    : 86234.2
 Max element error                    : 3.10499e+07
-Average element error                : 505489
+Average element error                : 545105
