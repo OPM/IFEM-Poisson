@@ -5,7 +5,6 @@ Number of elements    64
 Number of nodes       121
 Number of dofs        121
 Number of unknowns    110
- *** SIMbase::preprocess: No partitioning information for 4 processors found. Using graph partitioning
 L2-norm            : 1.02205
 Max displacement   : 2.21757
 Energy norm           a(u^h,u^h)^0.5 : 5.32153

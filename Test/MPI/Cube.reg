@@ -5,7 +5,9 @@ Number of elements    512
 Number of nodes       1000
 Number of dofs        1000
 Number of unknowns    512
- *** SIMbase::preprocess: No partitioning information for 4 processors found. Using graph partitioning
+Graph partitioning: 128 elements in partition.
+Number of domains     4
+Number of equations   512 (200 on process)
 Assembling interior matrix terms for P1
 L2-norm            : 0.268054
 Max displacement   : 0.999665
