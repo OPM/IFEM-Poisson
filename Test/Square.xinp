@@ -32,4 +32,8 @@
     <galerkin>1.0</galerkin>
   </poisson>
 
+  <postprocessing>
+    <function name="test">x</function>
+  </postprocessing>
+
 </simulation>

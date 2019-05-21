@@ -13,6 +13,7 @@ Step 1
     Scalar: 'FE q_y'
     Scalar: 'Exact q_x'
     Scalar: 'Exact q_y'
+    Scalar: 'test'
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
