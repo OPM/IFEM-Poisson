@@ -22,7 +22,6 @@
 
   <!-- General - boundary conditions !-->
   <boundaryconditions>
-    <!-- <neumann set="Boundary" type="anasol" comp="1"/> -->
     <dirichlet set="Boundary" comp="1" type="anasol"/>
   </boundaryconditions>
 

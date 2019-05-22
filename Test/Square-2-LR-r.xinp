@@ -23,7 +23,7 @@
   <!-- General - boundary conditions !-->
   <boundaryconditions>
     <dirichlet set="Edge4" comp="1"/>
-    <neumann set="Edge3" comp="1" type="anasol"/>
+    <neumann set="Edge3" type="anasol"/>
   </boundaryconditions>
 
   <!-- Problem-specific block !-->
