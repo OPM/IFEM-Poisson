@@ -93,7 +93,7 @@ public:
       exporter.registerField("u", "solution", DataExporter::SIM, results);
       exporter.setFieldValue("u", this, solution,
                              Dim::opt.project.empty() ? nullptr : &myProj,
-                             results & DataExporter::NORMS ? &myNorm : nullptr);
+                             (results & DataExporter::NORMS) ? &myNorm : nullptr);
     }
   }
 
