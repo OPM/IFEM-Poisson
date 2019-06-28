@@ -7,32 +7,52 @@ Square.xinp -eig 4
 /0/Poisson-1/Eigenmode/1 Group
 /0/Poisson-1/Eigenmode/1/1 Dataset {121}
 /0/Poisson-1/Eigenmode/1/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/1/eqn Group
+/0/Poisson-1/Eigenmode/1/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/10 Group
 /0/Poisson-1/Eigenmode/10/1 Dataset {121}
 /0/Poisson-1/Eigenmode/10/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/10/eqn Group
+/0/Poisson-1/Eigenmode/10/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/2 Group
 /0/Poisson-1/Eigenmode/2/1 Dataset {121}
 /0/Poisson-1/Eigenmode/2/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/2/eqn Group
+/0/Poisson-1/Eigenmode/2/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/3 Group
 /0/Poisson-1/Eigenmode/3/1 Dataset {121}
 /0/Poisson-1/Eigenmode/3/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/3/eqn Group
+/0/Poisson-1/Eigenmode/3/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/4 Group
 /0/Poisson-1/Eigenmode/4/1 Dataset {121}
 /0/Poisson-1/Eigenmode/4/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/4/eqn Group
+/0/Poisson-1/Eigenmode/4/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/5 Group
 /0/Poisson-1/Eigenmode/5/1 Dataset {121}
 /0/Poisson-1/Eigenmode/5/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/5/eqn Group
+/0/Poisson-1/Eigenmode/5/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/6 Group
 /0/Poisson-1/Eigenmode/6/1 Dataset {121}
 /0/Poisson-1/Eigenmode/6/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/6/eqn Group
+/0/Poisson-1/Eigenmode/6/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/7 Group
 /0/Poisson-1/Eigenmode/7/1 Dataset {121}
 /0/Poisson-1/Eigenmode/7/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/7/eqn Group
+/0/Poisson-1/Eigenmode/7/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/8 Group
 /0/Poisson-1/Eigenmode/8/1 Dataset {121}
 /0/Poisson-1/Eigenmode/8/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/8/eqn Group
+/0/Poisson-1/Eigenmode/8/eqn/1 Dataset {110}
 /0/Poisson-1/Eigenmode/9 Group
 /0/Poisson-1/Eigenmode/9/1 Dataset {121}
 /0/Poisson-1/Eigenmode/9/Frequency Dataset {1}
+/0/Poisson-1/Eigenmode/9/eqn Group
+/0/Poisson-1/Eigenmode/9/eqn/1 Dataset {110}
 /0/Poisson-1/basis       Group
 /0/Poisson-1/basis/1     Dataset {1673}
