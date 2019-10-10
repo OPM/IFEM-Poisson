@@ -5,16 +5,16 @@
   <!-- General - geometry definitions !-->
   <geometry dim="2">
     <raiseorder patch="1" u="1" v="1"/>
-    <refine type="uniform" patch="1" u="7" v="7"/>
+    <refine patch="1" u="7" v="7"/>
     <topologysets>
-      <set name="edges" type="edge">
-        <item patch="1">1 2 3 4</item>
-      </set>
       <set name="zero" type="edge">
         <item patch="1">1 3</item>
       </set>
-      <set name="nonzero" type="edge">
+      <set name="nonzero" type="edge" closure="open">
         <item patch="1">2 4</item>
+      </set>
+      <set name="corner" type="vertex">
+        <item patch="1">4</item>
       </set>
     </topologysets>
   </geometry>
@@ -22,17 +22,22 @@
   <!-- General - boundary conditions !-->
   <boundaryconditions>
     <dirichlet set="nonzero" comp="1" type="anasol"/>
+    <dirichlet set="corner" comp="1" type="anasol"/>
     <dirichlet set="zero" comp="1"/>
   </boundaryconditions>
 
   <!-- Problem-specific block !-->
   <poisson>
-    <source type="expression">-2*(x*x+y*y)</source>
+    <source type="expression">-2.0*(x*x + y*y)</source>
     <anasol type="expression">
       <primary>x*x*y*y</primary>
-      <secondary>-2*x*y*y|-2*x*x*y</secondary>
+      <secondary>-2.0*x*y*y|-2.0*x*x*y</secondary>
     </anasol>
-    <galerkin>1.0</galerkin>
+    <reactions/>
   </poisson>
+
+  <discretization>
+    <nGauss>3</nGauss>
+  </discretization>
 
 </simulation>

@@ -4,8 +4,7 @@
 
   <!-- General - geometry definitions !-->
   <geometry dim="3">
-		<patchfile>round_stair_3patch_3D.g2</patchfile>
-
+    <patchfile>round_stair_3patch_3D.g2</patchfile>
     <topology>
       <connection master="1" mface="4" slave="2" sface="3"/>
       <connection master="2" mface="6" slave="3" sface="5"/>
@@ -28,7 +27,6 @@
 				<item patch="1">1</item>
 			</set>
 		</topologysets>
-
   </geometry>
 
   <!-- General - boundary conditions !-->
@@ -46,9 +44,8 @@
                   r=sqrt((x-sqrt(2)-1e-1)^2 + (y-sqrt(2)-1e-1)^2 + z^2); 2*z/(r^4) 
       </secondary>
     </anasol>
-
+    <reactions/>
   </poisson>
-
 
   <!--General - adaptive refinement parameters -->
   <adaptive>

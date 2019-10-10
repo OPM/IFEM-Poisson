@@ -22,7 +22,7 @@
       <primary>cos(x)*(2-y)</primary>
       <secondary>sin(x)*(2-y)|cos(x)</secondary>
     </anasol>
-    <galerkin>1.0</galerkin>
+    <reactions/>
   </poisson>
 
 </simulation>

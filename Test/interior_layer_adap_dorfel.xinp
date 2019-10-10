@@ -41,13 +41,13 @@
 
     <!--App specific block-->
     <poisson adaptive="true">
-        <isotropic code="0" kappa="1"/>
         <anasol type="interiorlayer"/>
         <source type="interiorlayer"/>
+        <reactions/>
     </poisson>
 
    <linearsolver>
-    <rtol>1e-12</rtol>
+        <rtol>1.0e-12</rtol>
    </linearsolver>
 
 </simulation>

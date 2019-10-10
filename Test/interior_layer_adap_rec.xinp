@@ -43,6 +43,7 @@
     <poisson adaptive="true">
         <anasol type="interiorlayer"/>
         <source type="interiorlayer"/>
+        <reactions/>
     </poisson>
 
     <postprocessing>

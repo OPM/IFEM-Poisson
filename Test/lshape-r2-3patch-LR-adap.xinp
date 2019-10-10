@@ -33,6 +33,7 @@
       <primary>1/(r^2)</primary>
       <secondary>2*x/(r^4) | 2*y/(r^4)</secondary>
     </anasol>
+    <reactions/>
   </poisson>
 
   <!--General - adaptive refinement parameters -->

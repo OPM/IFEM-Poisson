@@ -11,7 +11,7 @@ Adaptive step 1
 L2-norm            : 1.50744
 Max displacement   : 2.70399
 Energy norm           a(u^h,u^h)^0.5 : 9.48035
-External energy          (h,u^h)^0.5 : 9.49128
+External energy          (h,u^h)^0.5 : 9.48017
 Exact norm                a(u,u)^0.5 : 10.3681
 Exact error      a(e,e)^0.5, e=u-u^h : 4.04787
 Exact relative error (%) : 39.0415
@@ -33,7 +33,7 @@ Number of unknowns    871
 L2-norm            : 1.43047
 Max displacement   : 1.54844
 Energy norm           a(u^h,u^h)^0.5 : 10.2396
-External energy          (h,u^h)^0.5 : 10.2221
+External energy          (h,u^h)^0.5 : 10.2395
 Exact norm                a(u,u)^0.5 : 10.3653
 Exact error      a(e,e)^0.5, e=u-u^h : 1.62087
 Exact relative error (%) : 15.6374
@@ -55,7 +55,7 @@ Number of unknowns    2023
 L2-norm            : 1.34098
 Max displacement   : 1.54767
 Energy norm           a(u^h,u^h)^0.5 : 10.3607
-External energy          (h,u^h)^0.5 : 10.344
+External energy          (h,u^h)^0.5 : 10.3606
 Exact norm                a(u,u)^0.5 : 10.3655
 Exact error      a(e,e)^0.5, e=u-u^h : 0.314731
 Exact relative error (%) : 3.03635

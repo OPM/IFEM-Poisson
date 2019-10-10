@@ -7,5 +7,5 @@ Number of constraints 17
 Number of unknowns    64
 L2-norm            : 0.255859
 Energy norm           a(u^h,u^h)^0.5 : 0.730297
-External energy          (h,u^h)^0.5 : -0.905109
+External energy          (h,u^h)^0.5 : 0.730297
 Exact norm                a(u,u)^0.5 : 0.730297

@@ -6,9 +6,6 @@
   <geometry dim="2">
     <patchfile type="lrplines">simple_lr_p1.lr</patchfile>
     <topologysets>
-      <set name="edges" type="edge">
-        <item patch="1">1 2 3 4</item>
-      </set>
       <set name="zero" type="edge">
         <item patch="1">1 3</item>
       </set>
@@ -26,12 +23,11 @@
 
   <!-- Problem-specific block !-->
   <poisson>
-    <source type="expression">0</source>
     <anasol type="expression">
       <primary>x*y</primary>
       <secondary>-y|-x</secondary>
     </anasol>
-    <galerkin>1.0</galerkin>
+    <reactions/>
   </poisson>
 
 </simulation>
