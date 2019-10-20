@@ -99,22 +99,13 @@ public:
   virtual bool evalBou(LocalIntegral& elmInt, const FiniteElement& fe,
                        const Vec3& X, const Vec3& normal) const;
 
-  using IntegrandBase::evalSol;
-  //! \brief Evaluates the secondary solution at a result point.
-  //! \param[out] s Array of solution field values at current point
-  //! \param[in] fe Finite element data at current point
-  //! \param[in] X Cartesian coordinates of current point
-  //! \param[in] MNPC Nodal point correspondance for the basis function values
-  virtual bool evalSol(Vector& s, const FiniteElement& fe,
-                       const Vec3& X, const std::vector<int>& MNPC) const;
-
   //! \brief Evaluates the finite element (FE) solution at an integration point.
   //! \param[out] s The FE solution values at current point
-  //! \param[in] eV Element solution vector
-  //! \param[in] dNdX Basis function gradients at current point
+  //! \param[in] eV Element solution vectors
+  //! \param[in] fe Finite element data at current point
   //! \param[in] X Cartesian coordinates of current point
-  bool evalSol(Vector& s, const Vector& eV,
-               const Matrix& dNdX, const Vec3& X) const;
+  virtual bool evalSol2(Vector& s, const Vectors& eV,
+                        const FiniteElement& fe, const Vec3& X) const;
 
   //! \brief Evaluates the boundary heat flux (if any) at specified point.
   double getFlux(const Vec3& X, const Vec3& n) const;
@@ -133,11 +124,11 @@ public:
 
   //! \brief Returns a pointer to an Integrand for solution norm evaluation.
   //! \param[in] asol Pointer to analytical solution (optional)
-  virtual NormBase* getNormIntegrand(AnaSol* asol = nullptr) const;
+  virtual NormBase* getNormIntegrand(AnaSol* asol) const;
 
   //! \brief Returns the number of primary/secondary solution field components.
   //! \param[in] fld which field set to consider (1=primary, 2=secondary)
-  virtual size_t getNoFields(int fld = 2) const { return fld > 1 ? nsd : 1; }
+  virtual size_t getNoFields(int fld) const { return fld > 1 ? nsd : 1; }
   //! \brief Returns the name of the primary solution field.
   //! \param[in] prefix Name prefix
   virtual std::string getField1Name(size_t, const char* prefix) const;
@@ -217,7 +208,7 @@ public:
   //! \brief Returns the number of norm groups or size of a specified group.
   //! \param[in] group The norm group to return the size of
   //! (if zero, return the number of groups)
-  virtual size_t getNoFields(int group = 0) const;
+  virtual size_t getNoFields(int group) const;
 
   //! \brief Returns the name of a norm quantity.
   //! \param[in] i The norm group (one-based index)

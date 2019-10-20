@@ -19,7 +19,6 @@
 #include "Tensor.h"
 #include "Vec3Oper.h"
 #include "ExprFunctions.h"
-#include "Utilities.h"
 #include "VTF.h"
 #include "tinyxml.h"
 
@@ -143,7 +142,7 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
     {
       // Integrate the internal forces based on current solution
       Vector q;
-      if (!this->evalSol(q,elmInt.vec.front(),fe.dNdX,X))
+      if (!this->evalSol2(q,elmInt.vec,fe,X))
         return false;
       if (!fe.dNdX.multiply(q,elMat.b.front(),fe.detJxW,1.0)) // b += dNdX * q
         return false;
@@ -216,33 +215,11 @@ bool Poisson::writeGlvT (VTF* vtf, int iStep, int& geoBlk, int& nBlock) const
 }
 
 
-bool Poisson::evalSol (Vector& q, const FiniteElement& fe,
-                       const Vec3& X, const std::vector<int>& MNPC) const
-{
-  if (primsol.empty() || primsol.front().empty())
-  {
-    std::cerr <<" *** Poisson::evalSol: No primary solution."<< std::endl;
-    return false;
-  }
-
-  Vector eV;
-  int ierr = utl::gather(MNPC,1,primsol.front(),eV);
-  if (ierr > 0)
-  {
-    std::cerr <<" *** Poisson::evalSol: Detected "<< ierr
-              <<" node numbers out of range."<< std::endl;
-    return false;
-  }
-
-  return this->evalSol(q,eV,fe.dNdX,X);
-}
-
-
-bool Poisson::evalSol (Vector& q, const Vector& eV,
-                       const Matrix& dNdX, const Vec3& X) const
+bool Poisson::evalSol2 (Vector& q, const Vectors& eV,
+                        const FiniteElement& fe, const Vec3& X) const
 {
   // Evaluate the heat flux vector, q = -kappa*du/dX = -kappa*dNdX^T*eV
-  if (!dNdX.multiply(eV,q,true))
+  if (eV.empty() || !fe.dNdX.multiply(eV.front(),q,true))
   {
     std::cerr <<" *** Poisson::evalSol: Invalid solution vector."<< std::endl;
     return false;
@@ -311,7 +288,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
   // Evaluate the finite element heat flux field
   Vector sigmah, sigma, error;
-  if (!problem.evalSol(sigmah,pnorm.vec.front(),fe.dNdX,X))
+  if (!problem.evalSol2(sigmah,pnorm.vec,fe,X))
     return false;
 
   // Evaluate the temperature field
