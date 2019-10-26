@@ -2,6 +2,8 @@
 
 <simulation>
 
+  <messagelevel>1</messagelevel>
+
   <!-- General - geometry definitions !-->
   <geometry>
     <raiseorder patch="1" u="1" v="1" w="1"/>
@@ -36,6 +38,7 @@
         -z/eps/r/(((r-0.5)/eps)^2+1)
       </secondary>
     </anasol>
+    <reactions/>
   </poisson>
 
   <!--General - adaptive refinement parameters -->

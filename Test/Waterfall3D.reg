@@ -8,7 +8,7 @@ Number of unknowns    215
 L2-norm            : 0.943954
 Max displacement   : 3.77276
 Energy norm           a(u^h,u^h)^0.5 : 3.10813
-External energy          (h,u^h)^0.5 : 3.11256
+External energy          (h,u^h)^0.5 : 3.10813
 Exact norm                a(u,u)^0.5 : 3.52326
 Exact error      a(e,e)^0.5, e=u-u^h : 1.66551
 Exact relative error (%) : 47.2718
