@@ -4,8 +4,18 @@
 
     <!-- General - geometry definitions !-->
     <geometry dim="2">
-        <patchfile>lshape.g2</patchfile>
-        <raiseorder patch="1" u="2" v="2"/>
+        <patch>200 1 0 0 \
+          2 0 \
+          3 2 0 0 1 2 2 \
+          2 2 0 0 1 1 \
+          0.0 -1.0 \
+          0.0  0.0 \
+          1.0  0.0 \
+         -1.0 -1.0 \
+         -1.0  1.0 \
+          1.0  1.0 \
+        </patch>
+        <raiseorder patch="1" u="4" v="4"/>
         <refine patch="1" u="7" v="7"/>
         <topologysets>
           <set name="Homogenous" type="edge">

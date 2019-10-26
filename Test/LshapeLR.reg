@@ -10,4 +10,4 @@ Energy norm           a(u^h,u^h)^0.5 : 1.3548
 External energy          (h,u^h)^0.5 : 1.35476
 Exact norm                a(u,u)^0.5 : 1.35521
 Exact error      a(e,e)^0.5, e=u-u^h : 0.0316302
-Exact relative error (%) : 2.33396
+Exact relative error (%) : 2.33397
