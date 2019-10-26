@@ -5,8 +5,14 @@
 
   <!-- General - geometry definitions !-->
   <geometry dim="2">
-    <patchfile>lshape2.g2</patchfile>
-    <raiseorder lowerpatch="1" upperpatch="3" u="1" v="1" w="1"/>
+    <!-- Notice the 3 patches are shifted 1.0e-4 in both directions to avoid the singular point (x,y)=(0.0) !-->
+    <patches>
+      200 1 0 0 \ 2 0 \ 2 2 0 0 1 1 \ 2 2 0 0 1 1 \ -0.9999  0.0001 0.0001  0.0001 -0.9999 1.0001 0.0001 1.0001 \
+      200 1 0 0 \ 2 0 \ 2 2 0 0 1 1 \ 2 2 0 0 1 1 \  0.0001  0.0001 1.0001  0.0001  0.0001 1.0001 1.0001 1.0001 \
+      200 1 0 0 \ 2 0 \ 2 2 0 0 1 1 \ 2 2 0 0 1 1 \  0.0001 -0.9999 1.0001 -0.9999  0.0001 0.0001 1.0001 0.0001 \
+    </patches>
+    <refine     lowerpatch="1" upperpatch="3" u="3" v="3"/>
+    <raiseorder lowerpatch="1" upperpatch="3" u="1" v="1"/>
     <topology>
       <connection master="1" medge="2" slave="2" sedge="1"/>
       <connection master="2" medge="3" slave="3" sedge="4"/>
@@ -38,12 +44,9 @@
 
   <!--General - adaptive refinement parameters -->
   <adaptive>
-    <maxstep>4</maxstep>
-    <beta type="average">100</beta>
-    <maxdof>10000</maxdof>
-    <errtol>0.000001</errtol>
-    <knot_mult>1</knot_mult>
+    <beta type="average">100.0</beta>
     <scheme>isotropic_function</scheme>
+    <maxstep>4</maxstep>
   </adaptive>
 
 </simulation>

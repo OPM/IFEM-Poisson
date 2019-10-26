@@ -6,16 +6,17 @@ Number of Gauss points: 4
 LR-spline basis functions are used
 Parsing input file lshape-r2-3patch-LR-adap.xinp
 Parsing <geometry>
-  Parsing <patchfile>
-	Reading data file lshape2.g2
+  Parsing <patches>
+	Reading inlined patch geometry definition
 	Reading patch 1
 	Reading patch 2
 	Reading patch 3
-  Parsing <raiseorder>
-  Parsing <topology>
   Parsing <topologysets>
 	Topology sets: Boundary (1,1,1D) (1,3,1D) (1,4,1D) (2,2,1D) (2,4,1D) (3,1,1D) (3,2,1D) (3,3,1D)
-  Parsing <patchfile>
+  Parsing <refine>
+	Refining P1 3 3
+	Refining P2 3 3
+	Refining P3 3 3
   Parsing <raiseorder>
 	Raising order of P1 1 1
 	Raising order of P2 1 1
@@ -23,7 +24,6 @@ Parsing <geometry>
   Parsing <topology>
 	Connecting P2 E1 to P1 E2 reversed? 0
 	Connecting P3 E4 to P2 E3 reversed? 0
-  Parsing <topologysets>
 Parsing <messageLevel>
 Parsing <boundaryconditions>
   Parsing <dirichlet>
@@ -34,13 +34,8 @@ Parsing <poisson>
 	Variables=r=sqrt(x^2+y^2);
 	Primary=1/(r^2)
 	Secondary=2\*x/(r^4) | 2\*y/(r^4)
-Parsing <adaptive>
 Parsing input file succeeded.
 Parsing input file lshape-r2-3patch-LR-adap.xinp
-Parsing <messageLevel>
-Parsing <geometry>
-Parsing <boundaryconditions>
-Parsing <poisson>
 Parsing <adaptive>
 	Refinement percentage: 100 type=2
 	Refinement scheme: 2
@@ -86,17 +81,11 @@ Refined mesh: 46 elements 133 nodes.
 Adaptive step 2
 Parsing input file lshape-r2-3patch-LR-adap.xinp
 Parsing <geometry>
-  Parsing <patchfile>
-  Parsing <raiseorder>
-  Parsing <topology>
   Parsing <topologysets>
 	Topology sets: Boundary (1,1,1D) (1,3,1D) (1,4,1D) (2,2,1D) (2,4,1D) (3,1,1D) (3,2,1D) (3,3,1D)
-  Parsing <patchfile>
-  Parsing <raiseorder>
   Parsing <topology>
 	Connecting P2 E1 to P1 E2 reversed? 0
 	Connecting P3 E4 to P2 E3 reversed? 0
-  Parsing <topologysets>
 Parsing <messageLevel>
 Parsing <boundaryconditions>
   Parsing <dirichlet>
@@ -142,13 +131,8 @@ Refined mesh: 79 elements 175 nodes.
 Adaptive step 3
 Parsing input file lshape-r2-3patch-LR-adap.xinp
 Parsing <geometry>
-  Parsing <patchfile>
-  Parsing <raiseorder>
-  Parsing <topology>
   Parsing <topologysets>
 	Topology sets: Boundary (1,1,1D) (1,3,1D) (1,4,1D) (2,2,1D) (2,4,1D) (3,1,1D) (3,2,1D) (3,3,1D)
-  Parsing <patchfile>
-  Parsing <raiseorder>
   Parsing <topology>
 	Connecting P2 E1 to P1 E2 reversed? 0
 	Connecting P3 E4 to P2 E3 reversed? 0
@@ -198,13 +182,8 @@ Refined mesh: 187 elements 300 nodes.
 Adaptive step 4
 Parsing input file lshape-r2-3patch-LR-adap.xinp
 Parsing <geometry>
-  Parsing <patchfile>
-  Parsing <raiseorder>
-  Parsing <topology>
   Parsing <topologysets>
 	Topology sets: Boundary (1,1,1D) (1,3,1D) (1,4,1D) (2,2,1D) (2,4,1D) (3,1,1D) (3,2,1D) (3,3,1D)
-  Parsing <patchfile>
-  Parsing <raiseorder>
   Parsing <topology>
 	Connecting P2 E1 to P1 E2 reversed? 0
 	Connecting P3 E4 to P2 E3 reversed? 0
