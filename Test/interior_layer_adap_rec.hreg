@@ -35,6 +35,8 @@ interior_layer_adap_rec.xinp
 /0/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {16}
 /0/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
 /0/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {16}
+/0/Poisson-1/knotspan/volume Group
+/0/Poisson-1/knotspan/volume/1 Dataset {16}
 /1                       Group
 /1/Poisson-1             Group
 /1/Poisson-1/basis       Group
@@ -69,6 +71,8 @@ interior_layer_adap_rec.xinp
 /1/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {64}
 /1/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
 /1/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {64}
+/1/Poisson-1/knotspan/volume Group
+/1/Poisson-1/knotspan/volume/1 Dataset {64}
 /2                       Group
 /2/Poisson-1             Group
 /2/Poisson-1/basis       Group
@@ -103,3 +107,5 @@ interior_layer_adap_rec.xinp
 /2/Poisson-1/knotspan/a(u,u)^0.5/1 Dataset {256}
 /2/Poisson-1/knotspan/a(u^h,u^h)^0.5 Group
 /2/Poisson-1/knotspan/a(u^h,u^h)^0.5/1 Dataset {256}
+/2/Poisson-1/knotspan/volume Group
+/2/Poisson-1/knotspan/volume/1 Dataset {256}

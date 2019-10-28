@@ -17,6 +17,7 @@ Step 1
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
   Element block 2
     512 nodes
     64 elements
@@ -33,6 +34,7 @@ Step 1
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
   Element block 3
     512 nodes
     64 elements
@@ -49,6 +51,7 @@ Step 1
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
 Step 2
   Element block 1
     2024 nodes
@@ -66,6 +69,7 @@ Step 2
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
   Element block 2
     2024 nodes
     253 elements
@@ -82,6 +86,7 @@ Step 2
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
   Element block 3
     512 nodes
     64 elements
@@ -98,6 +103,7 @@ Step 2
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
 Step 3
   Element block 1
     4040 nodes
@@ -115,6 +121,7 @@ Step 3
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
   Element block 2
     4040 nodes
     505 elements
@@ -131,6 +138,7 @@ Step 3
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
   Element block 3
     512 nodes
     64 elements
@@ -147,3 +155,4 @@ Step 3
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'

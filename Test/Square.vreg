@@ -17,3 +17,4 @@ Step 1
     Scalar: 'a(u^h,u^h)^0.5'
     Scalar: 'a(u,u)^0.5'
     Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'

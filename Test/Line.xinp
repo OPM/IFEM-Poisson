@@ -29,6 +29,13 @@
       <primary>-sin(x*PI/2)</primary>
       <secondary>-PI/2*cos(x*PI/2)</secondary>
     </anasol>
+    <dualfield u0="0.5625" eps="1.0e-5" comp="1"/>
   </poisson>
+
+  <postprocessing>
+    <resultpoints>
+      <point patch="1" u="0.5625"/>
+    </resultpoints>
+  </postprocessing>
 
 </simulation>

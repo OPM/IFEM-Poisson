@@ -49,11 +49,17 @@ public:
   void setTraction(RealFunc* ff) { fluxFld = ff; }
   //! \brief Defines the heat source field.
   void setSource(RealFunc* src) { heatSrc = src; }
+  //! \brief Defines the extraction function of the dual problem.
+  void setDualRHS(FunctionBase* df) { dualRHS = df; }
+  //! \brief Defines an extraction function for VCP.
+  void addExtrFunction(FunctionBase* exf);
+  //! \brief Returns the number of extraction functions.
+  size_t numExtrFunction() const { return dualFld.size(); }
 
   //! \brief Defines the conductivity.
   void setMaterial(double K) { kappa = K; }
-  //! \brief Returns the conductivity.
-  double getMaterial() const { return kappa; }
+  //! \brief Evaluates the conductivity at specified point.
+  double getMaterial(const Vec3& = Vec3()) const { return kappa; }
 
   //! \brief Returns the number of Galerkin projections.
   size_t getNoGalerkin() const { return galerkin.size(); }
@@ -69,6 +75,14 @@ public:
   //! \param[in] nGp Total number of interior integration points
   //! \param[in] nBp Total number of boundary integration points
   virtual void initIntegration(size_t nGp, size_t nBp);
+
+  using IntegrandBase::initElement;
+  //! \brief Initializes current element for numerical integration.
+  //! \param[in] MNPC Matrix of nodal point correspondance for current element
+  //! \param[in] X0 Cartesian coordinates of the element center
+  //! \param elmInt Local integral for element
+  virtual bool initElement(const std::vector<int>& MNPC, const FiniteElement&,
+                           const Vec3& X0, size_t, LocalIntegral& elmInt);
 
   //! \brief Defines the global integral for calculating reaction forces only.
   void setReactionIntegral(GlobalIntegral* gq) { delete reacInt; reacInt = gq; }
@@ -122,6 +136,10 @@ public:
   //! \brief Returns whether there are any heat flux values to write to VTF.
   virtual bool hasTractionValues() const { return !fluxVal.empty(); }
 
+  //! \brief Returns the patch-wise extraction function field, if any.
+  //! \param[in] ifield 1-based index of the field to return
+  virtual Vector* getExtractionField(size_t ifield);
+
   //! \brief Returns a pointer to an Integrand for solution norm evaluation.
   //! \param[in] asol Pointer to analytical solution (optional)
   virtual NormBase* getNormIntegrand(AnaSol* asol) const;
@@ -143,6 +161,12 @@ public:
     return LinAlg::SPD;
   }
 
+  //! \brief Defines which FE quantities are needed by the integrand.
+  virtual int getIntegrandType() const
+  {
+    return dualFld.empty() ? STANDARD : ELEMENT_CENTER;
+  }
+
 private:
   // Physical properties (constant)
   double kappa; //!< Conductivity
@@ -150,6 +174,9 @@ private:
   VecFunc*  tracFld; //!< Pointer to boundary traction field
   RealFunc* fluxFld; //!< Pointer to boundary normal flux field
   RealFunc* heatSrc; //!< Pointer to interior heat source
+
+  FunctionBase*              dualRHS; //!< Extraction function for dual RHS
+  std::vector<FunctionBase*> dualFld; //!< Extraction functions for VCP
 
   GlobalIntegral* reacInt; //!< Reaction-forces-only integral
 
@@ -220,11 +247,11 @@ public:
   virtual bool hasElementContributions(size_t i, size_t j) const;
 
   //! \brief Defines which FE quantities are needed by the integrand.
-  virtual int getIntegrandType() const { return integrandType; }
+  virtual int getIntegrandType() const;
 
 private:
   VecFunc* anasol; //!< Analytical heat flux
-  int integrandType; //!< Integrand type
+  int integrdType; //!< Integrand type flag
 };
 
 #endif

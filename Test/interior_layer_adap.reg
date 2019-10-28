@@ -1,4 +1,4 @@
-interior_layer_adap.xinp
+interior_layer_adap.xinp -adap
 
 Number of Gauss points: 4
 LR-spline basis functions are used

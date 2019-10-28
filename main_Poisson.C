@@ -20,25 +20,67 @@
 
 
 /*!
+  \brief Class with additional simulation options from command-line.
+*/
+
+class PoissonArgs : public SIMargsBase
+{
+public:
+  std::vector<int> ignoredPatches; //!< List of patches to ignore
+
+  bool checkRHS;  //!< If \e true, check patches for a right-hand-side model
+  bool vizRHS;    //!< If \e true, save the load vector to VTF for visualization
+  bool fixDup;    //!< If \e true, collapse co-located nodes into a single node
+  bool dumpASCII; //!< If \e true, dump model and solution to ASCII files
+  bool dualSol;   //!< If \e true, also calculate the dual solution
+
+  //! \brief Default constructor.
+  PoissonArgs() : SIMargsBase("poisson")
+  {
+    checkRHS = vizRHS = fixDup = dumpASCII = dualSol = false;
+  }
+
+  //! \brief Parses a command-line argument.
+  bool parseArgs(char** argv, int argc, int& i)
+  {
+    if (!strcmp(argv[i],"-ignore"))
+      while (i < argc-1 && isdigit(argv[i+1][0]))
+        utl::parseIntegers(ignoredPatches,argv[++i]);
+    else if (!strcmp(argv[i],"-free"))
+      SIMbase::ignoreDirichlet = true;
+    else if (!strcmp(argv[i],"-checkRHS"))
+      checkRHS = true;
+    else if (!strcmp(argv[i],"-vizRHS"))
+      vizRHS = true;
+    else if (!strcmp(argv[i],"-fixDup"))
+      fixDup = true;
+    else if (!strcmp(argv[i],"-dumpASC"))
+      dumpASCII = true;
+    else if (!strncmp(argv[i],"-dualadap",9))
+      adap = 'd';
+    else
+      return this->parseArg(argv[i]);
+
+    return true;
+  }
+};
+
+
+/*!
   \brief Sets up and launches the simulation.
   \param[in] infile The input file to process
-  \param[in] checkRHS If \e true, check patches for a right-hand-side model
-  \param[in] ignoredPatches List of patches to ignore in the simulation
-  \param[in] fixDup If \e true, collapse co-located nodes into a single node
-  \param[in] vizRHS If \e true, save the load vector to VTF for visualization
-  \param[in] dumpASCII If \e true, dump model and solution to ASCII files
+  \param[in] arg Additional simulation options from command-line
 */
 
 template<class Dim, template<class T> class Solver=SIMSolverStat>
-int runSimulator(char* infile, bool checkRHS,
-                 const std::vector<int>& ignoredPatches,
-                 bool fixDup, bool vizRHS, bool dumpASCII)
+int runSimulator(char* infile, const PoissonArgs& arg)
 {
-  SIMPoisson<Dim> model(checkRHS);
+  SIMPoisson<Dim> model(arg.checkRHS,arg.dualSol);
   Solver<SIMPoisson<Dim>> solver(model);
 
   utl::profiler->start("Model input");
 
+  // Read in model definitions
   if (!model.read(infile) || !solver.read(infile))
     return 1;
 
@@ -47,21 +89,22 @@ int runSimulator(char* infile, bool checkRHS,
     SIMbase::ignoreDirichlet = false;
 
   // Load vector visualization is not available when using additional viz-points
-  for (size_t i = 0; i < 3; i++)
+  model.setVizRHS(arg.vizRHS);
+  for (int i = 0; i < 3; i++)
     if (i >= Dim::dimension)
       model.opt.nViz[i] = 1;
     else if (model.opt.nViz[i] > 2)
-      vizRHS = false;
+      model.setVizRHS(false);
 
   model.opt.print(IFEM::cout,true) << std::endl;
 
   utl::profiler->stop("Model input");
 
-  if (!model.preprocess(ignoredPatches,fixDup))
+  // Establish the FE data structures
+  if (!model.preprocess(arg.ignoredPatches,arg.fixDup))
     return 2;
 
-  model.setVizRHS(vizRHS);
-  if (dumpASCII)
+  if (arg.dumpASCII)
     model.setASCIIfile(infile);
 
   if (model.opt.dumpHDF5(infile))
@@ -100,13 +143,13 @@ int runSimulator(char* infile, bool checkRHS,
   \arg -ncv \a ncv : Number of Arnoldi vectors to use in the eigenvalue analysis
   \arg -shift \a shf : Shift value to use in the eigenproblem solver
   \arg -free : Ignore all boundary conditions (use in free vibration analysis)
-  \arg -check : Data check only, read model and output to VTF (no solution)
   \arg -checkRHS : Check that the patches are modelled in a right-hand system
   \arg -vizRHS : Save the right-hand-side load vector on the VTF-file
   \arg -fixDup : Resolve co-located nodes by merging them into a single node
   \arg -1D : Use one-parametric simulation driver
   \arg -2D : Use two-parametric simulation driver
   \arg -adap : Use adaptive simulation driver with LR-splines discretization
+  \arg -dualadap : Perform adaptive simulation based on dual solution
 */
 
 int main (int argc, char** argv)
@@ -114,33 +157,15 @@ int main (int argc, char** argv)
   Profiler prof(argv[0]);
   utl::profiler->start("Initialization");
 
-  std::vector<int> ignoredPatches;
-  bool checkRHS = false;
-  bool vizRHS = false;
-  bool fixDup = false;
-  bool dumpASCII = false;
   char* infile = nullptr;
-  SIMargsBase args("poisson");
+  PoissonArgs args;
 
-  int myPid = IFEM::Init(argc,argv,"Poisson solver");
+  IFEM::Init(argc,argv,"Poisson solver");
   for (int i = 1; i < argc; i++)
-    if (argv[i] == infile || args.parseArg(argv[i]))
+    if (argv[i] == infile || args.parseArgs(argv,argc,i))
       ; // ignore the input file on the second pass
     else if (SIMoptions::ignoreOldOptions(argc,argv,i))
       ; // ignore the obsolete option
-    else if (!strcmp(argv[i],"-dumpASC"))
-      dumpASCII = myPid == 0; // not for parallel runs
-    else if (!strcmp(argv[i],"-ignore"))
-      while (i < argc-1 && isdigit(argv[i+1][0]))
-        utl::parseIntegers(ignoredPatches,argv[++i]);
-    else if (!strcmp(argv[i],"-free"))
-      SIMbase::ignoreDirichlet = true;
-    else if (!strcmp(argv[i],"-checkRHS"))
-      checkRHS = true;
-    else if (!strcmp(argv[i],"-vizRHS"))
-      vizRHS = true;
-    else if (!strcmp(argv[i],"-fixDup"))
-      fixDup = true;
     else if (!infile) {
       infile = argv[i];
       if (strcasestr(infile,".xinp")) {
@@ -155,13 +180,13 @@ int main (int argc, char** argv)
   if (!infile)
   {
     std::cout <<"usage: "<< argv[0]
-              <<" <inputfile> [-dense|-spr|-superlu[<nt>]|-samg|-petsc]\n"
-              <<"       [-lag|-spec|-LR] [-1D|-2D] [-nGauss <n>] [-hdf5]\n"
-              <<"       [-vtf <format> [-nviz <nviz>] [-nu <nu>] [-nv <nv>]"
-              <<" [-nw <nw>] [-vizRHS]]\n       [-adap]"
+              <<" <inputfile> [-dense|-spr|-superlu[<nt>]|-samg|-petsc]\n      "
+              <<" [-lag|-spec|-LR] [-1D|-2D] [-nGauss <n>] [-adap|-dualadap]"
+              <<"\n       [-vtf <format> [-nviz <nviz>] [-nu <nu>]"
+              <<" [-nv <nv>] [-nw <nw>] [-vizRHS]]\n       [-hdf5]"
               <<" [-eig <iop> [-nev <nev>] [-ncv <ncv] [-shift <shf>] [-free]]"
               <<"\n       [-ignore <p1> <p2> ...] [-fixDup]"
-              <<" [-checkRHS] [-check] [-dumpASC]\n";
+              <<" [-checkRHS] [-dumpASC]\n";
     return 0;
   }
 
@@ -172,43 +197,33 @@ int main (int argc, char** argv)
   IFEM::getOptions().print(IFEM::cout);
   if (SIMbase::ignoreDirichlet)
     IFEM::cout <<"\nSpecified boundary conditions are ignored";
-  if (fixDup)
+  if (args.fixDup)
     IFEM::cout <<"\nCo-located nodes will be merged";
-  if (checkRHS && args.dim > 1)
+  if (args.checkRHS && args.dim > 1)
     IFEM::cout <<"\nCheck that each patch has a right-hand coordinate system";
-  if (!ignoredPatches.empty())
+  if (!args.ignoredPatches.empty())
   {
     IFEM::cout <<"\nIgnored patches:";
-    for (size_t i = 0; i < ignoredPatches.size(); i++)
-      IFEM::cout <<" "<< ignoredPatches[i];
+    for (int ip : args.ignoredPatches) IFEM::cout <<" "<< ip;
   }
   IFEM::cout << std::endl;
 
   utl::profiler->stop("Initialization");
 
+  if (args.adap == 'd')
+    args.dualSol = true;
+
   if (args.adap)
     switch (args.dim) {
-    case 1:
-      return runSimulator<SIM1D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
-                                               fixDup, vizRHS, dumpASCII);
-    case 2:
-      return runSimulator<SIM2D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
-                                               fixDup, vizRHS, dumpASCII);
-    case 3:
-      return runSimulator<SIM3D,SIMSolverAdap>(infile, checkRHS, ignoredPatches,
-                                               fixDup, vizRHS, dumpASCII);
+    case 1: return runSimulator<SIM1D,SIMSolverAdap>(infile,args);
+    case 2: return runSimulator<SIM2D,SIMSolverAdap>(infile,args);
+    case 3: return runSimulator<SIM3D,SIMSolverAdap>(infile,args);
   }
   else
     switch (args.dim) {
-    case 1:
-      return runSimulator<SIM1D>(infile, checkRHS, ignoredPatches,
-                                 fixDup, vizRHS, dumpASCII);
-    case 2:
-      return runSimulator<SIM2D>(infile, checkRHS, ignoredPatches,
-                                 fixDup, vizRHS, dumpASCII);
-    case 3:
-      return runSimulator<SIM3D>(infile, checkRHS, ignoredPatches,
-                                 fixDup, vizRHS, dumpASCII);
+    case 1: return runSimulator<SIM1D>(infile,args);
+    case 2: return runSimulator<SIM2D>(infile,args);
+    case 3: return runSimulator<SIM3D>(infile,args);
     }
 
   return 0;

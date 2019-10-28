@@ -37,13 +37,14 @@ template<class Dim> class SIMPoisson : public SIMMultiPatchModelGen<Dim>
 {
 public:
   //! \brief Default constructor.
-  explicit SIMPoisson(bool checkRHS = false)
+  explicit SIMPoisson(bool checkRHS = false, bool ds = false)
     : SIMMultiPatchModelGen<Dim>(1,checkRHS),
       prob(Dim::dimension), solution(&mySolVec)
   {
     Dim::myProblem = &prob;
     aCode[0] = aCode[1] = 0;
     vizRHS = false;
+    dualS = ds;
   }
 
   //! \brief The destructor zero out the integrand pointer (deleted by parent).
@@ -70,11 +71,15 @@ public:
     prob.setTraction((RealFunc*)nullptr);
     prob.setTraction((VecFunc*)nullptr);
     prob.clearGalerkinProjections();
+    prob.addExtrFunction(nullptr);
     this->Dim::clearProperties();
   }
 
   //! \brief Returns the number of right-hand-side vectors.
-  virtual size_t getNoRHS() const { return 1 + prob.getNoGalerkin(); }
+  virtual size_t getNoRHS() const { return dualS ? 2 : 1+prob.getNoGalerkin(); }
+
+  //! \brief Returns whether a dual solution is available or not.
+  virtual bool haveDualSol() const { return dualS && Dim::dualField; }
 
   //! \brief Registers data fields for output.
   void registerFields(DataExporter& exporter)
@@ -94,7 +99,7 @@ public:
       exporter.registerField("u", "solution", DataExporter::SIM, results);
       exporter.setFieldValue("u", this, solution,
                              Dim::opt.project.empty() ? nullptr : &myProj,
-                             (results & DataExporter::NORMS) ? &myNorm : nullptr);
+                             Dim::opt.saveNorms ? &myNorm : nullptr);
     }
   }
 
@@ -155,31 +160,28 @@ public:
     if (!this->setMode(Dim::opt.eig == 0 ? SIM::STATIC : SIM::VIBRATION))
       return false;
 
-    if (Dim::opt.eig == 0)
-      this->initSystem(Dim::opt.solver,1,1);
-    else
-      this->initSystem(Dim::opt.solver,1,0);
-    this->setQuadratureRule(Dim::opt.nGauss[0],true);
+    if (!this->initSystem(Dim::opt.solver, 1, Dim::opt.eig == 0 ? 1 : 0))
+      return false;
 
+    this->setQuadratureRule(Dim::opt.nGauss[0],true);
     if (!this->assembleSystem())
       return false;
-    else if (vizRHS && Dim::opt.eig == 0)
-      this->extractLoadVec(myLoad);
 
     if (Dim::opt.eig > 0) // Eigenvalue analysis (free vibration)
       return this->systemModes(modes);
+    else if (vizRHS)
+      this->extractLoadVec(myLoad);
 
     if (!this->solveSystem(mySolVec,1))
       return false;
 
-    if (!this->setMode(SIM::RECOVERY))
-      return false;
-
     if (!Dim::opt.project.empty())
     {
+      this->setMode(SIM::RECOVERY);
+
       // Project the secondary solution onto the splines basis
       size_t j = 0;
-      for (auto& pit : Dim::opt.project)
+      for (const SIMoptions::ProjectionMap::value_type& pit : Dim::opt.project)
         if (!this->project(myProj[j++],mySolVec,pit.first))
           return false;
 
@@ -188,12 +190,23 @@ public:
 
     // Evaluate solution norms
     Vectors gNorm;
+    this->setMode(SIM::NORMS);
     this->setQuadratureRule(Dim::opt.nGauss[1]);
     if (!this->solutionNorms(mySolVec,myProj,myNorm,gNorm))
       return false;
 
     // Print global norm summary to console
     this->printNorms(gNorm);
+
+    if (this->hasResultPoints())
+    {
+      // Print point-wise result quantities
+      this->setMode(SIM::RECOVERY);
+      this->dumpResults(mySolVec,0.0,IFEM::cout,true);
+      if (!myProj.empty())
+        this->dumpVector(myProj.front(),nullptr,IFEM::cout);
+    }
+
     return true;
   }
 
@@ -233,7 +246,7 @@ public:
     int iBlk = 100, iGrad = -1;
     std::string grdName;
     std::vector<std::string> prefix(Dim::opt.project.size());
-    for (auto& pit : Dim::opt.project)
+    for (const SIMoptions::ProjectionMap::value_type& pit : Dim::opt.project)
       if (i >= myProj.size())
         break;
       else if (!this->writeGlvP(myProj[i],1,nBlock,iBlk,pit.second.c_str()))
@@ -352,6 +365,9 @@ protected:
   //! condition fields in case they are derived from the analytical solution.
   virtual void preprocessA()
   {
+    if (Dim::dualField)
+      prob.setDualRHS(Dim::dualField);
+
     myProj.resize(Dim::opt.project.size());
     if (!Dim::mySol) return;
 
@@ -460,6 +476,8 @@ protected:
 
       else if (!strcasecmp(child->Value(),"reactions"))
         prob.extEner = 'R';
+      else if (!strcasecmp(child->Value(),"dualfield"))
+        prob.addExtrFunction(this->parseDualTag(child));
       else if (!prob.parse(child))
         result &= this->Dim::parse(child);
 
@@ -504,6 +522,18 @@ protected:
     return true;
   }
 
+  //! \brief Returns norm index of the integrated volume.
+  virtual size_t getVolumeIndex() const
+  {
+    return this->haveAnaSol() ? 5 : 3;
+  }
+
+  //! \brief Reverts the square-root operation on the volume and VCP quantities.
+  virtual bool postProcessNorms(Vectors& gNorm, Matrix* eNorm)
+  {
+    return this->revertSqrt(gNorm,eNorm);
+  }
+
 private:
   Poisson   prob;     //!< Data and methods for the Poisson problem
   RealArray mVec;     //!< Material data
@@ -518,6 +548,8 @@ private:
   std::vector<Mode> modes; //!< Eigen modes
 
   const Vector* solution; //!< Pointer to primary solution vector
+
+  bool dualS; //!< If \e true, also solve the dual problem
 
   bool        vizRHS;    //!< If \e true, store load vector to VTF
   std::string asciiFile; //!< ASCII output file prefix

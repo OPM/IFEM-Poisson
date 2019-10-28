@@ -11,3 +11,10 @@ External energy          (h,u^h)^0.5 : 1.11072
 Exact norm                a(u,u)^0.5 : 1.11072
 Exact error      a(e,e)^0.5, e=u-u^h : 4.63905e-05
 Exact relative error (%) : 0.00417661
+VCP quantity                a(u^h,w) : -0.994904
+VCP quantity                  a(u,w) : -0.994903
+Vol(D) : 0.125
+  Point #1:	sol1 =  7.730e-01
+		exact1 -7.730e-01
+		sol2 = -9.965e-01
+		exact2 -9.965e-01

@@ -31,6 +31,7 @@ Poisson::Poisson (unsigned short int n) : IntegrandBase(n)
   fluxFld = nullptr;
   heatSrc = nullptr;
   reacInt = nullptr;
+  dualRHS = nullptr;
   extEner = false;
 
   normIntegrandType = ELEMENT_CORNERS;
@@ -73,7 +74,61 @@ void Poisson::setMode (SIM::SolutionMode mode)
 {
   m_mode = mode;
 
-  primsol.resize(mode >= SIM::RHS_ONLY ? 1 : 0);
+  if (mode == SIM::STATIC || mode == SIM::NORMS)
+    primsol.resize(1+dualFld.size());
+  else if (mode >= SIM::RHS_ONLY)
+    primsol.resize(1);
+  else
+    primsol.clear();
+
+#ifdef INT_DEBUG
+  std::cout <<"Poisson::setMode: "<< m_mode
+            <<"  size(primsol) = "<< primsol.size() << std::endl;
+#endif
+}
+
+
+void Poisson::addExtrFunction (FunctionBase* extr)
+{
+  if (dynamic_cast<RealFunc*>(extr))
+  {
+    dualFld.push_back(extr);
+    if (!dualRHS)
+      dualRHS = extr;
+  }
+  else
+  {
+    dualFld.clear();
+    dualRHS = nullptr;
+  }
+}
+
+
+bool Poisson::initElement (const std::vector<int>& MNPC,
+                           const FiniteElement&, const Vec3& XC,
+                           size_t, LocalIntegral& elmInt)
+{
+  if (!this->IntegrandBase::initElement(MNPC,elmInt))
+    return false;
+
+  for (size_t i = 1; i < elmInt.vec.size(); i++)
+  {
+    FunctionBase* extrFunc = nullptr;
+    if (i == 1 && m_mode == SIM::STATIC)
+      extrFunc = dualRHS;
+    else if (i <= dualFld.size() && m_mode >= SIM::RECOVERY)
+      extrFunc = dualFld[i-1];
+
+    if (extrFunc && !extrFunc->inDomain(XC))
+      elmInt.vec[i].clear(); // Erase extraction field values if outside domain
+#ifdef INT_DEBUG
+    else
+      std::cout <<"Poisson::initElement: Point "<< XC
+                <<" is inside domain "<< i << std::endl;
+#endif
+  }
+
+  return true;
 }
 
 
@@ -95,7 +150,8 @@ LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
     case SIM::STATIC:
       result->rhsOnly = neumann;
       result->withLHS = !neumann;
-      result->resize(neumann ? 0 : 1, 1+galerkin.size());
+      result->resize(neumann ? 0 : 1,
+                     neumann ? 1 : (dualRHS ? 2 : 1+galerkin.size()));
       break;
 
     case SIM::VIBRATION:
@@ -124,13 +180,20 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 {
   ElmMats& elMat = static_cast<ElmMats&>(elmInt);
 
+  // Conductivity scaled by integration point weight at this point
+  double cw = kappa*fe.detJxW;
+
   if (!elMat.A.empty())
-  {
-    // Conductivity scaled by integration point weight at this point
-    double cw = kappa*fe.detJxW;
     // Integrate the coefficient matrix // EK += kappa * dNdX * dNdX^T * |J|*w
     elMat.A.front().multiply(fe.dNdX,fe.dNdX,false,true,true,cw);
-  }
+
+  // Lambda function for integration of the internal force vector
+  auto&& evalIntForce = [cw,fe](Vector& S, const Vector& eV)
+  {
+    Vector tmp;
+    // S -= dNdX * (dNdX^t * eV) * cw
+    return fe.dNdX.multiply(eV,tmp,true) && fe.dNdX.multiply(tmp,S,-cw,1.0);
+  };
 
   if (!elMat.b.empty())
   {
@@ -139,14 +202,18 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       elMat.b.front().add(fe.N,(*heatSrc)(X)*fe.detJxW); // EV += N*h(x)*|J|*w
 
     if (m_mode == SIM::RHS_ONLY && !elmInt.vec.empty())
-    {
       // Integrate the internal forces based on current solution
-      Vector q;
-      if (!this->evalSol2(q,elmInt.vec,fe,X))
+      if (!evalIntForce(elMat.b.front(),elmInt.vec.front()))
         return false;
-      if (!fe.dNdX.multiply(q,elMat.b.front(),fe.detJxW,1.0)) // b += dNdX * q
-        return false;
-    }
+  }
+
+  if (dualRHS && elmInt.vec.size() > 1)
+  {
+    if (elmInt.vec[1].empty())
+      return true; // the extraction function is zero in this element
+
+    // Integrate the dual load vector
+    return evalIntForce(elMat.b[1],elmInt.vec[1]);
   }
 
   // Galerkin projections a(u^h,v^h) = a(Pu,v^h) = a(w,v^h)
@@ -230,6 +297,12 @@ bool Poisson::evalSol2 (Vector& q, const Vectors& eV,
 }
 
 
+Vector* Poisson::getExtractionField (size_t ifield)
+{
+  return dualRHS && ifield < primsol.size() ? &primsol[ifield] : nullptr;
+}
+
+
 std::string Poisson::getField1Name (size_t, const char* prefix) const
 {
   if (!prefix) return "u";
@@ -272,8 +345,8 @@ void Poisson::clearGalerkinProjections ()
 }
 
 
-PoissonNorm::PoissonNorm (Poisson& p, int itype, VecFunc* a) :
-  NormBase(p), anasol(a), integrandType(itype)
+PoissonNorm::PoissonNorm (Poisson& p, int integrandType, VecFunc* a) :
+  NormBase(p), anasol(a), integrdType(integrandType)
 {
   nrcmp = myProblem.getNoFields(2);
   projBou = true;
@@ -286,25 +359,33 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   Poisson& problem = static_cast<Poisson&>(myProblem);
   ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
 
-  // Evaluate the finite element heat flux field
-  Vector sigmah, sigma, error;
-  if (!problem.evalSol2(sigmah,pnorm.vec,fe,X))
-    return false;
+  // Evaluate the finite element and dual solution gradient fields
+  Vectors epsh(1+problem.numExtrFunction());
+  for (size_t i = 0; i < elmInt.vec.size() && i < epsh.size(); i++)
+    if (!elmInt.vec[i].empty())
+      if (!fe.dNdX.multiply(elmInt.vec[i],epsh[i],true))
+      {
+        std::cerr <<" *** PoissonNorm::evalInt: Invalid solution vector "
+                  << i+1 << std::endl;
+        return false;
+      }
 
   // Evaluate the temperature field
   double u = pnorm.vec.front().dot(fe.N);
   // Evaluate the heat source field
   double h = problem.getHeat(X);
-
+  // Evaluate the heat conductivity
+  double kappa = problem.getMaterial(X);
   // Evaluate the inverse conductivity scaled by the integration point weight
-  double cwInv = fe.detJxW / problem.getMaterial();
+  double cwInv = fe.detJxW / kappa;
 
   // Integrate the energy norm a(u^h,u^h)
-  pnorm[0] += sigmah.dot(sigmah)*cwInv;
+  pnorm[0] += kappa*epsh.front().dot(epsh.front())*fe.detJxW;
   // Integrate the external energy (h,u^h)
   if (problem.extEner)
     pnorm[1] += h*u*fe.detJxW;
 
+  Vector sigma, error;
   size_t ip = 2;
   if (anasol)
   {
@@ -313,9 +394,29 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
     // Integrate the energy norm a(u,u)
     pnorm[ip++] += sigma.dot(sigma)*cwInv;
     // Integrate the error in energy norm a(u-u^h,u-u^h)
-    error = sigma - sigmah;
+    error = sigma + kappa*epsh.front();
     pnorm[ip++] += error.dot(error)*cwInv;
   }
+
+  // Integrate the volume
+  pnorm[ip++] += fe.detJxW;
+
+  for (size_t j = 1; j < epsh.size(); j++)
+  {
+    // Evaluate the variational-consistent postprocessing quantity, a(u^h,w)
+    pnorm[ip++] -= kappa*epsh.front().dot(epsh[j])*fe.detJxW;
+    if (anasol) // Evaluate the corresponding exact quantity, a(u,w)
+      pnorm[ip++] += sigma.dot(epsh[j])*fe.detJxW;
+  }
+
+#if INT_DEBUG > 3
+  std::cout <<"\nPoissonNorm::evalInt(X = "<< X <<")";
+  if (anasol) std::cout <<"\nsigma ="<< sigma;
+  std::cout <<"epsh ="<< epsh.front();
+  for (size_t i = 1; i < epsh.size(); i++)
+    std::cout <<"epsz("<< i <<") ="<< epsh[i] <<"a(u^h,w"<< i
+              <<"): "<< pnorm[ip+2*(i-epsh.size())] << std::endl;
+#endif
 
   for (const Vector& psol : pnorm.psol)
     if (!psol.empty())
@@ -328,7 +429,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       // Integrate the energy norm a(u^r,u^r)
       pnorm[ip++] += sigmar.dot(sigmar)*cwInv;
       // Integrate the estimated error in energy norm a(u^r-u^h,u^r-u^h)
-      error = sigmar - sigmah;
+      error = sigmar + kappa*epsh.front();
       pnorm[ip++] += error.dot(error)*cwInv;
 
       // Evaluate the projected heat flux gradient.
@@ -352,12 +453,12 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
         ip += 2; // Make room for the local effectivity indices here
       }
     }
-    else if (integrandType & SECOND_DERIVATIVES)
+    else if (integrdType & SECOND_DERIVATIVES)
     {
       // Integrate the residual error in the FE solution
       double Res = h;
       for (size_t j = 1; j <= fe.N.size(); j++)
-        Res += fe.d2NdX2.trace(j)*pnorm.vec.front()(j);
+        Res += fe.d2NdX2.trace(j)*elmInt.vec.front()(j);
 
       pnorm[ip+1] += fe.h*fe.h*Res*Res*fe.detJxW;
       ip += anasol ? 6 : 3; // Dummy entries in order to get norm in right place
@@ -376,13 +477,13 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
   // Evaluate the surface heat flux
   double h = -problem.getFlux(X,normal);
   // Evaluate the temperature field
-  double u = pnorm.vec.front().dot(fe.N);
+  double u = elmInt.vec.front().dot(fe.N);
 
   // Integrate the external energy (h,u^h)
   if (problem.extEner)
     pnorm[1] += h*u*fe.detJxW;
 
-  size_t ip = anasol ? 6 : 4;
+  size_t ip = this->getNoFields(1) + 2;
   for (const Vector& psol : pnorm.psol)
     if (!psol.empty())
     {
@@ -397,7 +498,7 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
       pnorm[ip] += 0.5*fe.h*Jump*Jump*fe.detJxW;
       ip += anasol ? 6 : 3;
     }
-    else if (integrandType & SECOND_DERIVATIVES)
+    else if (integrdType & SECOND_DERIVATIVES)
       ip += anasol ? 6 : 3; // TODO: Add residual jump terms?
 
   return true;
@@ -412,10 +513,10 @@ bool PoissonNorm::finalizeElement (LocalIntegral& elmInt)
 
   // Evaluate local effectivity indices as a(e^r,e^r)/a(e,e)
   // with e^r = u^r - u^h  and  e = u - u^h
-  for (size_t ip = 9; ip < pnorm.size(); ip += 6)
+  for (size_t ip = this->getNoFields(1)+1; ip+4 < pnorm.size(); ip += 6)
   {
-    pnorm[ip-1] = pnorm[ip-4] / pnorm[3];
-    pnorm[ip] = (pnorm[ip-4]+pnorm[ip-3]) / pnorm[3];
+    pnorm[ip+3] =  pnorm[ip] / pnorm[3];
+    pnorm[ip+4] = (pnorm[ip]+pnorm[ip+1]) / pnorm[3];
   }
 
   return true;
@@ -428,30 +529,65 @@ size_t PoissonNorm::getNoFields (int group) const
     return this->NormBase::getNoFields();
   else if (group > 1)
     return anasol ? 6 : 3;
-  else
-    return anasol ? 4 : 2;
+
+  size_t nExt = static_cast<Poisson&>(myProblem).numExtrFunction();
+  return anasol ? 5 + 2*nExt : 3 + nExt;
 }
 
 
 std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
 {
-  if (i == 0 || j == 0 || j > 6)
+  size_t nx = i > 1 ? 1 : static_cast<Poisson&>(myProblem).numExtrFunction();
+  if (i == 1 && anasol) nx *= 2;
+
+  if (i == 0 || j == 0 || j > 5+nx)
     return this->NormBase::getName(i,j,prefix);
 
-  static const char* s[10] = {
+  static const char* s[15] = {
     "a(u^h,u^h)^0.5",
     "(h,u^h)^0.5",
     "a(u,u)^0.5",
     "a(e,e)^0.5, e=u-u^h",
+    "volume",
+    "a(u^h,w)",
+    "a(u,w)",
     "a(u^r,u^r)^0.5",
     "a(e,e)^0.5, e=u^r-u^h",
     "res(u^r)^0.5",
     "a(e,e)^0.5, e=u-u^r",
     "effectivity index^*",
-    "effectivity index^RES"
+    "effectivity index^RES",
+    "a(z^h,z^h)^0.5",
+    "(E(u)*E(z))^0.5, E(v)=a(e,e), e=v^r-v^h"
   };
 
-  size_t k = i > 1 ? j+3 : j-1;
+  size_t k = j + 6;
+  if (i == 1)
+  {
+    if (anasol)
+      nx /= 2;
+    else if (j > 2 && j < 4)
+      j += 2;
+    if (j > 5 && nx > 1)
+    {
+      j -= 5;
+      char comp[16];
+      if (!anasol)
+        sprintf(comp,"a(u^h,w%zu)",j);
+      else if (j%2)
+        sprintf(comp,"a(u^h,w%zu)",j/2+1);
+      else
+        sprintf(comp,"a(u,w%zu)",j/2);
+      return comp;
+    }
+    else if (j <= 2 && prefix)
+    {
+      if (!strncmp(prefix,"Dual",4))
+        return s[12+j];
+    }
+    else
+      k = j - 1;
+  }
 
   if (!prefix)
     return s[k];
@@ -463,4 +599,10 @@ std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
 bool PoissonNorm::hasElementContributions (size_t i, size_t j) const
 {
   return i > 1 || j != 2;
+}
+
+
+int PoissonNorm::getIntegrandType () const
+{
+  return integrdType | myProblem.getIntegrandType();
 }

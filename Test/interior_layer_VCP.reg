@@ -1,0 +1,79 @@
+interior_layer_adap.xinp
+
+Input file: interior_layer_adap.xinp
+Equation solver: 2
+Number of Gauss points: 4
+Parsing input file interior_layer_adap.xinp
+Parsing <geometry>
+  Parsing <raiseorder>
+  Parsing <refine>
+  Parsing <topologysets>
+	Topology sets: bottom_right (1,2,1D) (1,3,1D)
+	               top_left (1,1,1D) (1,4,1D)
+  Parsing <raiseorder>
+	Raising order of P1 2 2
+  Parsing <refine>
+	Refining P1 15 15
+  Parsing <topologysets>
+Parsing <boundaryconditions>
+  Parsing <neumann>
+	Neumann code 1000000 (analytic)
+  Parsing <dirichlet>
+	Dirichlet code 1: (analytic)
+Parsing <adaptive>
+Parsing <poisson>
+	Analytical solution: InteriorLayer, slope=60
+	Heat source function: InteriorLayer, slope=60
+  Parsing <dualfield>
+	patch  = 1
+	X0     = 0.5 0.5 0
+	eps    = 1e-05
+	comp   = 1
+  Parsing <dualfield>
+	patch  = 1
+	X0     = 0.5 0.5 0
+	eps    = 1e-05
+	comp   = 2
+Parsing <postprocessing>
+  Parsing <resultpoints>
+	Point 1: P1 xi = 0.5 0.5
+Parsing input file succeeded.
+Equation solver: 2
+Number of Gauss points: 4
+Resolving Dirichlet boundary conditions
+	Constraining P1 E1 in direction(s) 1 code = 1
+	Constraining P1 E4 in direction(s) 1 code = 1
+Result point #1: patch #1 (u,v)=(0.5,0.5), node #181, X = 0.5 0.5 0
+ >>> SAM model summary <<<
+Number of elements    256
+Number of nodes       361
+Number of dofs        361
+Number of constraints 37
+Number of unknowns    324
+Solving the Poisson problem
+Processing integrand associated with code 0
+Assembling interior matrix terms for P1
+Assembling Neumann matrix terms for boundary 2 on P1
+Assembling Neumann matrix terms for boundary 3 on P1
+Solving the equation system ...
+	Condition number: 408.576
+ >>> Solution summary <<<
+L2-norm            : 1.50744
+Max displacement   : 2.70399
+Processing integrand associated with code 0
+Assembling interior matrix terms for P1
+Energy norm           a(u^h,u^h)^0.5 : 9.48035
+External energy          (h,u^h)^0.5 : 9.48017
+Exact norm                a(u,u)^0.5 : 10.3681
+Exact error      a(e,e)^0.5, e=u-u^h : 4.04787
+Exact relative error (%) : 39.0415
+VCP quantity               a(u^h,w1) : 15.9095
+VCP quantity                 a(u,w1) : 15.9558
+VCP quantity               a(u^h,w2) : -15.9095
+VCP quantity                 a(u,w2) : -15.9558
+Vol(D1) : 0.015625
+Vol(D2) : 0.015625
+  Node #181:	sol1 =  6.445e-01
+		exact1  6.795e-01
+		sol2 =  2.381e+01 -2.381e+01
+		exact2  2.567e+01 -2.567e+01
