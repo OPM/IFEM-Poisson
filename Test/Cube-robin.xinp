@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry sets="true" Lx="2" Ly="2" Lz="2" X0="-1 -1 -1">
+    <raiseorder patch="1" u="1" v="1" w="1"/>
+    <refine patch="1" u="3" v="3" w="3"/>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <robin set="Face1" type="expression" direction="-1">1.0|-2.0</robin>
+    <robin set="Face2" type="expression">-2.0</robin>
+    <dirichlet set="Face3" comp="1" type="expression">1-x*x</dirichlet>
+    <robin set="Face4" comp="1" type="expression" direction="-1">1.0|1-x*x</robin>
+    <dirichlet set="Face5" comp="1" type="expression">1-x*x</dirichlet>
+    <robin set="Face6" comp="1" type="expression">1-x*x</robin>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">2.0</source>
+    <anasol type="expression">
+      <primary>1.0-x*x</primary>
+      <secondary>2*x | 0.0 | 0.0</secondary>
+    </anasol>
+  </poisson>
+
+  <discretization>
+    <nGauss>3</nGauss>
+  </discretization>
+
+</simulation>

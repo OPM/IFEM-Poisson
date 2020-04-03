@@ -34,6 +34,52 @@ class VecFunc;
 class Poisson : public IntegrandBase
 {
 public:
+  //! \brief Class representing the Robin boundary conditions.
+  class Robin : public IntegrandBase
+  {
+  public:
+    //! \brief Default constructor.
+    //! \param[in] n Number of spatial dimensions
+    //! \param[in] itg Main integrand instance
+    Robin(unsigned short int n, const Poisson& itg);
+    //! \brief Empty destructor.
+    virtual ~Robin() {}
+
+    //! \brief Returns that this integrand has no interior contributions.
+    bool hasInteriorTerms() const override { return false; }
+
+    using IntegrandBase::getLocalIntegral;
+    //! \brief Returns a local integral contribution object for given element.
+    //! \param[in] nen Number of nodes on element
+    //! \param[in] iEl Element number
+    LocalIntegral* getLocalIntegral(size_t nen, size_t iEl, bool) const override
+    {
+      return integrand.getLocalIntegral(nen, iEl, false);
+    }
+
+    using IntegrandBase::evalBou;
+    //! \brief Evaluates the integrand at a boundary point.
+    //! \param elmInt The local integral object to receive the contributions
+    //! \param[in] fe Finite element data of current integration point
+    //! \param[in] X Cartesian coordinates of current integration point
+    //! \param[in] normal Boundary normal vector at current integration point
+    bool evalBou(LocalIntegral& elmInt, const FiniteElement& fe,
+                 const Vec3& X, const Vec3& normal) const override;
+
+    //! \brief Set coefficient and constant.
+    //! \param f The coefficient function
+    void setAlpha(const VecFunc* f) { alpha = f; g = nullptr; }
+
+    //! \brief Set flux.
+    //! \param f The flux function
+    void setFlux(const RealFunc* f) { alpha = nullptr; g = f; }
+
+  protected:
+    const VecFunc* alpha = nullptr; //!< Coefficient - alpha(1) * u + du/dn = alpha(2)
+    const RealFunc* g = nullptr; //!< Coefficient - u + du/dn = g
+    const Poisson& integrand; //!< Main integrand instance
+  };
+
   //! \brief The default constructor initializes all pointers to zero.
   //! \param[in] n Number of spatial dimensions
   explicit Poisson(unsigned short int n = 3);
