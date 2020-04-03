@@ -39,7 +39,9 @@ public:
   //! \brief Default constructor.
   explicit SIMPoisson(bool checkRHS = false, bool ds = false)
     : SIMMultiPatchModelGen<Dim>(1,checkRHS),
-      prob(Dim::dimension), solution(&mySolVec)
+      prob(Dim::dimension),
+      robinBC(Dim::dimension, prob),
+      solution(&mySolVec)
   {
     Dim::myProblem = &prob;
     aCode[0] = aCode[1] = 0;
@@ -371,6 +373,8 @@ protected:
     myProj.resize(Dim::opt.project.size());
     if (!Dim::mySol) return;
 
+    Dim::myInts.insert(std::make_pair(0,Dim::myProblem));
+
     // Define analytical boundary condition fields
     PropertyVec::iterator p;
     for (p = Dim::myProps.begin(); p != Dim::myProps.end(); ++p)
@@ -403,7 +407,9 @@ protected:
         }
         else
           p->pcode = Property::UNDEFINED;
-      }
+      } else if (p->pcode == Property::ROBIN)
+        if (Dim::myInts.find(p->pindx) == Dim::myInts.end())
+          Dim::myInts.insert(std::make_pair(p->pindx,&robinBC));
   }
 
   //! \brief Performs some pre-processing tasks on the FE model.
@@ -512,11 +518,13 @@ protected:
     typename Dim::SclFuncMap::const_iterator sit = Dim::myScalars.find(propInd);
     typename Dim::VecFuncMap::const_iterator vit = Dim::myVectors.find(propInd);
 
-    if (sit != Dim::myScalars.end())
+    if (sit != Dim::myScalars.end()) {
       prob.setTraction(sit->second);
-    else if (vit != Dim::myVectors.end())
+      robinBC.setFlux(sit->second);
+    } else if (vit != Dim::myVectors.end()) {
       prob.setTraction(vit->second);
-    else
+      robinBC.setAlpha(vit->second);
+    } else
       return false;
 
     return true;
@@ -536,6 +544,7 @@ protected:
 
 private:
   Poisson   prob;     //!< Data and methods for the Poisson problem
+  Poisson::Robin robinBC; //!< Integrand for Robin conditions
   RealArray mVec;     //!< Material data
   int       aCode[2]; //!< Analytical BC code (used by destructor)
 

@@ -606,3 +606,26 @@ int PoissonNorm::getIntegrandType () const
 {
   return integrdType | myProblem.getIntegrandType();
 }
+
+
+Poisson::Robin::Robin(unsigned short int n, const Poisson& itg) :
+  IntegrandBase(n),
+  integrand(itg)
+{
+}
+
+
+bool Poisson::Robin::evalBou(LocalIntegral& elmInt, const FiniteElement& fe,
+                             const Vec3& X, const Vec3& normal) const
+{
+  ElmMats& elMat = static_cast<ElmMats&>(elmInt);
+
+  Vec3 ax = alpha ? (*alpha)(X) : Vec3(1.0, 1.0, 1.0);
+  if (g)
+    ax[1] = (*g)(X);
+
+  elMat.A[0].outer_product(fe.N, fe.N, true, fe.detJxW * ax[0]); // mass
+  elMat.b[0].add(fe.N, fe.detJxW * ax[1]); // source
+
+  return true;
+}
