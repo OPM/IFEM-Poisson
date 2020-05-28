@@ -1,0 +1,13 @@
+Cube-mat.xinp
+
+Input file: Cube-mat.xinp
+	Material code 0: property
+	Heat source function: 1.0
+Number of elements    512
+Number of nodes       1000
+Number of dofs        1000
+Number of unknowns    512
+L2-norm            : 0.00172351
+Max displacement   : 0.00567473
+Energy norm           a(u^h,u^h)^0.5 : 0.0416256
+External energy          (h,u^h)^0.5 : 0.0416256

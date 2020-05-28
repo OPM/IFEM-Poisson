@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="3" sets="true">
+    <raiseorder patch="1" u="1" v="1" w="1"/>
+    <refine type="uniform" patch="1" u="7" v="7" w="7"/>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <propertymaterial>
+      <property file="Cube_mat.hdf5" name="kappa"/>
+    </propertymaterial>
+    <source type="expression">1.0</source>
+  </poisson>
+
+</simulation>
