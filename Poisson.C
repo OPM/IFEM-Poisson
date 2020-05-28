@@ -181,7 +181,7 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   ElmMats& elMat = static_cast<ElmMats&>(elmInt);
 
   // Conductivity scaled by integration point weight at this point
-  double cw = kappa*fe.detJxW;
+  double cw = this->getMaterial(X)*fe.detJxW;
 
   if (!elMat.A.empty())
     // Integrate the coefficient matrix // EK += kappa * dNdX * dNdX^T * |J|*w
@@ -292,7 +292,7 @@ bool Poisson::evalSol2 (Vector& q, const Vectors& eV,
     return false;
   }
 
-  q *= -kappa;
+  q *= -this->getMaterial(X);
   return true;
 }
 
