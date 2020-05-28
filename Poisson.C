@@ -322,6 +322,12 @@ std::string Poisson::getField2Name (size_t i, const char* prefix) const
 }
 
 
+double Poisson::getMaterial(const Vec3& X) const
+{
+  return kappaF ? (*kappaF)(X) : kappa;
+}
+
+
 /*!
   \note The Integrand object is allocated dynamically and has to be deleted
   manually when leaving the scope of the pointer variable receiving the

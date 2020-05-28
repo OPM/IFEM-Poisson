@@ -18,6 +18,7 @@
 #include "GlobalIntegral.h"
 #include "Vec3.h"
 
+
 class RealFunc;
 class VecFunc;
 
@@ -104,8 +105,10 @@ public:
 
   //! \brief Defines the conductivity.
   void setMaterial(double K) { kappa = K; }
+  //! \brief Defines the conductivity.
+  void setMaterial(RealFunc* K) { kappaF = K; }
   //! \brief Evaluates the conductivity at specified point.
-  double getMaterial(const Vec3& = Vec3()) const { return kappa; }
+  double getMaterial(const Vec3& = Vec3()) const;
 
   //! \brief Returns the number of Galerkin projections.
   size_t getNoGalerkin() const { return galerkin.size(); }
@@ -216,6 +219,7 @@ public:
 private:
   // Physical properties (constant)
   double kappa; //!< Conductivity
+  const RealFunc* kappaF = nullptr; //!< Conductivity as a function
 
   VecFunc*  tracFld; //!< Pointer to boundary traction field
   RealFunc* fluxFld; //!< Pointer to boundary normal flux field

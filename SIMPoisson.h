@@ -20,6 +20,7 @@
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
+#include "TextureProperties.h"
 #include "ASMbase.h"
 #include "AnaSol.h"
 #include "Utilities.h"
@@ -27,6 +28,7 @@
 #include "IFEM.h"
 #include "tinyxml.h"
 #include <fstream>
+#include <memory>
 
 
 /*!
@@ -243,6 +245,11 @@ public:
     if (!this->writeGlvS(mySolVec,1,nBlock))
       return false;
 
+    size_t pos = 0;
+    for (const Kappa& f : mVec)
+      if (f.func && !this->writeGlvF(*f.func, ("kappa" + std::to_string(++pos)).c_str(), 1, nBlock))
+        return false;
+
     // Write projected solution fields to VTF-file
     size_t i = 0;
     int iBlk = 100, iGrad = -1;
@@ -443,7 +450,7 @@ protected:
           prob.setMaterial(kappa);
         else
           this->setPropertyType(code,Property::MATERIAL,mVec.size());
-        mVec.push_back(kappa);
+        mVec.push_back(Kappa{kappa, nullptr});
         std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
       }
     }
@@ -472,12 +479,24 @@ protected:
 
       else if (!strcasecmp(child->Value(),"isotropic")) {
         int code = this->parseMaterialSet(child,mVec.size());
-        double kappa = 1000.0;
-        utl::getAttribute(child,"kappa",kappa);
+        Kappa kappa{1000.0, nullptr};
+        utl::getAttribute(child,"kappa",kappa.constant);
         if (code == 0)
-          prob.setMaterial(kappa);
+          prob.setMaterial(kappa.constant);
         mVec.push_back(kappa);
-        std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
+        std::cout <<"\tMaterial code "<< code <<": "<< kappa.constant << std::endl;
+      }
+      else if (!strcasecmp(child->Value(),"propertymaterial")) {
+        int code = this->parseMaterialSet(child,mVec.size());
+        tprops.parse(child);
+        if (tprops.hasProperty("kappa")) {
+          Kappa kappa;
+          kappa.func.reset(new PropertyFunc("kappa", tprops));
+          mVec.push_back(kappa);
+          if (code == 0)
+            prob.setMaterial(mVec.back().func.get());
+          std::cout <<"\tMaterial code "<< code <<": property"<< std::endl;
+        }
       }
 
       else if (!strcasecmp(child->Value(),"reactions"))
@@ -507,7 +526,11 @@ protected:
   {
     if (propInd >= mVec.size()) return false;
 
-    prob.setMaterial(mVec[propInd]);
+    if (mVec[propInd].func)
+      prob.setMaterial(mVec[propInd].func.get());
+    else
+      prob.setMaterial(mVec[propInd].constant);
+
     return true;
   }
 
@@ -545,8 +568,16 @@ protected:
 private:
   Poisson   prob;     //!< Data and methods for the Poisson problem
   Poisson::Robin robinBC; //!< Integrand for Robin conditions
-  RealArray mVec;     //!< Material data
+
+  //! \brief Struct with either a constant or a function value for kappa.
+  struct Kappa {
+    double constant; //!< Constant value
+    std::shared_ptr<RealFunc> func; //!< Function value
+  };
+
+  std::vector<Kappa> mVec; //!< Kappa properties
   int       aCode[2]; //!< Analytical BC code (used by destructor)
+  TextureProperties tprops; //!< Texture property (for kappa)
 
   Vector    myLoad;   //!< External load vector (for VTF export)
   Vector    mySolVec; //!< Primary solution vector
