@@ -108,7 +108,7 @@ int runSimulator(char* infile, const PoissonArgs& arg)
     model.setASCIIfile(infile);
 
   if (model.opt.dumpHDF5(infile))
-    solver.handleDataOutput(model.opt.hdf5);
+    solver.handleDataOutput(model.opt.hdf5,model.getProcessAdm());
 
   return solver.solveProblem(infile,"Solving the Poisson problem");
 }
