@@ -277,8 +277,7 @@ bool Poisson::writeGlvT (VTF* vtf, int iStep, int& geoBlk, int& nBlock) const
     return false;
 
   // Write boundary heat flux as discrete point vectors to the VTF-file
-  static int partID = 1+geoBlk;
-  return vtf->writeVectors(fluxVal,partID,geoBlk,++nBlock,"Heat flux",iStep);
+  return vtf->writeVectors(fluxVal,geoBlk,++nBlock,"Heat flux",iStep);
 }
 
 
@@ -322,7 +321,7 @@ std::string Poisson::getField2Name (size_t i, const char* prefix) const
 }
 
 
-double Poisson::getMaterial(const Vec3& X) const
+double Poisson::getMaterial (const Vec3& X) const
 {
   return kappaF ? (*kappaF)(X) : kappa;
 }
@@ -614,24 +613,22 @@ int PoissonNorm::getIntegrandType () const
 }
 
 
-Poisson::Robin::Robin(unsigned short int n, const Poisson& itg) :
-  IntegrandBase(n),
-  integrand(itg)
+Poisson::Robin::Robin (unsigned short int n, const Poisson& itg) :
+  IntegrandBase(n), integrand(itg)
 {
 }
 
 
-bool Poisson::Robin::evalBou(LocalIntegral& elmInt, const FiniteElement& fe,
-                             const Vec3& X, const Vec3& normal) const
+bool Poisson::Robin::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
+                              const Vec3& X, const Vec3& normal) const
 {
   ElmMats& elMat = static_cast<ElmMats&>(elmInt);
 
   Vec3 ax = alpha ? (*alpha)(X) : Vec3(1.0, 1.0, 1.0);
-  if (g)
-    ax[1] = (*g)(X);
+  if (g) ax.y = (*g)(X);
 
-  elMat.A[0].outer_product(fe.N, fe.N, true, fe.detJxW * ax[0]); // mass
-  elMat.b[0].add(fe.N, fe.detJxW * ax[1]); // source
+  elMat.A.front().outer_product(fe.N, fe.N, true, fe.detJxW * ax.x); // mass
+  elMat.b.front().add(fe.N, fe.detJxW * ax.y); // source
 
   return true;
 }
