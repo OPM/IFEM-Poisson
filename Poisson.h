@@ -18,7 +18,7 @@
 #include "GlobalIntegral.h"
 #include "Vec3.h"
 
-
+class FunctionBase;
 class RealFunc;
 class VecFunc;
 
@@ -39,7 +39,7 @@ public:
   class Robin : public IntegrandBase
   {
   public:
-    //! \brief Default constructor.
+    //! \brief The constructor forwards to the parent class constructor.
     //! \param[in] n Number of spatial dimensions
     //! \param[in] itg Main integrand instance
     Robin(unsigned short int n, const Poisson& itg);
@@ -67,12 +67,9 @@ public:
     bool evalBou(LocalIntegral& elmInt, const FiniteElement& fe,
                  const Vec3& X, const Vec3& normal) const override;
 
-    //! \brief Set coefficient and constant.
-    //! \param f The coefficient function
+    //! \brief Sets the coefficient function \a alpha to \a f.
     void setAlpha(const VecFunc* f) { alpha = f; g = nullptr; }
-
-    //! \brief Set flux.
-    //! \param f The flux function
+    //! \brief Sets the flux function \a g to \a f.
     void setFlux(const RealFunc* f) { alpha = nullptr; g = f; }
 
   protected:
@@ -217,8 +214,8 @@ public:
   }
 
 private:
-  // Physical properties (constant)
-  double kappa; //!< Conductivity
+  // Physical properties
+  double kappa; //!< Conductivity (constant)
   const RealFunc* kappaF = nullptr; //!< Conductivity as a function
 
   VecFunc*  tracFld; //!< Pointer to boundary traction field
