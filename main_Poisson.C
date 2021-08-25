@@ -15,6 +15,9 @@
 #include "SIMPoisson.h"
 #include "SIMargsBase.h"
 #include "SIMSolverAdap.h"
+#include "SIM1D.h"
+#include "SIM2D.h"
+#include "SIM3D.h"
 #include "Utilities.h"
 #include "Profiler.h"
 
