@@ -12,11 +12,13 @@
 
 #include "SIMPoisson.h"
 
+#include "SIM2D.h"
+
 #include "gtest/gtest.h"
 
 TEST(TestSIMPoisson, Parse)
 {
-  SIMPoisson2D sim;
+  SIMPoisson<SIM2D> sim;
   EXPECT_TRUE(sim.read("Square.xinp"));
 
   const Poisson& poisson = static_cast<const Poisson&>(*sim.getProblem());

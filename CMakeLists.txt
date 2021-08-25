@@ -16,9 +16,10 @@ endif()
 
 set(Poisson_SRCS Poisson.C
                  PoissonSolutions.C
-                 SIMPoisson1D.C
-                 SIMPoisson2D.C
-                 SIMPoisson3D.C)
+                 SIMPoisson.C
+                 Poisson.h
+                 PoissonSolutions.h
+                 SIMPoisson.h)
 
 include_directories(${IFEM_INCLUDES} ../Common ${PROJECT_SOURCE_DIR})
 
