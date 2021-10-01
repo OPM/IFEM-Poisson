@@ -361,7 +361,7 @@ PoissonNorm::PoissonNorm (Poisson& p, int integrandType, VecFunc* a) :
 bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 			   const Vec3& X) const
 {
-  Poisson& problem = static_cast<Poisson&>(myProblem);
+  const Poisson& problem = static_cast<const Poisson&>(myProblem);
   ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
 
   // Evaluate the finite element and dual solution gradient fields
@@ -476,7 +476,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
 			   const Vec3& X, const Vec3& normal) const
 {
-  Poisson& problem = static_cast<Poisson&>(myProblem);
+  const Poisson& problem = static_cast<const Poisson&>(myProblem);
   ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
 
   // Evaluate the surface heat flux
