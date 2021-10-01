@@ -27,11 +27,11 @@ public:
   //! \brief Empty constructor.
   explicit Square2D(double = 1.0) {}
   //! \brief Empty destructor.
-  virtual ~Square2D() {}
+  ~Square2D() override {}
 
 protected:
   //! \brief Evaluates the analytic flux vector at the point \a X.
-  virtual Vec3 evaluate(const Vec3& X) const;
+  Vec3 evaluate(const Vec3& X) const override;
 };
 
 
@@ -45,11 +45,11 @@ public:
   //! \brief Empty constructor.
   explicit Square2DHeat(double = 1.0) {}
   //! \brief Empty destructor.
-  virtual ~Square2DHeat() {}
+  ~Square2DHeat() override {}
 
 protected:
   //! \brief Evaluates the heat field at the point \a X.
-  virtual double evaluate(const Vec3& X) const;
+  double evaluate(const Vec3& X) const override;
 };
 
 
@@ -63,11 +63,11 @@ public:
   //! \brief Empty constructor.
   LshapePoisson() {}
   //! \brief Empty destructor.
-  virtual ~LshapePoisson() {}
+  ~LshapePoisson() override {}
 
 protected:
   //! \brief Evaluates the analytic flux vector at the point \a X.
-  virtual Vec3 evaluate(const Vec3& X) const;
+  Vec3 evaluate(const Vec3& X) const override;
 };
 
 
@@ -81,11 +81,11 @@ public:
   //! \brief Empty constructor.
   SquareSinus() {}
   //! \brief Empty destructor.
-  virtual ~SquareSinus() {}
+  ~SquareSinus() override {}
 
 protected:
   //! \brief Evaluates the analytic flux vector at the point \a X.
-  virtual Vec3 evaluate(const Vec3& X) const;
+  Vec3 evaluate(const Vec3& X) const override;
 };
 
 
@@ -99,11 +99,11 @@ public:
   //! \brief Empty constructor.
   SquareSinusSource() {}
   //! \brief Empty destructor.
-  virtual ~SquareSinusSource() {}
+  ~SquareSinusSource() override {}
 
 protected:
   //! \brief Evaluates the heat field at the point \a X.
-  virtual double evaluate(const Vec3& X) const;
+  double evaluate(const Vec3& X) const override;
 };
 
 
@@ -117,11 +117,11 @@ public:
   //! \brief Default constructor.
   explicit PoissonInteriorLayer(double s = 60.0) : SLOPE(s) {}
   //! \brief Empty destructor.
-  virtual ~PoissonInteriorLayer() {}
+  ~PoissonInteriorLayer() override {}
 
 protected:
   //! \brief Evaluates the heat flux at the point \a X.
-  virtual Vec3 evaluate(const Vec3& X) const;
+  Vec3 evaluate(const Vec3& X) const override;
 
 private:
   double SLOPE; //!< layer SLOPE (large value gives problems in adaptive solver)
@@ -138,11 +138,11 @@ public:
   //! \brief Default constructor.
   explicit PoissonInteriorLayerSol(double s = 60.0) : SLOPE(s) {}
   //! \brief Empty destructor.
-  virtual ~PoissonInteriorLayerSol() {}
+  ~PoissonInteriorLayerSol() override {}
 
 protected:
   //! \brief Evaluates the exact temperature distribution at the point \a X.
-  virtual double evaluate(const Vec3& X) const;
+  double evaluate(const Vec3& X) const override;
 
 private:
   double SLOPE; //!< layer SLOPE
@@ -159,15 +159,16 @@ public:
   //! \brief Default constructor.
   explicit PoissonInteriorLayerSource(double s = 60.0) : SLOPE(s) {}
   //! \brief Empty destructor.
-  virtual ~PoissonInteriorLayerSource() {}
+  ~PoissonInteriorLayerSource() override {}
 
 protected:
   //! \brief Evaluates the heat field at the point \a X.
-  virtual double evaluate(const Vec3& X) const;
+  double evaluate(const Vec3& X) const override;
 
 private:
   double SLOPE; //!< layer SLOPE
 };
+
 
 /*!
   \brief Poisson 3D problem with smooth sharp solution and a steep interior layer.
@@ -179,11 +180,11 @@ public:
   //! \brief Default constructor.
   explicit PoissonWaterfall(double eps = 0.002) : epsilon(eps) {}
   //! \brief Empty destructor.
-  virtual ~PoissonWaterfall() {}
+  ~PoissonWaterfall() override {}
 
 protected:
   //! \brief Evaluates the heat flux at the point \a X.
-  virtual Vec3 evaluate(const Vec3& X) const;
+  Vec3 evaluate(const Vec3& X) const override;
 
 private:
   double epsilon; //!< layer epsilon (waterfall width approx sqrt(5eps) )
@@ -200,11 +201,11 @@ public:
   //! \brief Default constructor.
   explicit PoissonWaterfallSol(double eps = 0.002) : epsilon(eps) {}
   //! \brief Empty destructor.
-  virtual ~PoissonWaterfallSol() {}
+  ~PoissonWaterfallSol() override {}
 
 protected:
   //! \brief Evaluates the exact temperature distribution at the point \a X.
-  virtual double evaluate(const Vec3& X) const;
+  double evaluate(const Vec3& X) const override;
 
 private:
   double epsilon; //!< layer epsilon (waterfall width approx sqrt(5eps) )
@@ -221,11 +222,11 @@ public:
   //! \brief Default constructor.
   explicit PoissonWaterfallSource(double eps = 0.002) : epsilon(eps) {}
   //! \brief Empty destructor.
-  virtual ~PoissonWaterfallSource() {}
+  ~PoissonWaterfallSource() override {}
 
 protected:
   //! \brief Evaluates the heat field at the point \a X.
-  virtual double evaluate(const Vec3& X) const;
+  double evaluate(const Vec3& X) const override;
 
 private:
   double epsilon; //!< layer epsilon (waterfall width approx sqrt(5eps) )
@@ -242,11 +243,11 @@ public:
   //! \brief Empty Constructor.
   PoissonCube() {}
   //! \brief Empty destructor.
-  virtual ~PoissonCube() {}
+  ~PoissonCube() override {}
 
 protected:
   //! \brief Evaluates the analytic flux vector at the point \a X.
-  virtual Vec3 evaluate(const Vec3& X) const;
+  Vec3 evaluate(const Vec3& X) const override;
 };
 
 
@@ -260,11 +261,11 @@ public:
   //! \brief Empty constructor.
   PoissonCubeSource() {}
   //! \brief Empty destructor.
-  virtual ~PoissonCubeSource() {}
+  ~PoissonCubeSource() override {}
 
 protected:
   //! \brief Evaluates the heat field at the point \a X.
-  virtual double evaluate(const Vec3& X) const;
+  double evaluate(const Vec3& X) const override;
 };
 
 
@@ -278,11 +279,11 @@ public:
   //! \brief Default constructor.
   explicit PoissonLine(double r = 1.0) : L(r) {}
   //! \brief Empty destructor.
-  virtual ~PoissonLine() {}
+  ~PoissonLine() override {}
 
 protected:
   //! \brief Evaluates the analytic flux vector at the point \a X.
-  virtual Vec3 evaluate(const Vec3& X) const;
+  Vec3 evaluate(const Vec3& X) const override;
 
 private:
   double L; //!< Length parameter
@@ -299,11 +300,11 @@ public:
   //! \brief Default constructor.
   explicit PoissonLineSource(double r = 1.0) : L(r) {}
   //! \brief Empty destructor.
-  virtual ~PoissonLineSource() {}
+  ~PoissonLineSource() override {}
 
 protected:
   //! \brief Evaluates the heat field at the point \a X.
-  virtual double evaluate(const Vec3& X) const;
+  double evaluate(const Vec3& X) const override;
 
 private:
   double L; //!< Length parameter
