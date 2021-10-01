@@ -624,7 +624,6 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (const TiXmlElement* child)
   }
 
   else if (!strcasecmp(child->Value(),"anasol")) {
-    int code = 0;
     std::string type;
     utl::getAttribute(child,"type",type,true);
     if (type == "line") {
@@ -645,7 +644,8 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (const TiXmlElement* child)
                 << type <<" (ignored)"<< std::endl;
 
     // Define the analytical boundary traction field
-    if (code == 0 && utl::getAttribute(child,"code",code))
+    int code;
+    if (utl::getAttribute(child,"code",code))
       if (code > 0 && mySol && mySol->getScalarSecSol())
       {
         this->setPropertyType(code,Property::NEUMANN);
