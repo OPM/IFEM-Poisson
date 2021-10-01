@@ -314,12 +314,19 @@ template<class Dim>
 void SIMPoisson<Dim>::printNormGroup (const Vector& gNorm, const Vector& fNorm,
                                       const std::string& name) const
 {
+  IFEM::cout <<"\n>>> Error estimates based on "<< name <<" <<<";
+
+  if (name == "Pure residuals") {
+    IFEM::cout <<"\nResidual norm |u|_res = |f+nabla^2 u|: "<< gNorm(2);
+    if (!this->haveAnaSol()) {
+      IFEM::cout << std::endl;
+      return;
+    }
+  }
+
   double Rel = 100.0/(this->haveAnaSol() ? fNorm(3) : gNorm(1));
   const char* uRef = this->haveAnaSol() ? "|u|)  " : "|u^r|)";
-  IFEM::cout <<"\n>>> Error estimates based on "<< name <<" <<<";
-  if (name == "Pure residuals")
-    IFEM::cout <<"\nResidual norm |u|_res = |f+nabla^2 u|: "<< gNorm(2);
-  else
+  if (name != "Pure residuals")
     IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm(1)
                <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(2)
                <<"\n- relative error (% of "<< uRef <<" : "<< gNorm(2)*Rel
