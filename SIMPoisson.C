@@ -314,23 +314,27 @@ template<class Dim>
 void SIMPoisson<Dim>::printNormGroup (const Vector& gNorm, const Vector& fNorm,
                                       const std::string& name) const
 {
-  double Rel = 100.0/(this->haveAnaSol() ? fNorm(3) : gNorm(1));
-  const char* uRef = this->haveAnaSol() ? "|u|)  " : "|u^r|)";
   IFEM::cout <<"\n>>> Error estimates based on "<< name <<" <<<";
+
   if (name == "Pure residuals")
     IFEM::cout <<"\nResidual norm |u|_res = |f+nabla^2 u|: "<< gNorm(2);
-  else
+  else {
+    const char* uRef = this->haveAnaSol() ? "|u|)  " : "|u^r|)";
+    double Rel = 100.0/(this->haveAnaSol() ? fNorm(3) : gNorm(1));
     IFEM::cout <<"\nEnergy norm |u^r| = a(u^r,u^r)^0.5   : "<< gNorm(1)
                <<"\nError norm a(e,e)^0.5, e=u^r-u^h     : "<< gNorm(2)
                <<"\n- relative error (% of "<< uRef <<" : "<< gNorm(2)*Rel
                <<"\nResidual error (r(u^r) + J(u^r))^0.5 : "<< gNorm(3)
                <<"\n- relative error (% of "<< uRef <<" : "<< gNorm(3)*Rel;
+  }
 
   if (this->haveAnaSol())
   {
-    if (gNorm.size() > 3 && name != "Pure residuals")
+    if (gNorm.size() > 3 && name != "Pure residuals") {
+      double Rel = 100.0 / fNorm(3);
       IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(4)
                  <<"\n- relative error (% of |u|)   : "<< gNorm(4)*Rel;
+    }
     if (fNorm.size() > 3 && gNorm.size() > 3)
       IFEM::cout <<"\nEffectivity index, theta^*           : "
                  << gNorm(2)/fNorm(4)
