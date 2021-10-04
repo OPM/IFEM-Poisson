@@ -81,14 +81,13 @@ public:
   //! \param[in] printSol Print solution if its size is less than \a printSol
   //! \param[out] rCond Reciprocal condition number
   //! \param[in] compName Solution name to be used in norm output
-  //! \param[in] newLHS If \e false, reuse the LHS-matrix from previous call
   //! \param[in] idxRHS Index to the right-hand-side vector to solve for
   //!
-  //! This overloaded version also computes the reaction forces along a given
-  //! boundary. This requires an additional assembly loop calculating the
-  //! internal forces only, since we only are doing a linear solve here.
+  //! \details This overloaded version also computes the reaction forces along
+  //! a given boundary. This requires an additional assembly loop calculating
+  //! the internal forces only, since we only are doing a linear solve here.
   bool solveSystem(Vector& solution, int printSol, double* rCond,
-                   const char* compName, bool newLHS, size_t idxRHS) override;
+                   const char* compName, size_t idxRHS) override;
 
   //! \brief Returns current reaction force vector.
   const Vector* getReactionForces() const override

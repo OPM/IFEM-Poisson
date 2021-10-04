@@ -290,9 +290,9 @@ bool SIMPoisson<Dim>::saveStep (TimeStep&, int& nBlock)
 template<class Dim>
 bool SIMPoisson<Dim>::solveSystem (Vector& solution, int printSol,
                                    double* rCond, const char* compName,
-                                   bool newLHS, size_t idxRHS)
+                                   size_t idxRHS)
 {
-  if (!this->Dim::solveSystem(solution,printSol,rCond,compName,newLHS,idxRHS))
+  if (!this->Dim::solveSystem(solution,printSol,rCond,compName,idxRHS))
     return false;
   else if (idxRHS > 0 || !this->haveReactions() || prob.extEner != 'R')
     return true;
