@@ -12,15 +12,26 @@
 //==============================================================================
 
 #include "Poisson.h"
-#include "FiniteElement.h"
+
+#include "AnaSol.h"
 #include "ElmMats.h"
 #include "ElmNorm.h"
-#include "AnaSol.h"
-#include "Tensor.h"
-#include "Vec3Oper.h"
 #include "ExprFunctions.h"
+#include "Function.h"
+#include "FiniteElement.h"
+#include "LocalIntegral.h"
+#include "Vec3Oper.h"
 #include "VTF.h"
+
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <ext/alloc_traits.h>
+#include <iostream>
+#include <memory>
+#include <strings.h>
 #include "tinyxml.h"
+#include <utility>
 
 
 Poisson::Poisson (unsigned short int n) : IntegrandBase(n)

@@ -15,6 +15,7 @@
 #define _POISSON_SOLUTIONS_H
 
 #include "Function.h"
+#include "Vec3.h"
 
 
 /*!
