@@ -14,6 +14,8 @@
 #include "PoissonSolutions.h"
 #include "Vec3.h"
 
+#include <cmath>
+
 
 Vec3 Square2D::evaluate (const Vec3& X) const
 {

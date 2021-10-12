@@ -15,13 +15,19 @@
 #include "PoissonSolutions.h"
 
 #include "AnaSol.h"
+#include "ASMbase.h"
 #include "DataExporter.h"
 #include "ExprFunctions.h"
 #include "IFEM.h"
+#include "LogStream.h"
+#include "Property.h"
 #include "ReactionsOnly.h"
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
+#include "SIMdependency.h"
+#include "SIMenums.h"
+#include "SIMoptions.h"
 #include "Utilities.h"
 
 #ifdef HAS_LRSPLINE
@@ -29,8 +35,20 @@
 #include "Profiler.h"
 #endif
 
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
+#include <ext/alloc_traits.h>
 #include <fstream>
+#include <iostream>
+#include <strings.h>
 #include "tinyxml.h"
+#include <utility>
+
+
+class AlgEqSystem;
+class RealFunc;
+class VecFunc;
 
 
 template<class Dim>

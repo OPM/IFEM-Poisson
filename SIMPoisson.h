@@ -14,14 +14,23 @@
 #ifndef _SIM_POISSON_H
 #define _SIM_POISSON_H
 
+#include "Poisson.h"
+
 #include "SIMMultiPatchModelGen.h"
 #include "SIMbase.h"
-#include "Poisson.h"
 #include "TextureProperties.h"
+
+#include <cstddef>
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
 
 
 class DataExporter;
+class RealFunc;
 class TimeStep;
+class TiXmlElement;
 
 
 /*!

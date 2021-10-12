@@ -11,15 +11,27 @@
 //!
 //==============================================================================
 
-#include "IFEM.h"
 #include "SIMPoisson.h"
-#include "SIMargsBase.h"
-#include "SIMSolverAdap.h"
+
+#include "ASMenums.h"
+#include "IFEM.h"
+#include "LogStream.h"
+#include "Profiler.h"
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
+#include "SIMargsBase.h"
+#include "SIMbase.h"
+#include "SIMoptions.h"
+#include "SIMSolver.h"
+#include "SIMSolverAdap.h"
 #include "Utilities.h"
-#include "Profiler.h"
+
+#include <cctype>
+#include <cstring>
+#include <iostream>
+#include <string>
+#include <vector>
 
 
 /*!

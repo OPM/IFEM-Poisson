@@ -14,13 +14,25 @@
 #ifndef _POISSON_H
 #define _POISSON_H
 
-#include "IntegrandBase.h"
 #include "GlobalIntegral.h"
+#include "Integrand.h"
+#include "IntegrandBase.h"
+#include "MatVec.h"
+#include "LinAlgenums.h"
+#include "SIMenums.h"
 #include "Vec3.h"
 
+#include <string>
+#include <vector>
+
+
+class AnaSol;
+class FiniteElement;
 class FunctionBase;
+class LocalIntegral;
 class RealFunc;
 class VecFunc;
+class VTF;
 
 
 /*!

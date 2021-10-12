@@ -10,11 +10,17 @@
 //!
 //==============================================================================
 
+#include "Poisson.h"
 #include "SIMPoisson.h"
 
 #include "SIM2D.h"
+#include "Vec3.h"
+
+#include <cmath>
+#include <string>
 
 #include "gtest/gtest.h"
+
 
 TEST(TestSIMPoisson, Parse)
 {
