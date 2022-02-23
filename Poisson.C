@@ -19,10 +19,11 @@
 #include "ExprFunctions.h"
 #include "Function.h"
 #include "FiniteElement.h"
-#include "LocalIntegral.h"
+#include "GlobalIntegral.h"
 #include "Vec3Oper.h"
 #include "VTF.h"
 
+// TODO: Are all these really necessary??
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -36,11 +37,9 @@
 
 Poisson::Poisson (unsigned short int n) : IntegrandBase(n)
 {
-  kappa = 1.0;
-
+  kappaC  = 1.0;
+  fluxFld = heatSrc = kappaF = nullptr;
   tracFld = nullptr;
-  fluxFld = nullptr;
-  heatSrc = nullptr;
   reacInt = nullptr;
   dualRHS = nullptr;
   extEner = false;
@@ -140,6 +139,13 @@ bool Poisson::initElement (const std::vector<int>& MNPC,
   }
 
   return true;
+}
+
+
+void Poisson::setReactionIntegral (GlobalIntegral* gq)
+{
+  delete reacInt;
+  reacInt = gq;
 }
 
 
@@ -334,7 +340,7 @@ std::string Poisson::getField2Name (size_t i, const char* prefix) const
 
 double Poisson::getMaterial (const Vec3& X) const
 {
-  return kappaF ? (*kappaF)(X) : kappa;
+  return kappaF ? (*kappaF)(X) : kappaC;
 }
 
 
@@ -627,6 +633,8 @@ int PoissonNorm::getIntegrandType () const
 Poisson::Robin::Robin (unsigned short int n, const Poisson& itg) :
   IntegrandBase(n), integrand(itg)
 {
+  alpha = nullptr;
+  g = nullptr;
 }
 
 

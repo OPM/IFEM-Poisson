@@ -14,27 +14,12 @@
 #ifndef _POISSON_H
 #define _POISSON_H
 
-#include "GlobalIntegral.h"
-#include "Integrand.h"
 #include "IntegrandBase.h"
-#include "MatVec.h"
-#include "LinAlgenums.h"
-#include "SIMenums.h"
 #include "Vec3.h"
 
-#include <cstddef>
-#include <string>
-#include <vector>
-
-
-class AnaSol;
-class FiniteElement;
 class FunctionBase;
-class LocalIntegral;
 class RealFunc;
-class TiXmlElement;
 class VecFunc;
-class VTF;
 
 
 /*!
@@ -82,13 +67,14 @@ public:
                  const Vec3& X, const Vec3& normal) const override;
 
     //! \brief Sets the coefficient function \a alpha to \a f.
-    void setAlpha(const VecFunc* f) { alpha = f; g = nullptr; }
+    void setAlpha(VecFunc* f) { alpha = f; g = nullptr; }
     //! \brief Sets the flux function \a g to \a f.
-    void setFlux(const RealFunc* f) { alpha = nullptr; g = f; }
+    void setFlux(RealFunc* f) { alpha = nullptr; g = f; }
 
   protected:
-    const VecFunc* alpha = nullptr; //!< Coefficient - alpha(1) * u + du/dn = alpha(2)
-    const RealFunc* g = nullptr; //!< Coefficient - u + du/dn = g
+    VecFunc* alpha; //!< Coefficient - alpha(1) * u + du/dn = alpha(2)
+    RealFunc* g;    //!< Coefficient - u + du/dn = g
+
     const Poisson& integrand; //!< Main integrand instance
   };
 
@@ -115,7 +101,7 @@ public:
   size_t numExtrFunction() const { return dualFld.size(); }
 
   //! \brief Defines the conductivity.
-  void setMaterial(double K) { kappa = K; }
+  void setMaterial(double K) { kappaC = K; }
   //! \brief Defines the conductivity.
   void setMaterial(RealFunc* K) { kappaF = K; }
   //! \brief Evaluates the conductivity at specified point.
@@ -145,7 +131,7 @@ public:
                    const Vec3& X0, size_t, LocalIntegral& elmInt) override;
 
   //! \brief Defines the global integral for calculating reaction forces only.
-  void setReactionIntegral(GlobalIntegral* gq) { delete reacInt; reacInt = gq; }
+  void setReactionIntegral(GlobalIntegral* gq);
   //! \brief Returns the system quantity to be integrated by \a *this.
   GlobalIntegral& getGlobalInt(GlobalIntegral* gq) const override;
 
@@ -227,11 +213,17 @@ public:
     return dualFld.empty() ? STANDARD : ELEMENT_CENTER;
   }
 
+  //! \brief Returns whether this norm has explicit boundary contributions.
+  bool hasBoundaryTerms() const override
+  {
+    return (m_mode == SIM::STATIC || m_mode == SIM::RHS_ONLY ||
+            m_mode == SIM::NORMS);
+  }
+
 private:
   // Physical properties
-  double kappa; //!< Conductivity (constant)
-  const RealFunc* kappaF = nullptr; //!< Conductivity as a function
-
+  double    kappaC;  //!< Conductivity (constant)
+  RealFunc* kappaF;  //!< Pointer to conductivity function
   VecFunc*  tracFld; //!< Pointer to boundary traction field
   RealFunc* fluxFld; //!< Pointer to boundary normal flux field
   RealFunc* heatSrc; //!< Pointer to interior heat source
