@@ -47,6 +47,8 @@ public:
 
     //! \brief Returns that this integrand has no interior contributions.
     bool hasInteriorTerms() const override { return false; }
+    //! \brief Returns that this integrand has robin exterior contributions.
+    bool hasRobinTerms() const override { return true; }
 
     using IntegrandBase::getLocalIntegral;
     //! \brief Returns a local integral contribution object for given element.
