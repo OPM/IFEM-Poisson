@@ -15,17 +15,14 @@
 #include "PoissonSolutions.h"
 
 #include "AnaSol.h"
-#include "ASMbase.h"
 #include "DataExporter.h"
 #include "ExprFunctions.h"
 #include "IFEM.h"
 #include "LogStream.h"
 #include "Property.h"
-#include "ReactionsOnly.h"
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
-#include "SIMdependency.h"
 #include "SIMenums.h"
 #include "SIMoptions.h"
 #include "Utilities.h"
@@ -46,11 +43,6 @@
 #include <strings.h>
 #include "tinyxml.h"
 #include <utility>
-
-
-class AlgEqSystem;
-class RealFunc;
-class VecFunc;
 
 
 template<class Dim>
@@ -319,14 +311,7 @@ bool SIMPoisson<Dim>::solveSystem (Vector& solution, int printSol,
 
   // Assemble the reaction forces. Strictly, we only need to assemble those
   // elements that have nodes on the Dirichlet boundaries, but...
-  prob.setReactionIntegral(new ReactionsOnly(myReact,Dim::mySam,Dim::adm));
-  AlgEqSystem* tmpEqSys = Dim::myEqSys;
-  Dim::myEqSys = nullptr;
-  bool ok = this->setMode(SIM::RHS_ONLY) && this->assembleSystem({solution});
-  Dim::myEqSys = tmpEqSys;
-  prob.setReactionIntegral(nullptr);
-
-  return ok;
+  return this->assembleForces({solution},0.0,&myReact);
 }
 
 

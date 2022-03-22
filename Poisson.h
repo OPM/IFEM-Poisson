@@ -131,7 +131,7 @@ public:
                    const Vec3& X0, size_t, LocalIntegral& elmInt) override;
 
   //! \brief Defines the global integral for calculating reaction forces only.
-  void setReactionIntegral(GlobalIntegral* gq);
+  void setSecondaryInt(GlobalIntegral* gq) override;
   //! \brief Returns the system quantity to be integrated by \a *this.
   GlobalIntegral& getGlobalInt(GlobalIntegral* gq) const override;
 

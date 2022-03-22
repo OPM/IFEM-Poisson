@@ -142,7 +142,7 @@ bool Poisson::initElement (const std::vector<int>& MNPC,
 }
 
 
-void Poisson::setReactionIntegral (GlobalIntegral* gq)
+void Poisson::setSecondaryInt (GlobalIntegral* gq)
 {
   delete reacInt;
   reacInt = gq;
