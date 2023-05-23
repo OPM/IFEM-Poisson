@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2">
+    <patchfile>annulus.g2</patchfile>
+    <refine patch="1" u="7" v="7"/>
+    <projection>
+      <patchfile>annulus.g2</patchfile>
+      <refine patch="1" u="7" v="7"/>
+    </projection>
+    <topologysets>
+      <set name="Boundary" type="edge">
+        <item patch="1">1 2 3 4</item>
+      </set>
+    </topologysets>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">1</source>
+  </poisson>
+
+  <postprocessing>
+    <projection>
+      <CGL2/>
+    </projection>
+  </postprocessing>
+
+</simulation>

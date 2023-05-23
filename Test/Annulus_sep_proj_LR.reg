@@ -1,0 +1,20 @@
+Annulus.xinp -LR
+
+Input file: Annulus.xinp
+Equation solver: 2
+Number of Gauss points: 4
+Enabled projection(s): Continuous global L2-projection
+Number of elements    64
+Number of nodes       100
+Number of dofs        100
+Number of unknowns    64
+L2-norm            : 0.378882
+Max displacement   : 0.818675
+Energy norm           a(u^h,u^h)^0.5 : 2.15212
+External energy          (h,u^h)^0.5 : 2.15212
+>>> Error estimates based on Continuous global L2-projection <<<
+Energy norm |u^r| = a(u^r,u^r)^0.5   : 2.15202
+Error norm a(e,e)^0.5, e=u^r-u^h     : 0.0207116
+\- relative error (% of |u^r|) : 0.962425
+Residual error (r(u^r) + J(u^r))^0.5 : 0.164509
+\- relative error (% of |u^r|) : 7.6444
