@@ -17,6 +17,8 @@
 #include "IntegrandBase.h"
 #include "Vec3.h"
 
+#include <memory>
+
 class FunctionBase;
 class RealFunc;
 class VecFunc;
@@ -257,7 +259,7 @@ public:
   //! \param[in] a The analytical heat flux (optional)
   PoissonNorm(Poisson& p, int integrandType, VecFunc* a = nullptr);
   //! \brief Empty destructor.
-  virtual ~PoissonNorm() {}
+  virtual ~PoissonNorm();
 
   using NormBase::evalInt;
   //! \brief Evaluates the integrand at an interior point.
@@ -302,7 +304,13 @@ public:
   //! \brief Defines which FE quantities are needed by the integrand.
   int getIntegrandType() const override;
 
+  //! \brief Projected quantities given as a field (recovery on a separate basis).
+  //! \param field The field
+  //! \param[in] idx The projection index
+  void setProjectedFields(Fields* field, size_t idx) override;
+
 private:
+  std::vector<std::unique_ptr<Fields>> projFields; //!< Projected fields for recovery
   VecFunc* anasol; //!< Analytical heat flux
   int integrdType; //!< Integrand type flag
 };
