@@ -11,6 +11,7 @@
 //!
 //==============================================================================
 
+#include "Fields.h"
 #include "Poisson.h"
 
 #include "AnaSol.h"
@@ -375,6 +376,9 @@ PoissonNorm::PoissonNorm (Poisson& p, int integrandType, VecFunc* a) :
 }
 
 
+PoissonNorm::~PoissonNorm() = default;
+
+
 bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 			   const Vec3& X) const
 {
@@ -440,27 +444,32 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
               <<"): "<< pnorm[ip+2*(i-epsh.size())] << std::endl;
 #endif
 
-  for (const Vector& psol : pnorm.psol)
-    if (!psol.empty())
+  size_t pi = 0;
+  for (const Vector& psol : pnorm.psol) {
+    if (!psol.empty() || (projFields.size() > pi && projFields[pi]))
     {
-      // Evaluate projected heat flux field
+      // Evaluate projected heat flux field and projected heat flux gradient
       Vector sigmar(nrcmp);
-      for (size_t j = 0; j < nrcmp; j++)
-        sigmar[j] = psol.dot(fe.N,j,nrcmp);
+      Matrix dSigmadX;
+      if (!projFields.empty() && projFields[pi]) {
+        projFields[pi]->gradFE(fe, dSigmadX);
+        projFields[pi]->valueFE(fe, sigmar);
+      } else {
+        for (size_t j = 0; j < nrcmp; j++)
+          sigmar[j] = psol.dot(fe.N,j,nrcmp);
+        // Evaluate the projected heat flux gradient.
+        // Notice that the matrix multiplication method used here treats
+        // the element vector (psol) as a matrix whose number of columns
+        // equals the number of rows in the matrix fe.dNdX.
+        if (!dSigmadX.multiplyMat(psol,fe.dNdX)) // dSigmadX = psol*dNdX
+          return false;
+      }
 
       // Integrate the energy norm a(u^r,u^r)
       pnorm[ip++] += sigmar.dot(sigmar)*cwInv;
       // Integrate the estimated error in energy norm a(u^r-u^h,u^r-u^h)
       error = sigmar + kappa*epsh.front();
       pnorm[ip++] += error.dot(error)*cwInv;
-
-      // Evaluate the projected heat flux gradient.
-      // Notice that the matrix multiplication method used here treats
-      // the element vector (psol) as a matrix whose number of columns
-      // equals the number of rows in the matrix fe.dNdX.
-      Matrix dSigmadX;
-      if (!dSigmadX.multiplyMat(psol,fe.dNdX)) // dSigmadX = psol*dNdX
-        return false;
 
       // Evaluate the interior residual of the projected solution
       double Res = h - dSigmadX.trace();
@@ -485,6 +494,8 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       pnorm[ip+1] += fe.h*fe.h*Res*Res*fe.detJxW;
       ip += anasol ? 6 : 3; // Dummy entries in order to get norm in right place
     }
+    ++pi;
+  }
 
   return true;
 }
@@ -506,13 +517,17 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
     pnorm[1] += h*u*fe.detJxW;
 
   size_t ip = this->getNoFields(1) + 2;
-  for (const Vector& psol : pnorm.psol)
-    if (!psol.empty())
+  size_t pi = 0;
+  for (const Vector& psol : pnorm.psol) {
+    if (!psol.empty() || (projFields.size() > pi && projFields[pi]))
     {
       // Evaluate projected heat flux field
-      Vec3 sigmar;
-      for (size_t j = 0; j < nrcmp; j++)
-        sigmar[j] = psol.dot(fe.N,j,nrcmp);
+      Vector sigmar(nrcmp);
+      if (!projFields.empty() && projFields[pi])
+        projFields[pi]->valueFE(fe, sigmar);
+      else
+        for (size_t j = 0; j < nrcmp; j++)
+          sigmar[j] = psol.dot(fe.N,j,nrcmp);
 
       // Evaluate the boundary jump term
       double Jump = h + sigmar*normal;
@@ -522,6 +537,8 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
     }
     else if (integrdType & SECOND_DERIVATIVES)
       ip += anasol ? 6 : 3; // TODO: Add residual jump terms?
+    ++pi;
+  }
 
   return true;
 }
@@ -627,6 +644,14 @@ bool PoissonNorm::hasElementContributions (size_t i, size_t j) const
 int PoissonNorm::getIntegrandType () const
 {
   return integrdType | myProblem.getIntegrandType();
+}
+
+
+void PoissonNorm::setProjectedFields(Fields* field, size_t idx)
+{
+  if (idx >= projFields.size())
+    projFields.resize(idx+1);
+  projFields[idx].reset(field);
 }
 
 
