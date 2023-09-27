@@ -45,6 +45,55 @@
 #include <utility>
 
 
+namespace {
+
+//! \brief Function returning the negated gradient of a scalar function.
+class NegatedGradientFunc : public VecFunc
+{
+public:
+  //! \brief The constructor initializes the scalar function to use.
+  NegatedGradientFunc(const RealFunc& f) : func(f) {}
+
+protected:
+  //! Evaluates function in a point.
+  Vec3 evaluate(const Vec3& X) const
+  {
+    Vec3 result = func.gradient(X);
+    result *= -1.0;
+    return result;
+  }
+
+private:
+    const RealFunc& func; //!< Const reference to scalar function
+};
+
+
+//! \brief Analytical solution class for Poisson.
+//! \details In particular override the primary to secondary solution derivation
+//!          as the secondary solution is inflow oriented.
+class PoissonAnaSol : public AnaSol
+{
+public:
+  //! \brief Constructor initializing expression functions by parsing XML tags.
+  //! \param[in] elem Pointer to XML-element to extract data from
+  //! \param[in] scalarSol If \e true, the primary solution is a scalar field
+  explicit PoissonAnaSol(const TiXmlElement* elem) :
+    AnaSol(elem, true)
+  {}
+
+  //! \brief Make sure we have a secondary solution.
+  //! \details If none is given, we use derivation (automatic or finite difference)
+  //!          to obtain one.
+  void setupSecondarySolutions() override
+  {
+    if (!scalSol.empty() && scalSecSol.empty())
+      scalSecSol.push_back(new NegatedGradientFunc(*scalSol.front()));
+  }
+};
+
+}
+
+
 template<class Dim>
 SIMPoisson<Dim>::SIMPoisson (bool checkRHS, bool ds)
   : SIMMultiPatchModelGen<Dim>(1,checkRHS),
@@ -642,7 +691,7 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (const TiXmlElement* child)
       type[0] = toupper(type[0]);
       std::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
-        mySol = new AnaSol(child);
+        mySol = new PoissonAnaSol(child);
     }
     else
       std::cerr <<"  ** SIMPoisson1D::parse: Invalid analytical solution "
@@ -900,7 +949,7 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (const TiXmlElement* child)
       type[0] = toupper(type[0]);
       std::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
-        mySol = new AnaSol(child);
+        mySol = new PoissonAnaSol(child);
     }
     else
       std::cerr <<"  ** SIMPoisson2D::parse: Invalid analytical solution "
@@ -1085,7 +1134,7 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (const TiXmlElement* child)
       type[0] = toupper(type[0]);
       std::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
-        mySol = new AnaSol(child);
+        mySol = new PoissonAnaSol(child);
     }
     else
       std::cerr <<"  ** SIMPoisson3D::parse: Invalid analytical solution "
