@@ -29,9 +29,8 @@
   <!-- Problem-specific block !-->
   <poisson>
     <source type="expression">-6.0*x*y*(x*x + y*y)</source>
-    <anasol type="expression">
+    <anasol type="expression" autodiff="true">
       <primary>x*x*x * y*y*y</primary>
-      <secondary>-3.0 * x*x * y*y*y | -3.0 * x*x*x * y*y</secondary>
     </anasol>
     <reactions/>
   </poisson>

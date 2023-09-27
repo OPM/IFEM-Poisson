@@ -21,12 +21,8 @@
   <!-- Problem-specific block !-->
   <poisson>
     <source type="expression">3*PI*PI*sin(x*PI)*sin(y*PI)*sin(z*PI)</source>
-    <anasol type="expression">
+    <anasol type="expression" autodiff="true">
       <primary>sin(PI*x)*sin(PI*y)*sin(z*PI)</primary>
-      <secondary>-PI*cos(PI*x)*sin(PI*y)*sin(z*PI) |
-                 -PI*sin(PI*x)*cos(PI*y)*sin(PI*z) |
-                 -PI*sin(PI*x)*sin(PI*y)*cos(PI*z)
-      </secondary>
     </anasol>
   </poisson>
 
