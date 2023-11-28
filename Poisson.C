@@ -30,9 +30,8 @@
 #include <cstring>
 #include <ext/alloc_traits.h>
 #include <iostream>
-#include <memory>
 #include <strings.h>
-#include "tinyxml.h"
+#include "tinyxml2.h"
 #include <utility>
 
 
@@ -49,7 +48,7 @@ Poisson::Poisson (unsigned short int n) : IntegrandBase(n)
 }
 
 
-bool Poisson::parse (const TiXmlElement* elem)
+bool Poisson::parse (const tinyxml2::XMLElement* elem)
 {
   if (!elem) return false;
 

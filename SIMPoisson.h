@@ -31,7 +31,7 @@
 class DataExporter;
 class RealFunc;
 class TimeStep;
-class TiXmlElement;
+namespace tinyxml2 { class XMLElement; }
 
 
 /*!
@@ -134,7 +134,7 @@ protected:
 
   //! \brief Parses a data section from an XML element.
   //! \param[in] elem The XML element to parse
-  bool parse(const TiXmlElement* elem) override;
+  bool parse(const tinyxml2::XMLElement* elem) override;
 
 private:
   //! \brief Parses a dimension-specific data section from an input stream.
@@ -144,7 +144,7 @@ private:
   //! \brief Parses a dimension-specific data section from the an XML element.
   //! \details This function allows for specialization of the template while
   //! still reusing as much code as possible. Only for dimension-specific code.
-  bool parseDimSpecific(const TiXmlElement* child);
+  bool parseDimSpecific(const tinyxml2::XMLElement* child);
 
 protected:
   //! \brief Initializes material properties for integration of interior terms.
