@@ -41,7 +41,7 @@
 #include <iostream>
 #include <map>
 #include <strings.h>
-#include "tinyxml.h"
+#include "tinyxml2.h"
 #include <utility>
 
 
@@ -77,7 +77,7 @@ public:
   //! \brief Constructor initializing expression functions by parsing XML tags.
   //! \param[in] elem Pointer to XML-element to extract data from
   //! \param[in] scalarSol If \e true, the primary solution is a scalar field
-  explicit PoissonAnaSol(const TiXmlElement* elem) :
+  explicit PoissonAnaSol(const tinyxml2::XMLElement* elem) :
     AnaSol(elem, true)
   {}
 
@@ -493,7 +493,7 @@ bool SIMPoisson<Dim>::parse (char* keyWord, std::istream& is)
 
 
 template<class Dim>
-bool SIMPoisson<Dim>::parse (const TiXmlElement* elem)
+bool SIMPoisson<Dim>::parse (const tinyxml2::XMLElement* elem)
 {
   if (!strcasecmp(elem->Value(),"postprocessing"))
     prob.parse(elem->FirstChildElement("projection"));
@@ -502,7 +502,7 @@ bool SIMPoisson<Dim>::parse (const TiXmlElement* elem)
     return this->Dim::parse(elem);
 
   bool result = true;
-  const TiXmlElement* child = elem->FirstChildElement();
+  const tinyxml2::XMLElement* child = elem->FirstChildElement();
   for (; child; child = child->NextSiblingElement())
     if (this->parseDimSpecific(child))
       continue;
@@ -650,7 +650,7 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (char* keyWord, std::istream& is)
 
 //! \brief Template specialization - 1D specific input parsing.
 template<>
-bool SIMPoisson<SIM1D>::parseDimSpecific (const TiXmlElement* child)
+bool SIMPoisson<SIM1D>::parseDimSpecific (const tinyxml2::XMLElement* child)
 {
   if (!strcasecmp(child->Value(),"source")) {
     int code = -1; // Reserve negative code(s) for the source term function
@@ -867,7 +867,7 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (char* keyWord, std::istream& is)
 
 //! \brief Template specialization - 2D specific input parsing.
 template<>
-bool SIMPoisson<SIM2D>::parseDimSpecific (const TiXmlElement* child)
+bool SIMPoisson<SIM2D>::parseDimSpecific (const tinyxml2::XMLElement* child)
 {
   if (!strcasecmp(child->Value(),"source")) {
     int code = -1; // Reserve negative code(s) for the source term function
@@ -1071,7 +1071,7 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (char* keyWord, std::istream& is)
 
 //! \brief Template specialization - 3D specific input parsing.
 template<>
-bool SIMPoisson<SIM3D>::parseDimSpecific (const TiXmlElement* child)
+bool SIMPoisson<SIM3D>::parseDimSpecific (const tinyxml2::XMLElement* child)
 {
   if (!strcasecmp(child->Value(),"source")) {
     int code = -1; // Reserve negative code(s) for the source term function

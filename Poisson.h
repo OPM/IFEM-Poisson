@@ -87,7 +87,7 @@ public:
   virtual ~Poisson() { this->clearGalerkinProjections(); }
 
   //! \brief Parses a data section from an XML-element.
-  bool parse(const TiXmlElement* elem) override;
+  bool parse(const tinyxml2::XMLElement* elem) override;
 
   //! \brief Defines the traction field to use in Neumann boundary conditions.
   void setTraction(VecFunc* tf) { tracFld = tf; }
