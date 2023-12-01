@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2" scale="2.0">
+    <raiseorder patch="1" u="2" v="2"/>
+    <refine patch="1" u="7" v="7"/>
+    <topologysets>
+      <set name="Homogenous" type="edge">
+        <item patch="1">4</item>
+      </set>
+      <set name="Neumann" type="edge">
+        <item patch="1">3</item>
+      </set>
+    </topologysets>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Homogenous" comp="1"/>
+    <neumann set="Neumann" type="anasol"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="expression">PI*PI*cos(PI*x)*(2-y)</source>
+    <anasol type="expression" autodiff="true">
+      <primary>cos(PI*x)*(2-y)</primary>
+    </anasol>
+  </poisson>
+
+  <discretization type="lagrange">
+    <nGauss>4</nGauss>
+  </discretization>
+
+  <postprocessing>
+    <projection>
+      <CGL2/>
+    </projection>
+  </postprocessing>
+
+</simulation>
