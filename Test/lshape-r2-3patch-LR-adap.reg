@@ -31,9 +31,9 @@ Parsing <boundaryconditions>
 Parsing <poisson>
 	Heat source function: r=sqrt(x^2+y^2); -4/(r^4)
 	Analytical solution: Expression
-	Variables=r=sqrt(x^2+y^2);
-	Primary=1/(r^2)
-	Secondary=2\*x/(r^4) | 2\*y/(r^4)
+	Variables: r=sqrt(x^2+y^2);
+	Primary: 1/(r^2)
+	Secondary: 2\*x/(r^4) | 2\*y/(r^4)
 Parsing input file succeeded.
 Parsing input file lshape-r2-3patch-LR-adap.xinp
 Parsing <adaptive>

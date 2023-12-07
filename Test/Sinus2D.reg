@@ -27,8 +27,8 @@ Parsing <postprocessing>
 Parsing <poisson>
 	Heat source function: 8\*PI\*PI\*sin(2\*PI\*x)\*sin(2\*PI\*y)
 	Analytical solution: Expression
-	Primary=sin(2\*PI\*x)\*sin(2\*PI\*y)
-	Secondary=-2\*PI\*cos(2\*PI\*x)\*sin(2\*PI\*y) | -2\*PI\*sin(2\*PI\*x)\*cos(2\*PI\*y)
+	Primary: sin(2\*PI\*x)\*sin(2\*PI\*y)
+	Secondary: -2\*PI\*cos(2\*PI\*x)\*sin(2\*PI\*y) | -2\*PI\*sin(2\*PI\*x)\*cos(2\*PI\*y)
 Parsing input file succeeded.
 Equation solver: 2
 Number of Gauss points: 3 4
