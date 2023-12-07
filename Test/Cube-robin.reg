@@ -9,8 +9,8 @@ Input file: Cube-robin.xinp
 	Robin code 4000000 (expression): 1-x\*x
 	Heat source function: 2.0
 	Analytical solution: Expression
-	Primary=1.0-x\*x
-	Secondary=2\*x \| 0.0 \| 0.0
+	Primary: 1.0-x\*x
+	Secondary: 2\*x | 0.0 | 0.0
 Number of elements    64
 Number of nodes       216
 Number of dofs        216
