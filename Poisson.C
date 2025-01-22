@@ -193,7 +193,7 @@ LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
 
 
 bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
-		       const Vec3& X) const
+                       const Vec3& X) const
 {
   ElmMats& elMat = static_cast<ElmMats&>(elmInt);
 
@@ -207,7 +207,7 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   // Lambda function for integration of the internal force vector
   auto&& evalIntForce = [cw,fe](Vector& S, const Vector& eV)
   {
-    Vector tmp;
+    RealArray tmp;
     // S -= dNdX * (dNdX^t * eV) * cw
     return fe.dNdX.multiply(eV,tmp,true) && fe.dNdX.multiply(tmp,S,-cw,1.0);
   };
@@ -246,7 +246,7 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
 
 bool Poisson::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
-		       const Vec3& X, const Vec3& normal) const
+                       const Vec3& X, const Vec3& normal) const
 {
   if (!tracFld && !fluxFld)
   {
@@ -352,23 +352,21 @@ double Poisson::getMaterial (const Vec3& X) const
 
 NormBase* Poisson::getNormIntegrand (AnaSol* asol) const
 {
-  if (asol)
-    return new PoissonNorm(*const_cast<Poisson*>(this), normIntegrandType,
-                           asol->getScalarSecSol());
-  else
-    return new PoissonNorm(*const_cast<Poisson*>(this), normIntegrandType);
+  return new PoissonNorm(*const_cast<Poisson*>(this), normIntegrandType,
+                         asol ? asol->getScalarSecSol() : nullptr);
 }
 
 
 void Poisson::clearGalerkinProjections ()
 {
-  for (VecFunc* f : galerkin) delete f;
+  for (VecFunc* f : galerkin)
+    delete f;
   galerkin.clear();
 }
 
 
-PoissonNorm::PoissonNorm (Poisson& p, int integrandType, VecFunc* a) :
-  NormBase(p), anasol(a), integrdType(integrandType)
+PoissonNorm::PoissonNorm (Poisson& p, int integrandType, VecFunc* a)
+  : NormBase(p), anasol(a), integrdType(integrandType)
 {
   nrcmp = myProblem.getNoFields(2);
   projBou = true;
@@ -379,24 +377,32 @@ PoissonNorm::~PoissonNorm() = default;
 
 
 bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
-			   const Vec3& X) const
+                           const Vec3& X) const
 {
   const Poisson& problem = static_cast<const Poisson&>(myProblem);
-  ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
+  const size_t nsol = std::min(1+problem.numExtrFunction(), elmInt.vec.size());
 
   // Evaluate the finite element and dual solution gradient fields
-  Vectors epsh(1+problem.numExtrFunction());
-  for (size_t i = 0; i < elmInt.vec.size() && i < epsh.size(); i++)
-    if (!elmInt.vec[i].empty())
-      if (!fe.dNdX.multiply(elmInt.vec[i],epsh[i],true))
-      {
-        std::cerr <<" *** PoissonNorm::evalInt: Invalid solution vector "
-                  << i+1 << std::endl;
-        return false;
-      }
+  RealArray tmp;
+  Vec3Vec gradh;
+  gradh.reserve(nsol);
+  for (size_t i = 0; i < nsol; i++)
+    if (elmInt.vec[i].empty())
+      gradh.push_back(Vec3());
+    else if (fe.dNdX.multiply(elmInt.vec[i],tmp,true))
+      gradh.push_back(tmp);
+    else
+      std::cerr <<" *** PoissonNorm::evalInt: Invalid solution vector "
+                << i+1 << std::endl;
+  if (gradh.size() < nsol)
+    return false;
+
+  ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
+  const Vector& vh = elmInt.vec.front();
+  const Vec3& epsh = gradh.front();
 
   // Evaluate the temperature field
-  double u = pnorm.vec.front().dot(fe.N);
+  double u = vh.dot(fe.N);
   // Evaluate the heat source field
   double h = problem.getHeat(X);
   // Evaluate the heat conductivity
@@ -405,55 +411,61 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   double cwInv = fe.detJxW / kappa;
 
   // Integrate the energy norm a(u^h,u^h)
-  pnorm[0] += kappa*epsh.front().dot(epsh.front())*fe.detJxW;
+  pnorm[0] += kappa*epsh*epsh*fe.detJxW;
   // Integrate the external energy (h,u^h)
   if (problem.extEner)
     pnorm[1] += h*u*fe.detJxW;
 
-  Vector sigma, error;
+  Vec3 sigma;
   size_t ip = 2;
   if (anasol)
   {
     // Evaluate the analytical heat flux
-    sigma.fill((*anasol)(X).ptr(),nrcmp);
+    sigma = (*anasol)(X);
     // Integrate the energy norm a(u,u)
-    pnorm[ip++] += sigma.dot(sigma)*cwInv;
+    pnorm[ip++] += sigma*sigma*cwInv;
     // Integrate the error in energy norm a(u-u^h,u-u^h)
-    error = sigma + kappa*epsh.front();
-    pnorm[ip++] += error.dot(error)*cwInv;
+    Vec3 error = sigma + kappa*epsh;
+    pnorm[ip++] += error*error*cwInv;
   }
 
   // Integrate the volume
   pnorm[ip++] += fe.detJxW;
 
-  for (size_t j = 1; j < epsh.size(); j++)
+  for (size_t j = 1; j < nsol; j++)
   {
     // Evaluate the variational-consistent postprocessing quantity, a(u^h,w)
-    pnorm[ip++] -= kappa*epsh.front().dot(epsh[j])*fe.detJxW;
+    pnorm[ip++] -= kappa*epsh*gradh[j]*fe.detJxW;
     if (anasol) // Evaluate the corresponding exact quantity, a(u,w)
-      pnorm[ip++] += sigma.dot(epsh[j])*fe.detJxW;
+      pnorm[ip++] += sigma*gradh[j]*fe.detJxW;
   }
 
 #if INT_DEBUG > 3
   std::cout <<"\nPoissonNorm::evalInt(X = "<< X <<")";
   if (anasol) std::cout <<"\nsigma ="<< sigma;
-  std::cout <<"epsh ="<< epsh.front();
-  for (size_t i = 1; i < epsh.size(); i++)
-    std::cout <<"epsz("<< i <<") ="<< epsh[i] <<"a(u^h,w"<< i
-              <<"): "<< pnorm[ip+2*(i-epsh.size())] << std::endl;
+  std::cout <<"epsh ="<< epsh;
+  for (size_t i = 1; i < nsol; i++)
+    std::cout <<"epsz("<< i <<") ="<< gradh[i] <<"a(u^h,w"<< i
+              <<"): "<< pnorm[ip+2*(i-nsol)] << std::endl;
 #endif
 
   size_t pi = 0;
-  for (const Vector& psol : pnorm.psol) {
+  for (const Vector& psol : pnorm.psol)
+  {
     if (!psol.empty() || (projFields.size() > pi && projFields[pi]))
     {
       // Evaluate projected heat flux field and projected heat flux gradient
-      Vector sigmar(nrcmp);
+      Vec3 sigmar, error;
       Matrix dSigmadX;
-      if (!projFields.empty() && projFields[pi]) {
+      if (!projFields.empty() && projFields[pi])
+      {
+        Vector projSol(nrcmp);
+        projFields[pi]->valueFE(fe, projSol);
         projFields[pi]->gradFE(fe, dSigmadX);
-        projFields[pi]->valueFE(fe, sigmar);
-      } else {
+        sigmar = Vec3(projSol);
+      }
+      else
+      {
         for (size_t j = 0; j < nrcmp; j++)
           sigmar[j] = psol.dot(fe.N,j,nrcmp);
         // Evaluate the projected heat flux gradient.
@@ -465,10 +477,10 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       }
 
       // Integrate the energy norm a(u^r,u^r)
-      pnorm[ip++] += sigmar.dot(sigmar)*cwInv;
+      pnorm[ip++] += sigmar*sigmar*cwInv;
       // Integrate the estimated error in energy norm a(u^r-u^h,u^r-u^h)
-      error = sigmar + kappa*epsh.front();
-      pnorm[ip++] += error.dot(error)*cwInv;
+      error = sigmar + kappa*epsh;
+      pnorm[ip++] += error*error*cwInv;
 
       // Evaluate the interior residual of the projected solution
       double Res = h - dSigmadX.trace();
@@ -479,7 +491,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       {
         // Integrate the error in the projected solution a(u-u^r,u-u^r)
         error = sigma - sigmar;
-        pnorm[ip++] += error.dot(error)*cwInv;
+        pnorm[ip++] += error*error*cwInv;
         ip += 2; // Make room for the local effectivity indices here
       }
     }
@@ -488,7 +500,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       // Integrate the residual error in the FE solution
       double Res = h;
       for (size_t j = 1; j <= fe.N.size(); j++)
-        Res += fe.d2NdX2.trace(j)*elmInt.vec.front()(j);
+        Res += fe.d2NdX2.trace(j)*vh(j);
 
       pnorm[ip+1] += fe.h*fe.h*Res*Res*fe.detJxW;
       ip += anasol ? 6 : 3; // Dummy entries in order to get norm in right place
@@ -501,7 +513,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 
 
 bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
-			   const Vec3& X, const Vec3& normal) const
+                           const Vec3& X, const Vec3& normal) const
 {
   const Poisson& problem = static_cast<const Poisson&>(myProblem);
   ElmNorm& pnorm = static_cast<ElmNorm&>(elmInt);
@@ -517,13 +529,18 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
 
   size_t ip = this->getNoFields(1) + 2;
   size_t pi = 0;
-  for (const Vector& psol : pnorm.psol) {
+  for (const Vector& psol : pnorm.psol)
+  {
     if (!psol.empty() || (projFields.size() > pi && projFields[pi]))
     {
       // Evaluate projected heat flux field
-      Vector sigmar(nrcmp);
+      Vec3 sigmar;
       if (!projFields.empty() && projFields[pi])
-        projFields[pi]->valueFE(fe, sigmar);
+      {
+        Vector projSol(nrcmp);
+        projFields[pi]->valueFE(fe,projSol);
+        sigmar = Vec3(projSol);
+      }
       else
         for (size_t j = 0; j < nrcmp; j++)
           sigmar[j] = psol.dot(fe.N,j,nrcmp);
