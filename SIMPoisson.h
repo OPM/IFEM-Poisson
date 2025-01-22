@@ -99,8 +99,8 @@ public:
   bool solveSystem(Vector& solution, int printSol, double* rCond,
                    const char* compName, size_t idxRHS) override;
 
-  //! \brief Returns current reaction force vector.
-  const Vector* getReactionForces() const override
+  //! \brief Returns current reaction force container.
+  const RealArray* getReactionForces() const override
   {
     return myReact.empty() ? nullptr : &myReact;
   }
@@ -173,7 +173,7 @@ private:
 
   //! \brief Struct with either a constant or a function value for kappa.
   struct Kappa {
-    double constant; //!< Constant value
+    double constant = 0.0; //!< Constant value
     std::shared_ptr<RealFunc> func; //!< Function value
   };
 
@@ -183,7 +183,7 @@ private:
 
   Vector    myLoad;   //!< External load vector (for VTF export)
   Vector    mySolVec; //!< Primary solution vector
-  Vector    myReact;  //!< Nodal reaction forces
+  RealArray myReact;  //!< Nodal reaction forces
   Vectors   myProj;   //!< Projected solution vectors
   Matrix    myNorm;   //!< Element norms
 
