@@ -177,6 +177,8 @@ private:
     std::shared_ptr<RealFunc> func; //!< Function value
   };
 
+  bool sourceFromAnaSol = false; //!< Source is derived from analytic solution
+
   std::vector<Kappa> mVec; //!< Kappa properties
   int       aCode[2]; //!< Analytical BC code (used by destructor)
   TextureProperties tprops; //!< Texture property (for kappa)

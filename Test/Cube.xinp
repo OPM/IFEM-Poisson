@@ -20,7 +20,7 @@
 
   <!-- Problem-specific block !-->
   <poisson>
-    <source type="expression">3*PI*PI*sin(x*PI)*sin(y*PI)*sin(z*PI)</source>
+    <source type="anasol"/>
     <anasol type="expression" autodiff="true">
       <primary>sin(PI*x)*sin(PI*y)*sin(z*PI)</primary>
     </anasol>

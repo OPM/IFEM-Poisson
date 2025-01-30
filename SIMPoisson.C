@@ -11,6 +11,7 @@
 //!
 //==============================================================================
 
+#include "PoissonSource.h"
 #include "SIMPoisson.h"
 #include "PoissonSolutions.h"
 
@@ -408,6 +409,16 @@ void SIMPoisson<Dim>::preprocessA ()
     prob.setDualRHS(Dim::dualField);
 
   myProj.resize(Dim::opt.project.size());
+
+  if (sourceFromAnaSol) {
+    int code = -1; // Reserve negative code(s) for the source term function
+    while (this->myScalars.find(code) != this->myScalars.end())
+      --code;
+    this->myScalars[code] = new PoissonAnaSolSource(*Dim::mySol, prob);
+
+    prob.setSource(this->myScalars[code]);
+  }
+
   if (!Dim::mySol) return;
 
   Dim::myInts.insert(std::make_pair(0,Dim::myProblem));
@@ -668,6 +679,10 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (const tinyxml2::XMLElement* child)
                 << child->FirstChild()->Value() << std::endl;
       myScalars[code] = new EvalFunction(child->FirstChild()->Value());
     }
+    else if (type == "anasol") {
+      sourceFromAnaSol = true;
+      IFEM::cout << "\n\tSource function: derived from analytical solution\n";
+    }
     else
     {
       std::cerr <<"  ** SIMPoisson1D::parse: Invalid source function "
@@ -896,6 +911,10 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (const tinyxml2::XMLElement* child)
                 << child->FirstChild()->Value() << std::endl;
       myScalars[code] = new EvalFunction(child->FirstChild()->Value());
     }
+    else if (type == "anasol") {
+      sourceFromAnaSol = true;
+      IFEM::cout << "\n\tSource function: derived from analytical solution\n";
+    }
     else
     {
       std::cerr <<"  ** SIMPoisson2D::parse: Invalid source function "
@@ -1093,6 +1112,10 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (const tinyxml2::XMLElement* child)
       std::cout <<"\tHeat source function: "
                 << child->FirstChild()->Value() << std::endl;
       myScalars[code] = new EvalFunction(child->FirstChild()->Value());
+    }
+    else if (type == "anasol") {
+      sourceFromAnaSol = true;
+      IFEM::cout << "\n\tSource function: derived from analytical solution\n";
     }
     else
     {
