@@ -187,7 +187,7 @@ LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
       ;
   }
 
-  result->redim(nen);
+  result->redim(nen + (setIntegratedSol ? 1 : 0));
   return result;
 }
 
@@ -200,9 +200,20 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   // Conductivity scaled by integration point weight at this point
   double cw = this->getMaterial(X)*fe.detJxW;
 
-  if (!elMat.A.empty())
+  if (!elMat.A.empty()) {
+    Matrix Ab;
+    if (setIntegratedSol)
+      Ab.resize(fe.N.size(), fe.N.size());
+    Matrix& A = setIntegratedSol ? Ab : elMat.A.front();
     // Integrate the coefficient matrix // EK += kappa * dNdX * dNdX^T * |J|*w
-    elMat.A.front().multiply(fe.dNdX,fe.dNdX,false,true,true,cw);
+    A.multiply(fe.dNdX,fe.dNdX,false,true,true,cw);
+    if (this->setIntegratedSol) {
+      elMat.A.front().addBlock(Ab, 1.0, 1, 1);
+      const size_t nrow = elMat.A.front().rows();
+      for (size_t col = 1; col <= fe.N.size(); ++col)
+        elMat.A.front()(nrow, col) = elMat.A.front()(col, nrow) += fe.detJxW*fe.N(col);
+    }
+  }
 
   // Lambda function for integration of the internal force vector
   auto&& evalIntForce = [cw,fe](Vector& S, const Vector& eV)
@@ -374,6 +385,36 @@ PoissonNorm::PoissonNorm (Poisson& p, int integrandType, VecFunc* a)
 
 
 PoissonNorm::~PoissonNorm() = default;
+
+
+bool PoissonNorm::initElement (const std::vector<int>& MNPC,
+                               const FiniteElement& fe,
+                               const Vec3& Xc, size_t nPt,
+                               LocalIntegral& elmInt)
+{
+  std::vector<int> mnpc(MNPC);
+  const bool constrain = static_cast<Poisson&>(myProblem).constrainIntgSol();
+  if (constrain) {
+     mnpc = MNPC;
+     mnpc.pop_back();
+  }
+  const std::vector<int>& M = constrain ? mnpc : MNPC;
+  return this->NormBase::initElement(M, fe, Xc, nPt, elmInt);
+}
+
+
+bool PoissonNorm::initElementBou (const std::vector<int>& MNPC,
+                                  LocalIntegral& elmInt)
+{
+  std::vector<int> mnpc(MNPC);
+  const bool constrain = static_cast<Poisson&>(myProblem).constrainIntgSol();
+  if (constrain) {
+     mnpc = MNPC;
+     mnpc.pop_back();
+  }
+  const std::vector<int>& M = constrain ? mnpc : MNPC;
+  return this->NormBase::initElementBou(M, elmInt);
+}
 
 
 bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,

@@ -119,6 +119,10 @@ public:
   std::string getName() const override { return "Poisson"; }
 
 protected:
+  //! \brief Adds a global multiplier for the integrated solution constraint.
+  //! \param nnod Number of nodes in model
+  bool preprocessBeforeAsmInit(int& nnod) override;
+
   //! \brief Performs some pre-processing tasks on the FE model.
   //! \details This method is reimplemented to resolve inhomogeneous boundary
   //! condition fields in case they are derived from the analytical solution.
@@ -135,6 +139,10 @@ protected:
   //! \brief Parses a data section from an XML element.
   //! \param[in] elem The XML element to parse
   bool parse(const tinyxml2::XMLElement* elem) override;
+
+  //! \brief Assembles the integrated constraint rhs term.
+  //! \param[in] p Integrand to assemble terms for
+  bool assembleDiscreteTerms(const IntegrandBase* p, const TimeDomain&) override;
 
 private:
   //! \brief Parses a dimension-specific data section from an input stream.
@@ -178,6 +186,8 @@ private:
   };
 
   bool sourceFromAnaSol = false; //!< Source is derived from analytic solution
+  bool constrainIntegratedSolution = false; //!< Constrain the solution integral
+  double integrated_solution = 0.0; //!< Value to constrain solution integral to
 
   std::vector<Kappa> mVec; //!< Kappa properties
   int       aCode[2]; //!< Analytical BC code (used by destructor)

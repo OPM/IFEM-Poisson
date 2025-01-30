@@ -222,6 +222,12 @@ public:
             m_mode == SIM::NORMS);
   }
 
+  //! \brief Set whether solution integral constraint is enabled.
+  void constrainIntgSol(bool constrain) { setIntegratedSol = constrain; }
+
+  //! \brief Query if solution integral constraint is enabled.
+  bool constrainIntgSol() const { return setIntegratedSol; }
+
 private:
   // Physical properties
   double    kappaC;  //!< Conductivity (constant)
@@ -240,6 +246,8 @@ private:
   mutable std::vector<Vec3Pair> fluxVal; //!< Heat flux point values
 
   std::vector<VecFunc*> galerkin; //!< Functions to be Galerkin-projected
+
+  bool setIntegratedSol = false; //!< True to constrain solution integral
 
 public:
   char extEner; //!< If \e true, external energy is to be computed
@@ -261,6 +269,12 @@ public:
   //! \brief Empty destructor.
   virtual ~PoissonNorm();
 
+  using NormBase::initElement;
+  //! \brief Initializes current element for numerical integration.
+  bool initElement(const std::vector<int>& MNPC,
+                   const FiniteElement& fe,
+                   const Vec3& X0, size_t nPt, LocalIntegral& elmInt) override;
+
   using NormBase::evalInt;
   //! \brief Evaluates the integrand at an interior point.
   //! \param elmInt The local integral object to receive the contributions
@@ -268,6 +282,11 @@ public:
   //! \param[in] X Cartesian coordinates of current integration point
   bool evalInt(LocalIntegral& elmInt, const FiniteElement& fe,
                const Vec3& X) const override;
+
+  using NormBase::initElementBou;
+  //! \brief Initializes current element for numerical integration.
+  bool initElementBou(const std::vector<int>& MNPC,
+                      LocalIntegral& elmInt) override;
 
   using NormBase::evalBou;
   //! \brief Evaluates the integrand at a boundary point.
