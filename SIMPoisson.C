@@ -15,22 +15,27 @@
 #include "SIMPoisson.h"
 #include "PoissonSolutions.h"
 
+#include "AlgEqSystem.h"
 #include "AnaSol.h"
 #include "DataExporter.h"
 #include "ExprFunctions.h"
 #include "IFEM.h"
 #include "LogStream.h"
 #include "Property.h"
+#include "SAM.h"
 #include "SIM1D.h"
 #include "SIM2D.h"
 #include "SIM3D.h"
 #include "SIMenums.h"
 #include "SIMoptions.h"
+#include "SystemMatrix.h"
 #include "Utilities.h"
 
 #ifdef HAS_LRSPLINE
 #include "ASMu2D.h"
 #include "Profiler.h"
+#else
+#include "ASMbase.h"
 #endif
 
 #include <cctype>
@@ -403,6 +408,22 @@ void SIMPoisson<Dim>::printNormGroup (const Vector& gNorm, const Vector& fNorm,
 
 
 template<class Dim>
+bool SIMPoisson<Dim>::preprocessBeforeAsmInit (int& nnod)
+{
+  if (constrainIntegratedSolution) {
+    ++nnod;
+    for (int p = 1; p <= this->getNoPatches(); ++p) {
+      int lp = this->getLocalPatchIndex(p);
+      if (lp > 0)
+        this->getPatch(lp)->addGlobalLagrangeMultipliers({nnod}, 1);
+    }
+  }
+
+  return true;
+}
+
+
+template<class Dim>
 void SIMPoisson<Dim>::preprocessA ()
 {
   if (Dim::dualField)
@@ -539,6 +560,18 @@ bool SIMPoisson<Dim>::parse (const tinyxml2::XMLElement* elem)
         std::cout <<"\tMaterial code "<< code <<": property"<< std::endl;
       }
     }
+    else if (!strcasecmp(child->Value(),"constrain_integrated_solution")) {
+      this->constrainIntegratedSolution = true;
+      prob.constrainIntgSol(true);
+      const char* val = utl::getValue(child,"constrain_integrated_solution");
+      IFEM::cout << "\tConstraining integrated solution";
+      if (val) {
+        // Scale by NoProcs because contribution is added once for each process
+        integrated_solution = atof(val) / Dim::adm.getNoProcs();
+        IFEM::cout << " to " << val;
+      }
+      IFEM::cout << std::endl;
+    }
 
     else if (!strcasecmp(child->Value(),"reactions"))
       prob.extEner = 'R';
@@ -579,6 +612,26 @@ bool SIMPoisson<Dim>::initNeumann (size_t propInd)
     robinBC.setAlpha(vit->second);
   } else
     return false;
+
+  return true;
+}
+
+
+template<class Dim>
+bool SIMPoisson<Dim>::
+assembleDiscreteTerms(const IntegrandBase* p, const TimeDomain&)
+{
+  if (!constrainIntegratedSolution || p != &prob)
+    return true;
+  else if (!Dim::mySam || !Dim::myEqSys)
+    return false;
+
+  SystemVector* v = Dim::myEqSys->getVector(0);
+  if (!v) return false;
+
+  int node = Dim::mySam->getNoNodes();
+  int eq = Dim::mySam->getEquation(node,1);
+  v->getPtr()[eq-1] = integrated_solution;
 
   return true;
 }

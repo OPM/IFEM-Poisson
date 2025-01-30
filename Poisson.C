@@ -118,7 +118,9 @@ bool Poisson::initElement (const std::vector<int>& MNPC,
                            const FiniteElement&, const Vec3& XC,
                            size_t, LocalIntegral& elmInt)
 {
-  if (!this->IntegrandBase::initElement(MNPC,elmInt))
+  // In case of global Lagrange multiplier, the last element node in MNPC
+  // needs to be omitted when extracting the element solution vectors
+  if (!this->initElement2(MNPC,elmInt.vec,setIntegratedSol))
     return false;
 
   for (size_t i = 1; i < elmInt.vec.size(); i++)
@@ -187,7 +189,7 @@ LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
       ;
   }
 
-  result->redim(nen);
+  result->redim(setIntegratedSol ? nen+1 : nen);
   return result;
 }
 
@@ -200,9 +202,18 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   // Conductivity scaled by integration point weight at this point
   double cw = this->getMaterial(X)*fe.detJxW;
 
-  if (!elMat.A.empty())
+  if (!elMat.A.empty()) {
+    Matrix Ab;
+    Matrix& A = setIntegratedSol ? Ab : elMat.A.front();
     // Integrate the coefficient matrix // EK += kappa * dNdX * dNdX^T * |J|*w
-    elMat.A.front().multiply(fe.dNdX,fe.dNdX,false,true,true,cw);
+    A.multiply(fe.dNdX,fe.dNdX,false,true,!setIntegratedSol,cw);
+    if (this->setIntegratedSol) {
+      elMat.A.front().addBlock(Ab, 1.0, 1, 1);
+      const size_t nrow = elMat.A.front().rows();
+      for (size_t col = 1; col <= fe.N.size(); ++col)
+        elMat.A.front()(nrow, col) = elMat.A.front()(col, nrow) += fe.detJxW*fe.N(col);
+    }
+  }
 
   // Lambda function for integration of the internal force vector
   auto&& evalIntForce = [cw,fe](Vector& S, const Vector& eV)
@@ -295,6 +306,17 @@ bool Poisson::writeGlvT (VTF* vtf, int iStep, int& geoBlk, int& nBlock) const
 
   // Write boundary heat flux as discrete point vectors to the VTF-file
   return vtf->writeVectors(fluxVal,geoBlk,++nBlock,"Heat flux",iStep);
+}
+
+
+/*!
+  This method is overridden to account for global %Lagrange multipliers.
+*/
+
+bool Poisson::evalSol (Vector& s, const FiniteElement& fe,
+                       const Vec3& X, const std::vector<int>& MNPC) const
+{
+  return this->evalSol1(s, fe, X, MNPC, MNPC.size() > fe.N.size());
 }
 
 
