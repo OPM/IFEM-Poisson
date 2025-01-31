@@ -227,6 +227,8 @@ public:
 
   //! \brief Query if solution integral constraint is enabled.
   bool constrainIntgSol() const { return setIntegratedSol; }
+  //! \brief Returns the number of global %Lagrange multipliers in the model.
+  size_t getNoGLMs() const override { return setIntegratedSol ? 1 : 0; }
 
 private:
   // Physical properties
@@ -269,12 +271,6 @@ public:
   //! \brief Empty destructor.
   virtual ~PoissonNorm();
 
-  using NormBase::initElement;
-  //! \brief Initializes current element for numerical integration.
-  bool initElement(const std::vector<int>& MNPC,
-                   const FiniteElement& fe,
-                   const Vec3& X0, size_t nPt, LocalIntegral& elmInt) override;
-
   using NormBase::evalInt;
   //! \brief Evaluates the integrand at an interior point.
   //! \param elmInt The local integral object to receive the contributions
@@ -282,11 +278,6 @@ public:
   //! \param[in] X Cartesian coordinates of current integration point
   bool evalInt(LocalIntegral& elmInt, const FiniteElement& fe,
                const Vec3& X) const override;
-
-  using NormBase::initElementBou;
-  //! \brief Initializes current element for numerical integration.
-  bool initElementBou(const std::vector<int>& MNPC,
-                      LocalIntegral& elmInt) override;
 
   using NormBase::evalBou;
   //! \brief Evaluates the integrand at a boundary point.
