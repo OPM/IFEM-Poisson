@@ -34,6 +34,8 @@
 #ifdef HAS_LRSPLINE
 #include "ASMu2D.h"
 #include "Profiler.h"
+#else
+#include "ASMbase.h"
 #endif
 
 #include <cctype>
