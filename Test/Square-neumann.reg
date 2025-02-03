@@ -1,0 +1,26 @@
+Square-neumann.xinp
+
+	Constraining integrated solution to 2.0
+Number of elements    64
+Number of nodes       101
+Number of dofs        101
+Number of D-dofs      100
+Number of G-dofs      1
+Number of unknowns    101
+L2-norm            : 0.746927
+Max displacement   : 1.95846
+Energy norm           a(u^h,u^h)^0.5 : 5.24209
+External energy          (h,u^h)^0.5 : 5.24209
+Exact norm                a(u,u)^0.5 : 5.27437
+Exact error      a(e,e)^0.5, e=u-u^h : 0.588144
+Exact relative error (%) : 11.151
+Energy norm |u^r| = a(u^r,u^r)^0.5   : 5.19161
+Error norm a(e,e)^0.5, e=u^r-u^h     : 0.725801
+\- relative error (% of |u|)   : 13.7609
+Residual error (r(u^r) + J(u^r))^0.5 : 1.58239
+\- relative error (% of |u|)   : 30.0015
+Exact error a(e,e)^0.5, e=u-u^r      : 0.209537
+\- relative error (% of |u|)   : 3.97274
+Effectivity index, theta^\*           : 1.23405
+Effectivity index, theta^EX          : 1.59032
+Effectivity index, theta^RES         : 3.92453

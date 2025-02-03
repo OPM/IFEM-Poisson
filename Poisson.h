@@ -222,6 +222,14 @@ public:
             m_mode == SIM::NORMS);
   }
 
+  //! \brief Set whether solution integral constraint is enabled.
+  void constrainIntgSol(bool constrain) { setIntegratedSol = constrain; }
+
+  //! \brief Query if solution integral constraint is enabled.
+  bool constrainIntgSol() const { return setIntegratedSol; }
+  //! \brief Returns the number of global %Lagrange multipliers in the model.
+  size_t getNoGLMs() const override { return setIntegratedSol ? 1 : 0; }
+
 private:
   // Physical properties
   double    kappaC;  //!< Conductivity (constant)
@@ -240,6 +248,8 @@ private:
   mutable std::vector<Vec3Pair> fluxVal; //!< Heat flux point values
 
   std::vector<VecFunc*> galerkin; //!< Functions to be Galerkin-projected
+
+  bool setIntegratedSol = false; //!< True to constrain solution integral
 
 public:
   char extEner; //!< If \e true, external energy is to be computed

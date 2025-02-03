@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2" scale="2.0" sets="true">
+    <raiseorder patch="1" u="1" v="1"/>
+    <refine patch="1" u="7" v="7"/>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <neumann set="Boundary" type="anasol"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="anasol"/>
+    <anasol type="expression" autodiff="true">
+      <primary>sin(PI*x)^2*(2-y)</primary>
+    </anasol>
+    <constrain_integrated_solution>2.0</constrain_integrated_solution>
+  </poisson>
+
+  <discretization>
+    <nGauss>3</nGauss>
+  </discretization>
+
+  <postprocessing>
+    <projection>
+      <CGL2/>
+    </projection>
+  </postprocessing>
+
+</simulation>

@@ -16,9 +16,11 @@ endif()
 
 set(Poisson_SRCS Poisson.C
                  PoissonSolutions.C
+                 PoissonSource.C
                  SIMPoisson.C
                  Poisson.h
                  PoissonSolutions.h
+                 PoissonSource.h
                  SIMPoisson.h)
 
 include_directories(${IFEM_INCLUDES} ../Common ${PROJECT_SOURCE_DIR})
@@ -65,6 +67,7 @@ IF(NOT MPI_FOUND OR IFEM_SERIAL_TESTS_IN_PARALLEL)
   ifem_add_test(exact_p3_2D.reg Poisson)
   ifem_add_test(Sinus2D.reg Poisson)
   ifem_add_test(Annulus_sep_proj.reg Poisson)
+  ifem_add_test(Square-neumann.reg Poisson)
   if(LRSpline_FOUND OR LRSPLINE_FOUND)
     ifem_add_test(interior_layer_adap.reg Poisson)
     ifem_add_test(interior_layer_adap_rec.reg Poisson)
