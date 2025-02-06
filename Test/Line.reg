@@ -4,17 +4,17 @@ Number of elements    8
 Number of nodes       11
 Number of dofs        11
 Number of unknowns    10
-L2-norm            : 0.710286
-Max displacement   : 1
-Energy norm           a(u^h,u^h)^0.5 : 1.11072
-External energy          (h,u^h)^0.5 : 1.11072
-Exact norm                a(u,u)^0.5 : 1.11072
-Exact error      a(e,e)^0.5, e=u-u^h : 4.63905e-05
-Exact relative error (%) : 0.00417661
-VCP quantity                a(u^h,w) : -0.994904
-VCP quantity                  a(u,w) : -0.994903
-Vol(D) : 0.125
-  Point #1:	sol1 =  7.730e-01
-		exact1 -7.730e-01
-		sol2 = -9.965e-01
-		exact2 -9.965e-01
+L2-norm            : 0.621255
+Max displacement   : 1.02607
+Energy norm           a(u^h,u^h)^0.5 : 1.5708
+External energy          (h,u^h)^0.5 : 1.5708
+Exact norm                a(u,u)^0.5 : 1.5708
+Exact error      a(e,e)^0.5, e=u-u^h : 0.000567369
+Exact relative error (%) : 0.0361198
+VCP quantity                a(u^h,w) : 0.304495
+VCP quantity                  a(u,w) : 0.304482
+Vol(D) : 0.25
+  Point #1:	sol1 =  9.808e-01
+		exact1 -9.808e-01
+		sol2 =  3.065e-01
+		exact2  3.064e-01

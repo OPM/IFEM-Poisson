@@ -6,10 +6,7 @@ Number of Gauss points: 4
 Parsing input file Sinus2D.xinp
 Parsing <discretization>
 Parsing <geometry>
-  Using 2D multi-patch model generator.
-	Split in X = 1
-	Split in Y = 1
-	Reading patch 1
+  Generating linear geometry on unit parameter domain \[0,1]^2
   Parsing <raiseorder>
   Parsing <refine>
   Parsing <topologysets>
