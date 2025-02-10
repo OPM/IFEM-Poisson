@@ -330,7 +330,11 @@ bool Poisson::evalSol2 (Vector& q, const Vectors& eV,
     return false;
   }
 
-  q *= -this->getMaterial(X);
+  const double kappa = this->getMaterial(X);
+  q *= -kappa;
+  const Vec3 ex = aSol ? (*aSol->getScalarSecSol())(X) : Vec3();
+  for (size_t i = 0; i < nsd; ++i)
+    q.push_back(ex[i]);
   return true;
 }
 
@@ -351,12 +355,24 @@ std::string Poisson::getField1Name (size_t, const char* prefix) const
 
 std::string Poisson::getField2Name (size_t i, const char* prefix) const
 {
-  if (i >= nsd) return "";
+  if (i >= 2*nsd) return "";
 
-  static const char* s[3] = { "q_x","q_y","q_z" };
-  if (!prefix) return s[i];
+  if (nsd == 2 && i >= 2)
+    ++i;
 
-  return prefix + std::string(" ") + s[i];
+  static const char* s[6] = { "q_x","q_y","q_z",
+                             "(q_ex)_x", "(q_ex)_y", "(q_ex)_z" };
+
+  return prefix ? prefix + std::string(" ") + s[i] : s[i];
+}
+
+
+bool Poisson::suppressOutput (size_t j, ASM::ResultClass resultClass) const
+{
+  if (resultClass == ASM::SECONDARY)
+    return j >= nsd;
+
+  return false;
 }
 
 
@@ -472,30 +488,40 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
 #endif
 
   size_t pi = 0;
+  const size_t nsd = problem.getNoSpaceDim();
   for (const Vector& psol : pnorm.psol)
   {
     if (!psol.empty() || (projFields.size() > pi && projFields[pi]))
     {
       // Evaluate projected heat flux field and projected heat flux gradient
-      Vec3 sigmar, error;
+      Vec3 sigmar, error, qex;
       Matrix dSigmadX;
       if (!projFields.empty() && projFields[pi])
       {
         Vector projSol(nrcmp);
         projFields[pi]->valueFE(fe, projSol);
-        projFields[pi]->gradFE(fe, dSigmadX);
-        sigmar = Vec3(projSol);
+        Matrix dS;
+        projFields[pi]->gradFE(fe, dS);
+        dSigmadX.resize(nsd, nsd);
+        dS.extractBlock(dSigmadX, 1, 1);
+        sigmar = Vec3(projSol.ptr(), nsd);
+        qex = Vec3(projSol.ptr() + nsd, nsd);
       }
       else
       {
-        for (size_t j = 0; j < nrcmp; j++)
+        for (size_t j = 0; j < nsd; j++)
           sigmar[j] = psol.dot(fe.N,j,nrcmp);
+        for (size_t j = 0; j < nsd; j++)
+          qex[j] = psol.dot(fe.N,j+nsd,nrcmp);
         // Evaluate the projected heat flux gradient.
         // Notice that the matrix multiplication method used here treats
         // the element vector (psol) as a matrix whose number of columns
         // equals the number of rows in the matrix fe.dNdX.
-        if (!dSigmadX.multiplyMat(psol,fe.dNdX)) // dSigmadX = psol*dNdX
+        Matrix dS;
+        if (!dS.multiplyMat(psol,fe.dNdX)) // dSigmadX = psol*dNdX
           return false;
+        dSigmadX.resize(nsd, nsd);
+        dS.extractBlock(dSigmadX, 1, 1);
       }
 
       // Integrate the energy norm a(u^r,u^r)
@@ -513,6 +539,9 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       {
         // Integrate the error in the projected solution a(u-u^r,u-u^r)
         error = sigma - sigmar;
+        pnorm[ip++] += error*error*cwInv;
+        // Integrate the error in projected solution norm a(u_ex^r-u^h,u_ex^r-u^h)
+        error = sigma - qex;
         pnorm[ip++] += error*error*cwInv;
         ip += 2; // Make room for the local effectivity indices here
       }
@@ -549,6 +578,7 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
   if (problem.extEner)
     pnorm[1] += h*u*fe.detJxW;
 
+  const size_t nsd = problem.getNoSpaceDim();
   size_t ip = this->getNoFields(1) + 2;
   size_t pi = 0;
   for (const Vector& psol : pnorm.psol)
@@ -561,20 +591,20 @@ bool PoissonNorm::evalBou (LocalIntegral& elmInt, const FiniteElement& fe,
       {
         Vector projSol(nrcmp);
         projFields[pi]->valueFE(fe,projSol);
-        sigmar = Vec3(projSol);
+        sigmar = Vec3(projSol.ptr(), nsd);
       }
       else
-        for (size_t j = 0; j < nrcmp; j++)
+        for (size_t j = 0; j < nsd; j++)
           sigmar[j] = psol.dot(fe.N,j,nrcmp);
 
       // Evaluate the boundary jump term
       double Jump = h + sigmar*normal;
       // Integrate the residual error in the projected solution
       pnorm[ip] += 0.5*fe.h*Jump*Jump*fe.detJxW;
-      ip += anasol ? 6 : 3;
+      ip += problem.getNoFields(pi+2);
     }
     else if (integrdType & SECOND_DERIVATIVES)
-      ip += anasol ? 6 : 3; // TODO: Add residual jump terms?
+      ip += problem.getNoFields(pi+2); // TODO: Add residual jump terms?
     ++pi;
   }
 
@@ -590,7 +620,8 @@ bool PoissonNorm::finalizeElement (LocalIntegral& elmInt)
 
   // Evaluate local effectivity indices as a(e^r,e^r)/a(e,e)
   // with e^r = u^r - u^h  and  e = u - u^h
-  for (size_t ip = this->getNoFields(1)+1; ip+4 < pnorm.size(); ip += 6)
+  size_t g = 2;
+  for (size_t ip = this->getNoFields(1)+1; ip+5 < pnorm.size(); ip += this->getNoFields(g++))
   {
     pnorm[ip+3] =  pnorm[ip] / pnorm[3];
     pnorm[ip+4] = (pnorm[ip]+pnorm[ip+1]) / pnorm[3];
@@ -620,7 +651,7 @@ std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
   if (i == 0 || j == 0 || j > 5+nx)
     return this->NormBase::getName(i,j,prefix);
 
-  static const char* s[15] = {
+  static const char* s[16] = {
     "a(u^h,u^h)^0.5",
     "(h,u^h)^0.5",
     "a(u,u)^0.5",
@@ -632,6 +663,7 @@ std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
     "a(e,e)^0.5, e=u^r-u^h",
     "res(u^r)^0.5",
     "a(e,e)^0.5, e=u-u^r",
+    "a(e,e)^0.5, e=u-u_ex^r",
     "effectivity index^*",
     "effectivity index^RES",
     "a(z^h,z^h)^0.5",

@@ -394,6 +394,7 @@ void SIMPoisson<Dim>::printNormGroup (const Vector& gNorm, const Vector& fNorm,
       double Rel = 100.0 / fNorm(3);
       IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u^r      : "<< gNorm(4)
                  <<"\n- relative error (% of |u|)   : "<< gNorm(4)*Rel;
+      IFEM::cout <<"\nExact error a(e,e)^0.5, e=u-u_ex^r   : "<< gNorm(5);
     }
     if (fNorm.size() > 3 && gNorm.size() > 3)
       IFEM::cout <<"\nEffectivity index, theta^*           : "
@@ -553,7 +554,7 @@ bool SIMPoisson<Dim>::parse (const tinyxml2::XMLElement* elem)
       tprops.parse(child);
       if (tprops.hasProperty("kappa")) {
         Kappa kappa;
-        kappa.func.reset(new PropertyFunc("kappa", tprops));
+        kappa.func = std::make_unique<PropertyFunc>("kappa", tprops);
         mVec.push_back(kappa);
         if (code == 0)
           prob.setMaterial(mVec.back().func.get());
@@ -774,6 +775,7 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (const tinyxml2::XMLElement* child)
         myVectors[code] = mySol->getScalarSecSol();
         aCode[1] = code;
       }
+    prob.aSol = mySol;
   }
   else
     return false;
@@ -1035,6 +1037,7 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (const tinyxml2::XMLElement* child)
         myVectors[code] = mySol->getScalarSecSol();
         aCode[1] = code;
       }
+    prob.aSol = mySol;
   }
   else
     return false;
@@ -1224,6 +1227,7 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (const tinyxml2::XMLElement* child)
         myVectors[code] = mySol->getScalarSecSol();
         aCode[1] = code;
       }
+    prob.aSol = mySol;
   }
   else
     return false;
