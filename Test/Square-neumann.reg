@@ -21,6 +21,7 @@ Residual error (r(u^r) + J(u^r))^0.5 : 1.58239
 \- relative error (% of |u|)   : 30.0015
 Exact error a(e,e)^0.5, e=u-u^r      : 0.209537
 \- relative error (% of |u|)   : 3.97274
+Exact error a(e,e)^0.5, e=u-u_ex^r   : 0.166112
 Effectivity index, theta^\*           : 1.23405
 Effectivity index, theta^EX          : 1.59032
 Effectivity index, theta^RES         : 3.92453

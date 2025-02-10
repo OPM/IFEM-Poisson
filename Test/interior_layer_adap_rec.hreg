@@ -6,6 +6,10 @@ interior_layer_adap_rec.xinp
 /0/Poisson-1/basis       Group
 /0/Poisson-1/basis/1     Dataset {5407}
 /0/Poisson-1/fields      Group
+/0/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_x Group
+/0/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_x/1 Dataset {49}
+/0/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_y Group
+/0/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_y/1 Dataset {49}
 /0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x Group
 /0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {49}
 /0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
@@ -19,6 +23,8 @@ interior_layer_adap_rec.xinp
 /0/Poisson-1/knotspan    Group
 /0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r Group
 /0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {16}
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u_ex^r Group
+/0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u_ex^r/1 Dataset {16}
 /0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h Group
 /0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {16}
 /0/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5 Group
@@ -42,6 +48,10 @@ interior_layer_adap_rec.xinp
 /1/Poisson-1/basis       Group
 /1/Poisson-1/basis/1     Dataset {17073}
 /1/Poisson-1/fields      Group
+/1/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_x Group
+/1/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_x/1 Dataset {121}
+/1/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_y Group
+/1/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_y/1 Dataset {121}
 /1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x Group
 /1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {121}
 /1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
@@ -55,6 +65,8 @@ interior_layer_adap_rec.xinp
 /1/Poisson-1/knotspan    Group
 /1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r Group
 /1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {64}
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u_ex^r Group
+/1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u_ex^r/1 Dataset {64}
 /1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h Group
 /1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {64}
 /1/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5 Group
@@ -78,6 +90,10 @@ interior_layer_adap_rec.xinp
 /2/Poisson-1/basis       Group
 /2/Poisson-1/basis/1     Dataset {65299}
 /2/Poisson-1/fields      Group
+/2/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_x Group
+/2/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_x/1 Dataset {361}
+/2/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_y Group
+/2/Poisson-1/fields/Continuous\ global\ L2-projection\ (q_ex)_y/1 Dataset {361}
 /2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x Group
 /2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {361}
 /2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
@@ -91,6 +107,8 @@ interior_layer_adap_rec.xinp
 /2/Poisson-1/knotspan    Group
 /2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r Group
 /2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u^r/1 Dataset {256}
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u_ex^r Group
+/2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u-u_ex^r/1 Dataset {256}
 /2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h Group
 /2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(e,e)^0.5,\ e=u^r-u^h/1 Dataset {256}
 /2/Poisson-1/knotspan/Continuous\ global\ L2-projection\ a(u^r,u^r)^0.5 Group
