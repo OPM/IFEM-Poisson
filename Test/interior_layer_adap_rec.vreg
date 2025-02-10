@@ -1,0 +1,95 @@
+interior_layer_adap_rec.xinp
+
+Step 1
+  Element block 1
+    64 nodes
+    16 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'Exact q_x'
+    Scalar: 'Exact q_y'
+    Scalar: 'Continuous global L2-projection q_x'
+    Scalar: 'Continuous global L2-projection q_y'
+    Scalar: 'Continuous global L2-projection (q_ex)_x'
+    Scalar: 'Continuous global L2-projection (q_ex)_y'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
+    Scalar: 'Continuous global L2-projection a(u^r,u^r)^0.5'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u^r-u^h'
+    Scalar: 'Continuous global L2-projection res(u^r)^0.5'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u-u^r'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u-u_ex^r'
+    Scalar: 'Continuous global L2-projection effectivity index^*'
+    Scalar: 'Continuous global L2-projection effectivity index^RES'
+  Element block 2
+    32 nodes
+    32 elements
+    Vector: 'Heat flux'
+Step 2
+  Element block 1
+    256 nodes
+    64 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'Exact q_x'
+    Scalar: 'Exact q_y'
+    Scalar: 'Continuous global L2-projection q_x'
+    Scalar: 'Continuous global L2-projection q_y'
+    Scalar: 'Continuous global L2-projection (q_ex)_x'
+    Scalar: 'Continuous global L2-projection (q_ex)_y'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
+    Scalar: 'Continuous global L2-projection a(u^r,u^r)^0.5'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u^r-u^h'
+    Scalar: 'Continuous global L2-projection res(u^r)^0.5'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u-u^r'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u-u_ex^r'
+    Scalar: 'Continuous global L2-projection effectivity index^*'
+    Scalar: 'Continuous global L2-projection effectivity index^RES'
+  Element block 2
+    64 nodes
+    64 elements
+    Vector: 'Heat flux'
+Step 3
+  Element block 1
+    1024 nodes
+    256 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'Exact q_x'
+    Scalar: 'Exact q_y'
+    Scalar: 'Continuous global L2-projection q_x'
+    Scalar: 'Continuous global L2-projection q_y'
+    Scalar: 'Continuous global L2-projection (q_ex)_x'
+    Scalar: 'Continuous global L2-projection (q_ex)_y'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
+    Scalar: 'Continuous global L2-projection a(u^r,u^r)^0.5'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u^r-u^h'
+    Scalar: 'Continuous global L2-projection res(u^r)^0.5'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u-u^r'
+    Scalar: 'Continuous global L2-projection a(e,e)^0.5, e=u-u_ex^r'
+    Scalar: 'Continuous global L2-projection effectivity index^*'
+    Scalar: 'Continuous global L2-projection effectivity index^RES'
+  Element block 2
+    128 nodes
+    128 elements
+    Vector: 'Heat flux'
