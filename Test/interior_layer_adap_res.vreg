@@ -1,0 +1,68 @@
+interior_layer_adap_res.xinp
+
+Step 1
+  Element block 1
+    1024 nodes
+    256 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'Exact q_x'
+    Scalar: 'Exact q_y'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
+    Scalar: 'Pure residuals |u^h|_res'
+    Scalar: 'Pure residuals effectivity index^RES'
+  Element block 2
+    128 nodes
+    128 elements
+    Vector: 'Heat flux'
+Step 2
+  Element block 1
+    3244 nodes
+    811 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'Exact q_x'
+    Scalar: 'Exact q_y'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
+    Scalar: 'Pure residuals |u^h|_res'
+    Scalar: 'Pure residuals effectivity index^RES'
+  Element block 2
+    208 nodes
+    208 elements
+    Vector: 'Heat flux'
+Step 3
+  Element block 1
+    8308 nodes
+    2077 elements
+    Displacement: 'Solution'
+    Displacement: 'Exact Solution'
+    Scalar: 'u'
+    Scalar: 'Exact u'
+    Scalar: 'FE q_x'
+    Scalar: 'FE q_y'
+    Scalar: 'Exact q_x'
+    Scalar: 'Exact q_y'
+    Scalar: 'a(u^h,u^h)^0.5'
+    Scalar: 'a(u,u)^0.5'
+    Scalar: 'a(e,e)^0.5, e=u-u^h'
+    Scalar: 'volume'
+    Scalar: 'Pure residuals |u^h|_res'
+    Scalar: 'Pure residuals effectivity index^RES'
+  Element block 2
+    296 nodes
+    296 elements
+    Vector: 'Heat flux'

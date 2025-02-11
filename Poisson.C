@@ -525,7 +525,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
         Res += fe.d2NdX2.trace(j)*vh(j);
 
       pnorm[ip+1] += fe.h*fe.h*Res*Res*fe.detJxW;
-      ip += anasol ? 6 : 3; // Dummy entries in order to get norm in right place
+      ip += this->getNoFields(pi+2); // Dummy entries in order to get norm in right place
     }
     ++pi;
   }
@@ -629,9 +629,9 @@ std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
     "a(u,w)",
   };
 
-  static const auto proj = std::array{
+  const auto proj = std::array{
     "a(u^r,u^r)^0.5",
-    "a(e,e)^0.5, e=u^r-u^h",
+    (integrdType & SECOND_DERIVATIVES ? "|u^h|_res" : "a(e,e)^0.5, e=u^r-u^h"),
     "res(u^r)^0.5",
     "a(e,e)^0.5, e=u-u^r",
     "effectivity index^*",
@@ -679,14 +679,16 @@ std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
   }
 
   std::string s(prefix ? prefix + std::string(" ") : "");
-  s  += (i == 1 ? primary[j-1] : proj[j-1]);
-
+  s += (i == 1 ? primary[j-1] : proj[j-1]);
   return s;
 }
 
 
 bool PoissonNorm::hasElementContributions (size_t i, size_t j) const
 {
+  if (integrdType & SECOND_DERIVATIVES && i == 2)
+    return j == 2 || j == 6;
+
   return i > 1 || j != 2;
 }
 
