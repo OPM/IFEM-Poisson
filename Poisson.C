@@ -590,10 +590,10 @@ bool PoissonNorm::finalizeElement (LocalIntegral& elmInt)
 
   // Evaluate local effectivity indices as a(e^r,e^r)/a(e,e)
   // with e^r = u^r - u^h  and  e = u - u^h
-  for (size_t ip = this->getNoFields(1)+1; ip+4 < pnorm.size(); ip += 6)
+  for (size_t ip = this->getNoFields(1), g = 2; ip < pnorm.size(); ip += this->getNoFields(g++))
   {
-    pnorm[ip+3] =  pnorm[ip] / pnorm[3];
-    pnorm[ip+4] = (pnorm[ip]+pnorm[ip+1]) / pnorm[3];
+    pnorm[ip+4] =  pnorm[ip] / pnorm[3];
+    pnorm[ip+5] = (pnorm[ip]+pnorm[ip+1]) / pnorm[3];
   }
 
   return true;
@@ -614,42 +614,54 @@ size_t PoissonNorm::getNoFields (int group) const
 
 std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
 {
-  size_t nx = i > 1 ? 1 : static_cast<Poisson&>(myProblem).numExtrFunction();
-  if (i == 1 && anasol) nx *= 2;
+  const size_t nx = i > 1 ? 0 : static_cast<Poisson&>(myProblem).numExtrFunction() * 2;
 
-  if (i == 0 || j == 0 || j > 5+nx)
-    return this->NormBase::getName(i,j,prefix);
-
-  static const char* s[15] = {
+  static const auto primary = std::array{
     "a(u^h,u^h)^0.5",
     "(h,u^h)^0.5",
     "a(u,u)^0.5",
     "a(e,e)^0.5, e=u-u^h",
     "volume",
+  };
+
+  static const auto extract = std::array{
     "a(u^h,w)",
     "a(u,w)",
+  };
+
+  static const auto proj = std::array{
     "a(u^r,u^r)^0.5",
     "a(e,e)^0.5, e=u^r-u^h",
     "res(u^r)^0.5",
     "a(e,e)^0.5, e=u-u^r",
     "effectivity index^*",
     "effectivity index^RES",
+  };
+
+  static const auto dual = std::array{
     "a(z^h,z^h)^0.5",
     "(E(u)*E(z))^0.5, E(v)=a(e,e), e=v^r-v^h"
   };
 
-  size_t k = j + 6;
+
+  if (i == 0 || j == 0 || j > primary.size() + extract.size() + nx)
+    return this->NormBase::getName(i,j,prefix);
+
+  if (i >= 2 && j > proj.size())
+    return this->NormBase::getName(i,j,prefix);
+
   if (i == 1)
   {
-    if (anasol)
-      nx /= 2;
-    else if (j > 2 && j < 4)
+    if (!anasol && j > 2 && j < 4)
       j += 2;
-    if (j > 5 && nx > 1)
+
+    if (j > primary.size() && nx > 0)
     {
-      j -= 5;
+      j -= primary.size();
       char comp[32];
-      if (!anasol)
+      if (j < 3)
+        return extract[j-1];
+      else if (!anasol)
         sprintf(comp,"a(u^h,w%zu)",j);
       else if (j%2)
         sprintf(comp,"a(u^h,w%zu)",j/2+1);
@@ -657,19 +669,19 @@ std::string PoissonNorm::getName (size_t i, size_t j, const char* prefix) const
         sprintf(comp,"a(u,w%zu)",j/2);
       return comp;
     }
-    else if (j <= 2 && prefix)
+    else if (prefix && !strncmp(prefix,"Dual",4))
     {
-      if (!strncmp(prefix,"Dual",4))
-        return s[12+j];
+      if (j <= dual.size())
+        return dual[j-1];
+      else
+        return "";
     }
-    else
-      k = j - 1;
   }
 
-  if (!prefix)
-    return s[k];
+  std::string s(prefix ? prefix + std::string(" ") : "");
+  s  += (i == 1 ? primary[j-1] : proj[j-1]);
 
-  return prefix + std::string(" ") + s[k];
+  return s;
 }
 
 
