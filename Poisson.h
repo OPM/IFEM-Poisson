@@ -240,7 +240,7 @@ public:
   //! \brief Returns the number of global %Lagrange multipliers in the model.
   size_t getNoGLMs() const override { return setIntegratedSol ? 1 : 0; }
 
-  const AnaSol* aSol = nullptr;
+  const AnaSol* aSol; //!< Pointer to analytical solution
 
 private:
   // Physical properties

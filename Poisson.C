@@ -42,6 +42,7 @@ Poisson::Poisson (unsigned short int n) : IntegrandBase(n)
   tracFld = nullptr;
   reacInt = nullptr;
   dualRHS = nullptr;
+  aSol    = nullptr;
   extEner = false;
 
   normIntegrandType = ELEMENT_CORNERS;
