@@ -1,0 +1,27 @@
+Square.xinp -eig 4 -petsc
+
+Eigenproblem solver: 4
+Number of eigenvalues: 10
+Number of Arnoldi vectors: 20
+Shift value: 0
+Number of elements    64
+Number of nodes       121
+Number of dofs        121
+Number of unknowns    110
+     1		0.125
+     2		0.27950
+     3		0.375
+     4		0.450694
+     5		0.51539
+     6		0.625002
+     7		0.625013
+     8		0.673157
+     9		0.760394
+     10		0.800402
+  Size of the matrix is          110
+  The number of Ritz values requested is           10
+  The number of Arnoldi vectors generated (NCV) is           20
+  What portion of the spectrum: LM
+  The number of converged Ritz values is           10
+  The number of Implicit Arnoldi update iterations taken is            6
+  The number of OP\*x is           49
