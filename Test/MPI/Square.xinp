@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2" scale="2.0" sets="true">
+    <raiseorder patch="1" u="2" v="2"/>
+    <refine patch="1" u="7" v="7"/>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Edge4" comp="1"/>
+    <neumann set="Edge3" type="anasol"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="anasol"/>
+    <anasol type="expression" autodiff="true">
+      <primary>cos(PI*x)*(2-y)</primary>
+    </anasol>
+  </poisson>
+
+  <linearsolver>
+    <type>preonly</type>
+    <pc>lu</pc>
+    <package>mumps</package>
+  </linearsolver>
+
+</simulation>
