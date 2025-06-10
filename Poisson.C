@@ -174,7 +174,7 @@ LocalIntegral* Poisson::getLocalIntegral (size_t nen, size_t,
       break;
 
     case SIM::VIBRATION:
-      result->resize(1,0);
+      result->resize(2,0);
       break;
 
     case SIM::RHS_ONLY:
@@ -213,6 +213,8 @@ bool Poisson::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
       for (size_t col = 1; col <= fe.N.size(); ++col)
         elMat.A.front()(nrow, col) = elMat.A.front()(col, nrow) += fe.detJxW*fe.N(col);
     }
+    if (m_mode == SIM::VIBRATION)
+      elMat.A[1].outer_product(fe.N, fe.N, true, fe.detJxW);
   }
 
   // Lambda function for integration of the internal force vector

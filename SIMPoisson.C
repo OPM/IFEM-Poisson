@@ -226,7 +226,9 @@ bool SIMPoisson<Dim>::solveStep (TimeStep&)
   if (!this->setMode(Dim::opt.eig == 0 ? SIM::STATIC : SIM::VIBRATION))
     return false;
 
-  if (!this->initSystem(Dim::opt.solver, 1, Dim::opt.eig == 0 ? 1 : 0))
+  if (!this->initSystem(Dim::opt.solver,
+                        Dim::opt.eig == 0 ? 1 : 2,
+                        Dim::opt.eig == 0 ? 1 : 0))
     return false;
 
   this->setQuadratureRule(Dim::opt.nGauss[0],true);
