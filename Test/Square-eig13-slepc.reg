@@ -1,0 +1,16 @@
+Square.xinp -eig 13 -petsc
+
+Number of elements    64
+Number of nodes       121
+Number of dofs        121
+Number of unknowns    110
+     1		0.125
+     2		0.27950
+     3		0.375
+     4		0.450694
+     5		0.51539
+     6		0.625002
+     7		0.625013
+     8		0.673157
+     9		0.760394
+     10		0.800402
