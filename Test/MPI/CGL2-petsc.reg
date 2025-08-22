@@ -1,0 +1,28 @@
+CGL2-petsc.xinp
+
+L2 projection equation solver: 4
+Enabled projection(s): Continuous global L2-projection
+Number of elements    64
+Number of nodes       216
+Number of dofs        216
+Number of unknowns    64
+Establishing domain decomposition
+Graph partitioning: 16 elements in partition.
+Number of domains     4
+Number of equations   64 (36 on process)
+L2-norm            : 0.242676
+Max displacement   : 0.994383
+Number of equations   216 (96 on process)
+Energy norm           a(u^h,u^h)^0.5 : 1.92322
+External energy          (h,u^h)^0.5 : 1.92322
+Exact norm                a(u,u)^0.5 : 1.92382
+Exact error      a(e,e)^0.5, e=u-u^h : 0.0483303
+Exact relative error (%) : 2.5122
+Energy norm |u^r| = a(u^r,u^r)^0.5   : 1.92264
+Error norm a(e,e)^0.5, e=u^r-u^h     : 0.047158
+Residual error (r(u^r) + J(u^r))^0.5 : 0.170162
+Exact error a(e,e)^0.5, e=u-u^r      : 0.0212178
+Exact error a(e,e)^0.5, e=u-u_ex^r   : 0.00930094
+Effectivity index, theta^\*           : 0.975744
+Effectivity index, theta^EX          : 1.41476
+Effectivity index, theta^RES         : 4.49656

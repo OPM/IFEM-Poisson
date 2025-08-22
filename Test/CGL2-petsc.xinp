@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry sets="True">
+    <raiseorder patch="1" u="1" v="1" w="1"/>
+    <refine patch="1" u="3" v="3" w="3"/>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1"/>
+  </boundaryconditions>
+
+  <postprocessing>
+    <projection>
+      <cgl2/>
+    </projection>
+  </postprocessing>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <source type="anasol"/>
+    <anasol type="expression" autodiff="true">
+      <primary>sin(PI*x)*sin(PI*y)*sin(z*PI)</primary>
+    </anasol>
+  </poisson>
+
+  <linearsolver l2class="petsc">
+    <l2params>
+      <type>bcgs</type>
+      <rtol>1e-10</rtol>
+    </l2params>
+  </linearsolver>
+
+</simulation>
