@@ -17,19 +17,21 @@
 #include "Vec3.h"
 
 #include <cmath>
-#include <string>
 
-#include "gtest/gtest.h"
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+using Catch::Matchers::WithinRel;
 
 
-TEST(TestSIMPoisson, Parse)
+TEST_CASE("TestSIMPoisson.Parse")
 {
   SIMPoisson<SIM2D> sim;
-  EXPECT_TRUE(sim.read("Square.xinp"));
+  REQUIRE(sim.read("Square.xinp"));
 
   const Poisson& poisson = static_cast<const Poisson&>(*sim.getProblem());
 
-  ASSERT_FLOAT_EQ(poisson.getHeat(Vec3()), M_PI*M_PI*2.0);
-  ASSERT_FLOAT_EQ(poisson.getMaterial(), 1.0);
-  EXPECT_EQ(poisson.getNoGalerkin(), 1U);
+  REQUIRE_THAT(poisson.getHeat(Vec3()), WithinRel(M_PI*M_PI*2.0));
+  REQUIRE_THAT(poisson.getMaterial(), WithinRel(1.0));
+  REQUIRE(poisson.getNoGalerkin() == 1);
 }
