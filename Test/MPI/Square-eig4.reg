@@ -8,10 +8,10 @@ Number of elements    64
 Number of nodes       121
 Number of dofs        121
 Number of unknowns    110
-Graph partitioning: 21 elements in partition.
+Graph partitioning: 16 elements in partition.
  >>> Domain decomposition summary <<<
-Number of domains     3
-Number of equations   110 (52 on process)
+Number of domains     4
+Number of equations   110 (49 on process)
      1		0.125
      2		0.27950
      3		0.375
