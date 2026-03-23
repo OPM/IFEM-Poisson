@@ -167,6 +167,7 @@ ifem_add_regression_test(
     Square-neumann.reg
     Square-neumann-lag.reg
     Square-eig4.reg
+    Square-kappa.reg
 )
 
 ifem_add_regression_test(
