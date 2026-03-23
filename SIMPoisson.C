@@ -506,7 +506,7 @@ bool SIMPoisson<Dim>::parse (char* keyWord, std::istream& is)
   {
     char* cline = 0;
     int nmat = atoi(keyWord+10);
-    std::cout <<"\nNumber of isotropic materials: "<< nmat << std::endl;
+    IFEM::cout <<"\nNumber of isotropic materials: "<< nmat << std::endl;
     for (int i = 0; i < nmat && (cline = utl::readLine(is)); i++)
     {
       int    code  = atoi(strtok(cline," "));
@@ -516,7 +516,7 @@ bool SIMPoisson<Dim>::parse (char* keyWord, std::istream& is)
       else
         this->setPropertyType(code,Property::MATERIAL,mVec.size());
       mVec.push_back(Kappa{kappa, nullptr});
-      std::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
+      IFEM::cout <<"\tMaterial code "<< code <<": "<< kappa << std::endl;
     }
   }
 
@@ -549,7 +549,7 @@ bool SIMPoisson<Dim>::parse (const tinyxml2::XMLElement* elem)
       if (code == 0)
         prob.setMaterial(kappa.constant);
       mVec.push_back(kappa);
-      std::cout <<"\tMaterial code "<< code <<": "<< kappa.constant << std::endl;
+      IFEM::cout <<"\tMaterial code "<< code <<": "<< kappa.constant << std::endl;
     }
     else if (!strcasecmp(child->Value(),"propertymaterial")) {
       int code = this->parseMaterialSet(child,mVec.size());
@@ -560,7 +560,7 @@ bool SIMPoisson<Dim>::parse (const tinyxml2::XMLElement* elem)
         mVec.push_back(kappa);
         if (code == 0)
           prob.setMaterial(mVec.back().func.get());
-        std::cout <<"\tMaterial code "<< code <<": property"<< std::endl;
+        IFEM::cout <<"\tMaterial code "<< code <<": property"<< std::endl;
       }
     }
     else if (!strcasecmp(child->Value(),"constrain_integrated_solution")) {
@@ -654,13 +654,13 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (char* keyWord, std::istream& is)
     if (!strncasecmp(cline,"LINE",4))
     {
       double L = atof(strtok(nullptr," "));
-      std::cout <<"\nHeat source function: Line L="<< L << std::endl;
+      IFEM::cout <<"\nHeat source function: Line L="<< L << std::endl;
       myScalars[code] = new PoissonLineSource(L);
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(nullptr," ");
-      std::cout <<"\nHeat source function: "<< cline << std::endl;
+      IFEM::cout <<"\nHeat source function: "<< cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
     else
@@ -679,13 +679,13 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (char* keyWord, std::istream& is)
     if (!strncasecmp(cline,"LINE",4))
     {
       double L = atof(strtok(nullptr," "));
-      std::cout <<"\nAnalytical solution: Line L="<< L << std::endl;
+      IFEM::cout <<"\nAnalytical solution: Line L="<< L << std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new PoissonLine(L));
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
-      std::cout <<"\nAnalytical solution: Expression"<< std::endl;
+      IFEM::cout <<"\nAnalytical solution: Expression"<< std::endl;
       int lines = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       if (!mySol)
@@ -727,12 +727,12 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (const tinyxml2::XMLElement* child)
     if (type == "line") {
       double L = 0.0;
       utl::getAttribute(child,"L",L);
-      std::cout <<"\tHeat source function: Line L="<< L << std::endl;
+      IFEM::cout <<"\tHeat source function: Line L="<< L << std::endl;
       myScalars[code] = new PoissonLineSource(L);
     }
     else if (type == "expression" && child->FirstChild()) {
-      std::cout <<"\tHeat source function: "
-                << child->FirstChild()->Value() << std::endl;
+      IFEM::cout <<"\tHeat source function: "
+                 << child->FirstChild()->Value() << std::endl;
       myScalars[code] = new EvalFunction(child->FirstChild()->Value());
     }
     else if (type == "anasol") {
@@ -754,13 +754,13 @@ bool SIMPoisson<SIM1D>::parseDimSpecific (const tinyxml2::XMLElement* child)
     if (type == "line") {
       double L = 0.0;
       utl::getAttribute(child,"L",L);
-      std::cout <<"\tAnalytical solution: Line L="<< L << std::endl;
+      IFEM::cout <<"\tAnalytical solution: Line L="<< L << std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new PoissonLine(L));
     }
     else if (type == "expression" || type == "fields") {
       type[0] = toupper(type[0]);
-      std::cout <<"\tAnalytical solution: "<< type << std::endl;
+      IFEM::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
         mySol = new PoissonAnaSol(child);
     }
@@ -804,21 +804,21 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (char* keyWord, std::istream& is)
       {
         PROFILE("LR refinement");
         int nRef = atoi(strtok(nullptr," "));
-        std::cout <<"\nLR refinement UNIFORM : "<< nRef << std::endl;
+        IFEM::cout <<"\nLR refinement UNIFORM : "<< nRef << std::endl;
         patch->uniformRefine(nRef);
       }
       else if (!strncasecmp(cline,"CORNER",6))
       {
         PROFILE("LR refinement");
         int nRef = atoi(strtok(nullptr," "));
-        std::cout <<"\nLR refinement CORNER : "<< nRef << std::endl;
+        IFEM::cout <<"\nLR refinement CORNER : "<< nRef << std::endl;
         patch->cornerRefine(nRef);
       }
       else if (!strncasecmp(cline,"DIAGONAL",8))
       {
         PROFILE("LR refinement");
         int nRef = atoi(strtok(nullptr," "));
-        std::cout <<"\nLR refinement DIAGONAL : "<< nRef << std::endl;
+        IFEM::cout <<"\nLR refinement DIAGONAL : "<< nRef << std::endl;
         patch->diagonalRefine(nRef);
       }
     }
@@ -834,23 +834,23 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (char* keyWord, std::istream& is)
     if (!strncasecmp(cline,"SQUARE",6))
     {
       double L = atof(strtok(nullptr," "));
-      std::cout <<"\nHeat source function: Square L="<< L << std::endl;
+      IFEM::cout <<"\nHeat source function: Square L="<< L << std::endl;
       myScalars[code] = new Square2DHeat(L);
     }
     else if (!strncasecmp(cline,"SINUSSQUARE",11))
     {
-      std::cout <<"\nHeat source function: SquareSinus"<< std::endl;
+      IFEM::cout <<"\nHeat source function: SquareSinus"<< std::endl;
       myScalars[code] = new SquareSinusSource();
     }
     else if (!strncasecmp(cline,"INTERIORLAYER",13))
     {
-      std::cout <<"\nHeat source function: InteriorLayer"<< std::endl;
+      IFEM::cout <<"\nHeat source function: InteriorLayer"<< std::endl;
       myScalars[code] = new PoissonInteriorLayerSource();
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(nullptr," ");
-      std::cout <<"\nHeat source function: "<< cline << std::endl;
+      IFEM::cout <<"\nHeat source function: "<< cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
     else
@@ -869,25 +869,25 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (char* keyWord, std::istream& is)
     if (!strncasecmp(cline,"SQUARE",6))
     {
       double L = atof(strtok(nullptr," "));
-      std::cout <<"\nAnalytical solution: Square L="<< L << std::endl;
+      IFEM::cout <<"\nAnalytical solution: Square L="<< L << std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new Square2D(L));
     }
     else if (!strncasecmp(cline,"LSHAPE",6))
     {
-      std::cout <<"\nAnalytical solution: Lshape"<< std::endl;
+      IFEM::cout <<"\nAnalytical solution: Lshape"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new LshapePoisson());
     }
     else if (!strncasecmp(cline,"SINUSSQUARE",11))
     {
-      std::cout <<"\nAnalytical solution: SquareSinus"<< std::endl;
+      IFEM::cout <<"\nAnalytical solution: SquareSinus"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new SquareSinus());
     }
     else if (!strncasecmp(cline,"INTERIORLAYER",13))
     {
-      std::cout <<"\nAnalytical solution: InteriorLayer"<< std::endl;
+      IFEM::cout <<"\nAnalytical solution: InteriorLayer"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(new PoissonInteriorLayerSol(),
                            new PoissonInteriorLayer());
@@ -907,7 +907,7 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (char* keyWord, std::istream& is)
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
-      std::cout <<"\nAnalytical solution: Expression"<< std::endl;
+      IFEM::cout <<"\nAnalytical solution: Expression"<< std::endl;
       int lines = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       if (!mySol)
@@ -949,23 +949,23 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (const tinyxml2::XMLElement* child)
     if (type == "square") {
       double L = 0.0;
       utl::getAttribute(child,"L",L);
-      std::cout <<"\tHeat source function: Square L="<< L << std::endl;
+      IFEM::cout <<"\tHeat source function: Square L="<< L << std::endl;
       myScalars[code] = new Square2DHeat(L);
     }
     else if (type == "sinussquare") {
-      std::cout <<"\tHeat source function: SquareSinus"<< std::endl;
+      IFEM::cout <<"\tHeat source function: SquareSinus"<< std::endl;
       myScalars[code] = new SquareSinusSource();
     }
     else if (type == "interiorlayer") {
       double s = 60;
       utl::getAttribute(child,"slope",s);
-      std::cout <<"\tHeat source function: InteriorLayer, slope="<< s
-                << std::endl;
+      IFEM::cout <<"\tHeat source function: InteriorLayer, slope="<< s
+                 << std::endl;
       myScalars[code] = new PoissonInteriorLayerSource(s);
     }
     else if (type == "expression" && child->FirstChild()) {
-      std::cout <<"\tHeat source function: "
-                << child->FirstChild()->Value() << std::endl;
+      IFEM::cout <<"\tHeat source function: "
+                 << child->FirstChild()->Value() << std::endl;
       myScalars[code] = new EvalFunction(child->FirstChild()->Value());
     }
     else if (type == "anasol") {
@@ -989,25 +989,25 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (const tinyxml2::XMLElement* child)
     if (type == "square") {
       double L = 0.0;
       utl::getAttribute(child,"L",L);
-      std::cout <<"\tAnalytical solution: Square L="<< L << std::endl;
+      IFEM::cout <<"\tAnalytical solution: Square L="<< L << std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new Square2D(L));
     }
     else if (type == "lshape") {
-      std::cout <<"\tAnalytical solution: Lshape"<< std::endl;
+      IFEM::cout <<"\tAnalytical solution: Lshape"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new LshapePoisson());
     }
     else if (type == "sinussquare") {
-      std::cout <<"\tAnalytical solution: SquareSinus"<< std::endl;
+      IFEM::cout <<"\tAnalytical solution: SquareSinus"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new SquareSinus());
     }
     else if (type == "interiorlayer") {
       double s = 60;
       utl::getAttribute(child,"slope",s);
-      std::cout <<"\tAnalytical solution: InteriorLayer, slope="<< s
-                << std::endl;
+      IFEM::cout <<"\tAnalytical solution: InteriorLayer, slope="<< s
+                 << std::endl;
       if (!mySol)
         mySol = new AnaSol(new PoissonInteriorLayerSol(s),
                            new PoissonInteriorLayer(s));
@@ -1023,7 +1023,7 @@ bool SIMPoisson<SIM2D>::parseDimSpecific (const tinyxml2::XMLElement* child)
     }
     else if (type == "expression" || type == "fields") {
       type[0] = toupper(type[0]);
-      std::cout <<"\tAnalytical solution: "<< type << std::endl;
+      IFEM::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
         mySol = new PoissonAnaSol(child);
     }
@@ -1061,18 +1061,18 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (char* keyWord, std::istream& is)
     cline = strtok(keyWord+6," ");
     if (!strncasecmp(cline,"CUBE",4))
     {
-      std::cout <<"\nHeat source function: Cube"<< std::endl;
+      IFEM::cout <<"\nHeat source function: Cube"<< std::endl;
       myScalars[code] = new PoissonCubeSource();
     }
     else if (!strncasecmp(cline,"WATERFALL",9))
     {
-      std::cout <<"\nHeat source function: Waterfall"<< std::endl;
+      IFEM::cout <<"\nHeat source function: Waterfall"<< std::endl;
       myScalars[code] = new PoissonWaterfallSource();
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
       cline = strtok(nullptr," ");
-      std::cout <<"\nHeat source function: "<< cline << std::endl;
+      IFEM::cout <<"\nHeat source function: "<< cline << std::endl;
       myScalars[code] = new EvalFunction(cline);
     }
     else
@@ -1090,13 +1090,13 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (char* keyWord, std::istream& is)
     cline = strtok(keyWord+6," ");
     if (!strncasecmp(cline,"CUBE",4))
     {
-      std::cout <<"\nAnalytical solution: Cube"<< std::endl;
+      IFEM::cout <<"\nAnalytical solution: Cube"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new PoissonCube());
     }
     else if (!strncasecmp(cline,"WATERFALL",9))
     {
-      std::cout <<"\nAnalytical solution: Waterfall"<< std::endl;
+      IFEM::cout <<"\nAnalytical solution: Waterfall"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(new PoissonWaterfallSol(),
                            new PoissonWaterfall());
@@ -1116,7 +1116,7 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (char* keyWord, std::istream& is)
     }
     else if (!strncasecmp(cline,"EXPRESSION",10))
     {
-      std::cout <<"\nAnalytical solution: Expression"<< std::endl;
+      IFEM::cout <<"\nAnalytical solution: Expression"<< std::endl;
       int lines = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       code = (cline = strtok(nullptr," ")) ? atoi(cline) : 0;
       if (!mySol)
@@ -1156,19 +1156,19 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (const tinyxml2::XMLElement* child)
     std::string type;
     utl::getAttribute(child,"type",type,true);
     if (type == "cube") {
-      std::cout <<"\tHeat source function: Cube"<< std::endl;
+      IFEM::cout <<"\tHeat source function: Cube"<< std::endl;
       myScalars[code] = new PoissonCubeSource();
     }
     else if (type == "waterfall") {
       double eps = 0.002;
       utl::getAttribute(child,"epsilon",eps);
-      std::cout <<"\tHeat source function: Waterfall, epsilon="<< eps
-                << std::endl;
+      IFEM::cout <<"\tHeat source function: Waterfall, epsilon="<< eps
+                 << std::endl;
       myScalars[code] = new PoissonWaterfallSource(eps);
     }
     else if (type == "expression" && child->FirstChild()) {
-      std::cout <<"\tHeat source function: "
-                << child->FirstChild()->Value() << std::endl;
+      IFEM::cout <<"\tHeat source function: "
+                 << child->FirstChild()->Value() << std::endl;
       myScalars[code] = new EvalFunction(child->FirstChild()->Value());
     }
     else if (type == "anasol") {
@@ -1189,15 +1189,15 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (const tinyxml2::XMLElement* child)
     std::string type;
     utl::getAttribute(child,"type",type,true);
     if (type == "cube") {
-      std::cout <<"\tAnalytical solution: Cube"<< std::endl;
+      IFEM::cout <<"\tAnalytical solution: Cube"<< std::endl;
       if (!mySol)
         mySol = new AnaSol(nullptr,new PoissonCube());
     }
     else if (type == "waterfall") {
       double eps = 0.002;
       utl::getAttribute(child,"epsilon",eps);
-      std::cout <<"\tAnalytical solution: Waterfall, epsilon="<< eps
-                << std::endl;
+      IFEM::cout <<"\tAnalytical solution: Waterfall, epsilon="<< eps
+                 << std::endl;
       if (!mySol)
         mySol = new AnaSol(new PoissonWaterfallSol(eps),
                            new PoissonWaterfall(eps));
@@ -1213,7 +1213,7 @@ bool SIMPoisson<SIM3D>::parseDimSpecific (const tinyxml2::XMLElement* child)
     }
     else if (type == "expression" || type == "fields") {
       type[0] = toupper(type[0]);
-      std::cout <<"\tAnalytical solution: "<< type << std::endl;
+      IFEM::cout <<"\tAnalytical solution: "<< type << std::endl;
       if (!mySol)
         mySol = new PoissonAnaSol(child);
     }
