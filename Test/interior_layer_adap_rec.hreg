@@ -14,10 +14,6 @@ interior_layer_adap_rec.xinp
 /0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {49}
 /0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
 /0/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y/1 Dataset {49}
-/0/Poisson-1/fields/q_x  Group
-/0/Poisson-1/fields/q_x/1 Dataset {49}
-/0/Poisson-1/fields/q_y  Group
-/0/Poisson-1/fields/q_y/1 Dataset {49}
 /0/Poisson-1/fields/u    Group
 /0/Poisson-1/fields/u/1  Dataset {49}
 /0/Poisson-1/knotspan    Group
@@ -56,10 +52,6 @@ interior_layer_adap_rec.xinp
 /1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {121}
 /1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
 /1/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y/1 Dataset {121}
-/1/Poisson-1/fields/q_x  Group
-/1/Poisson-1/fields/q_x/1 Dataset {121}
-/1/Poisson-1/fields/q_y  Group
-/1/Poisson-1/fields/q_y/1 Dataset {121}
 /1/Poisson-1/fields/u    Group
 /1/Poisson-1/fields/u/1  Dataset {121}
 /1/Poisson-1/knotspan    Group
@@ -98,10 +90,6 @@ interior_layer_adap_rec.xinp
 /2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_x/1 Dataset {361}
 /2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y Group
 /2/Poisson-1/fields/Continuous\ global\ L2-projection\ q_y/1 Dataset {361}
-/2/Poisson-1/fields/q_x  Group
-/2/Poisson-1/fields/q_x/1 Dataset {361}
-/2/Poisson-1/fields/q_y  Group
-/2/Poisson-1/fields/q_y/1 Dataset {361}
 /2/Poisson-1/fields/u    Group
 /2/Poisson-1/fields/u/1  Dataset {361}
 /2/Poisson-1/knotspan    Group
