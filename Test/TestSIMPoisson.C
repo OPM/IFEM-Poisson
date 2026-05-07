@@ -24,6 +24,12 @@
 
 namespace {
 
+constexpr double DERIVATIVE_STEP = 1.0e-6;
+constexpr double ZERO_TOL = 1.0e-12;
+constexpr double CONSISTENCY_TOL_FINE = 1.0e-5;
+constexpr double CONSISTENCY_TOL_STANDARD = 1.0e-4;
+constexpr double CONSISTENCY_TOL_COARSE = 1.0e-3;
+
 Vec3 point(double x, double y, double z = 0.0)
 {
   Vec3 X;
@@ -61,7 +67,7 @@ private:
 
 
 double derivativeX(const VecFunc& flux, const Vec3& X, size_t component,
-                   double h = 1.0e-6)
+                   double h = DERIVATIVE_STEP)
 {
   Vec3 xp(X), xm(X);
   xp.x += h;
@@ -71,7 +77,7 @@ double derivativeX(const VecFunc& flux, const Vec3& X, size_t component,
 
 
 double derivativeY(const VecFunc& flux, const Vec3& X, size_t component,
-                   double h = 1.0e-6)
+                   double h = DERIVATIVE_STEP)
 {
   Vec3 yp(X), ym(X);
   yp.y += h;
@@ -81,7 +87,7 @@ double derivativeY(const VecFunc& flux, const Vec3& X, size_t component,
 
 
 double derivativeZ(const VecFunc& flux, const Vec3& X, size_t component,
-                   double h = 1.0e-6)
+                   double h = DERIVATIVE_STEP)
 {
   Vec3 zp(X), zm(X);
   zp.z += h;
@@ -103,7 +109,7 @@ double divergence3D(const VecFunc& flux, const Vec3& X)
 
 
 double derivative(const RealFunc& field, const Vec3& X, char axis,
-                  double h = 1.0e-6)
+                  double h = DERIVATIVE_STEP)
 {
   Vec3 xp(X), xm(X);
   switch (axis)
@@ -239,9 +245,9 @@ TEST_CASE("Poisson analytic solutions match expected values")
   const PoissonCubeSource cubeHeat;
   const Vec3 qcube = cubeFlux(point(0.0,0.5,0.5));
   REQUIRE_THAT(qcube.x, WithinRel(-M_PI));
-  REQUIRE(std::abs(qcube.y) < 1.0e-12);
-  REQUIRE(std::abs(qcube.z) < 1.0e-12);
-  REQUIRE(std::abs(cubeHeat(point(0.0,0.5,0.5))) < 1.0e-12);
+  REQUIRE(std::abs(qcube.y) < ZERO_TOL);
+  REQUIRE(std::abs(qcube.z) < ZERO_TOL);
+  REQUIRE(std::abs(cubeHeat(point(0.0,0.5,0.5))) < ZERO_TOL);
 
   const PoissonLine lineFlux(2.0);
   const PoissonLineSource lineHeat(2.0);
@@ -260,35 +266,35 @@ TEST_CASE("Poisson sources stay consistent with analytic fields")
   const Square2D squareFlux;
   const Square2DHeat squareHeat;
   const Vec3 X2 = point(0.31,0.42);
-  REQUIRE(std::abs(divergence2D(squareFlux,X2) - squareHeat(X2)) < 1.0e-4);
+  REQUIRE(std::abs(divergence2D(squareFlux,X2) - squareHeat(X2)) < CONSISTENCY_TOL_STANDARD);
 
   const SquareSinus sinusFlux;
   const SquareSinusSource sinusHeat;
   const Vec3 Xsin = point(0.19,0.37);
-  REQUIRE(std::abs(divergence2D(sinusFlux,Xsin) - sinusHeat(Xsin)) < 1.0e-3);
+  REQUIRE(std::abs(divergence2D(sinusFlux,Xsin) - sinusHeat(Xsin)) < CONSISTENCY_TOL_COARSE);
 
   const PoissonCube cubeFlux;
   const PoissonCubeSource cubeHeat;
   const Vec3 X3 = point(0.21,0.37,0.41);
-  REQUIRE(std::abs(divergence3D(cubeFlux,X3) - cubeHeat(X3)) < 1.0e-4);
+  REQUIRE(std::abs(divergence3D(cubeFlux,X3) - cubeHeat(X3)) < CONSISTENCY_TOL_STANDARD);
 
   const PoissonLine lineFlux(2.0);
   const PoissonLineSource lineHeat(2.0);
   const Vec3 XL = point(0.37,0.0);
-  REQUIRE(std::abs(derivativeX(lineFlux,XL,0) - lineHeat(XL)) < 1.0e-5);
+  REQUIRE(std::abs(derivativeX(lineFlux,XL,0) - lineHeat(XL)) < CONSISTENCY_TOL_FINE);
 
   const PoissonInteriorLayer interiorFlux(12.0);
   const PoissonInteriorLayerSol interiorSol(12.0);
   const Vec3 Xi = point(0.8,0.15);
   const Vec3 qi = interiorFlux(Xi);
-  REQUIRE(std::abs(qi.x + derivative(interiorSol,Xi,'x')) < 1.0e-4);
-  REQUIRE(std::abs(qi.y + derivative(interiorSol,Xi,'y')) < 1.0e-4);
+  REQUIRE(std::abs(qi.x + derivative(interiorSol,Xi,'x')) < CONSISTENCY_TOL_STANDARD);
+  REQUIRE(std::abs(qi.y + derivative(interiorSol,Xi,'y')) < CONSISTENCY_TOL_STANDARD);
 
   const PoissonWaterfall waterfallFlux(0.01);
   const PoissonWaterfallSol waterfallSol(0.01);
   const Vec3 Xw = point(0.2,0.15,0.4);
   const Vec3 qw = waterfallFlux(Xw);
-  REQUIRE(std::abs(qw.x + derivative(waterfallSol,Xw,'x')) < 1.0e-4);
-  REQUIRE(std::abs(qw.y + derivative(waterfallSol,Xw,'y')) < 1.0e-4);
-  REQUIRE(std::abs(qw.z + derivative(waterfallSol,Xw,'z')) < 1.0e-4);
+  REQUIRE(std::abs(qw.x + derivative(waterfallSol,Xw,'x')) < CONSISTENCY_TOL_STANDARD);
+  REQUIRE(std::abs(qw.y + derivative(waterfallSol,Xw,'y')) < CONSISTENCY_TOL_STANDARD);
+  REQUIRE(std::abs(qw.z + derivative(waterfallSol,Xw,'z')) < CONSISTENCY_TOL_STANDARD);
 }
