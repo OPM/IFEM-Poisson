@@ -15,7 +15,9 @@ endif()
 
 ifem_add_library(
   NAME
-    CommonPoisson
+   Poiss
+  ALIAS
+    IFEM::Poisson
   SOURCES
     Poisson.C
     PoissonSolutions.C
@@ -30,6 +32,11 @@ ifem_add_library(
     IFEM
     IFEM::AppUtils
 )
+set_target_properties(Poiss
+  PROPERTIES
+  ARCHIVE_OUTPUT_NAME
+    Poisson
+)
 
 ifem_add_application(
   NAME
@@ -37,7 +44,7 @@ ifem_add_application(
   SOURCES
     main_Poisson.C
   LIBRARIES
-    CommonPoisson
+    IFEM::Poisson
 )
 
 enable_testing()
@@ -235,7 +242,7 @@ ifem_add_test_app(
   WORKDIR
     ${PROJECT_SOURCE_DIR}/Test
   LIBRARIES
-    CommonPoisson
+    IFEM::Poisson
 )
 
 if(IFEM_COMMON_APP_BUILD)
