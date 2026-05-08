@@ -27,8 +27,8 @@ ifem_add_library(
     PoissonSource.h
     SIMPoisson.h
   LIBRARIES
-    IFEMAppCommon
     IFEM
+    IFEM::AppUtils
 )
 
 ifem_add_application(
