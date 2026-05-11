@@ -18,6 +18,8 @@ ifem_add_library(
    Poiss
   ALIAS
     IFEM::Poisson
+  ARCHIVE_NAME
+    Poisson
   SOURCES
     Poisson.C
     PoissonSolutions.C
@@ -31,11 +33,6 @@ ifem_add_library(
   LIBRARIES
     IFEM
     IFEM::AppUtils
-)
-set_target_properties(Poiss
-  PROPERTIES
-  ARCHIVE_OUTPUT_NAME
-    Poisson
 )
 
 ifem_add_application(
