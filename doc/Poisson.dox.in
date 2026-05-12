@@ -13,7 +13,7 @@
 
 /*! \mainpage Isogeometric FEM %Poisson application
 
-\author Einar Christensen, SINTEF ICT, Trondheim
+\author Einar Christensen, SINTEF Digital, Trondheim
 
 \section intro Introduction
 This is a %Poisson application built on top of the IFEM library.
