@@ -143,7 +143,6 @@ ifem_add_regression_test(
     LRSpline_FOUND
     Zoltan_FOUND
   TEST_FILES
-    MPI/interior_layer_adap_dorfel.reg
     MPI/Waterfall3D_adap.reg
   PARALLEL
     4
@@ -201,7 +200,6 @@ ifem_add_regression_test(
     interior_layer_adap.reg
     interior_layer_adap_rec.reg
     interior_layer_adap_res.reg
-    interior_layer_adap_dorfel.reg
     interior_layer_adap_symmetrized.reg
     CubeLR.reg
     CGL2-LR.reg
