@@ -126,7 +126,7 @@ protected:
   //! \brief Performs some pre-processing tasks on the FE model.
   //! \details This method is reimplemented to resolve inhomogeneous boundary
   //! condition fields in case they are derived from the analytical solution.
-  void preprocessA() override;
+  bool preprocessA() override;
 
   //! \brief Performs some pre-processing tasks on the FE model.
   bool preprocessB() override;
