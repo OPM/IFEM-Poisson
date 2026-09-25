@@ -425,7 +425,7 @@ bool SIMPoisson<Dim>::preprocessBeforeAsmInit (int& nnod)
 
 
 template<class Dim>
-void SIMPoisson<Dim>::preprocessA ()
+bool SIMPoisson<Dim>::preprocessA ()
 {
   if (Dim::dualField)
     prob.setDualRHS(Dim::dualField);
@@ -441,7 +441,7 @@ void SIMPoisson<Dim>::preprocessA ()
     prob.setSource(this->myScalars[code]);
   }
 
-  if (!Dim::mySol) return;
+  if (!Dim::mySol) return true;
 
   Dim::myInts.insert(std::make_pair(0,Dim::myProblem));
 
@@ -480,6 +480,8 @@ void SIMPoisson<Dim>::preprocessA ()
     } else if (p->pcode == Property::ROBIN)
       if (Dim::myInts.find(p->pindx) == Dim::myInts.end())
         Dim::myInts.insert(std::make_pair(p->pindx,&robinBC));
+
+  return true;
 }
 
 
