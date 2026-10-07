@@ -61,16 +61,11 @@ public:
   NegatedGradientFunc(const RealFunc& f) : func(f) {}
 
 protected:
-  //! Evaluates function in a point.
-  Vec3 evaluate(const Vec3& X) const
-  {
-    Vec3 result = func.gradient(X);
-    result *= -1.0;
-    return result;
-  }
+  //! \brief Evaluates the function in a point.
+  Vec3 evaluate(const Vec3& X) const override { return -func.gradient(X); }
 
 private:
-    const RealFunc& func; //!< Const reference to scalar function
+  const RealFunc& func; //!< Const reference to scalar function
 };
 
 
@@ -81,15 +76,9 @@ class PoissonAnaSol : public AnaSol
 {
 public:
   //! \brief Constructor initializing expression functions by parsing XML tags.
-  //! \param[in] elem Pointer to XML-element to extract data from
-  //! \param[in] scalarSol If \e true, the primary solution is a scalar field
-  explicit PoissonAnaSol(const tinyxml2::XMLElement* elem) :
-    AnaSol(elem, true)
-  {}
+  explicit PoissonAnaSol(const tinyxml2::XMLElement* xml) : AnaSol(xml,true) {}
 
-  //! \brief Make sure we have a secondary solution.
-  //! \details If none is given, we use derivation (automatic or finite difference)
-  //!          to obtain one.
+  //! \brief Ensures we have a secondary solution.
   void setupSecondarySolutions() override
   {
     if (!scalSol.empty() && scalSecSol.empty())
@@ -441,9 +430,10 @@ bool SIMPoisson<Dim>::preprocessA ()
     prob.setSource(this->myScalars[code]);
   }
 
-  if (!Dim::mySol) return true;
-
-  Dim::myInts.insert(std::make_pair(0,Dim::myProblem));
+  if (!this->Dim::preprocessA())
+    return false;
+  else if (!Dim::mySol)
+    return true;
 
   // Define analytical boundary condition fields
   PropertyVec::iterator p;
@@ -479,7 +469,7 @@ bool SIMPoisson<Dim>::preprocessA ()
         p->pcode = Property::UNDEFINED;
     } else if (p->pcode == Property::ROBIN)
       if (Dim::myInts.find(p->pindx) == Dim::myInts.end())
-        Dim::myInts.insert(std::make_pair(p->pindx,&robinBC));
+        Dim::myInts.emplace(p->pindx,&robinBC);
 
   return true;
 }
