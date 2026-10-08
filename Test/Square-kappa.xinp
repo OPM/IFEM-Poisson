@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<simulation>
+
+  <!-- General - geometry definitions !-->
+  <geometry dim="2" sets="true">
+    <refine patch="1" u="7" v="7"/>
+  </geometry>
+
+  <!-- General - boundary conditions !-->
+  <boundaryconditions>
+    <dirichlet set="Boundary" comp="1" type="anasol"/>
+  </boundaryconditions>
+
+  <!-- Problem-specific block !-->
+  <poisson>
+    <isotropic kappa="0.1"/>
+    <source type="anasol"/>
+    <anasol type="expression" autodiff="true">
+      <primary>x*(x-1)*y*(y-1)</primary>
+    </anasol>
+  </poisson>
+
+</simulation>

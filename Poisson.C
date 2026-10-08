@@ -452,7 +452,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
   double cwInv = fe.detJxW / kappa;
 
   // Integrate the energy norm a(u^h,u^h)
-  pnorm[0] += kappa*epsh*epsh*fe.detJxW;
+  pnorm[0] += cwInv*epsh*epsh;
   // Integrate the external energy (h,u^h)
   if (problem.extEner)
     pnorm[1] += h*u*fe.detJxW;
@@ -466,7 +466,7 @@ bool PoissonNorm::evalInt (LocalIntegral& elmInt, const FiniteElement& fe,
     // Integrate the energy norm a(u,u)
     pnorm[ip++] += sigma*sigma*cwInv;
     // Integrate the error in energy norm a(u-u^h,u-u^h)
-    Vec3 error = sigma + kappa*epsh;
+    Vec3 error = sigma + epsh;
     pnorm[ip++] += error*error*cwInv;
   }
 
