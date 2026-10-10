@@ -134,7 +134,8 @@ protected:
   //! \brief Parses a data section from the input stream.
   //! \param[in] keyWord Keyword of current data section to read
   //! \param is The file stream to read from
-  bool parse(char* keyWord, std::istream& is) override;
+  bool parse(char* keyWord, std::istream& is) override
+  { return false; }
 
   //! \brief Parses a data section from an XML element.
   //! \param[in] elem The XML element to parse
@@ -145,10 +146,6 @@ protected:
   bool assembleDiscreteTerms(const IntegrandBase* p, const TimeDomain&) override;
 
 private:
-  //! \brief Parses a dimension-specific data section from an input stream.
-  //! \details This function allows for specialization of the template while
-  //! still reusing as much code as possible. Only for dimension-specific code.
-  bool parseDimSpecific(char* keyWord, std::istream& is);
   //! \brief Parses a dimension-specific data section from the an XML element.
   //! \details This function allows for specialization of the template while
   //! still reusing as much code as possible. Only for dimension-specific code.
