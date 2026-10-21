@@ -56,25 +56,22 @@ public:
   }
 
   //! \brief Parses a command-line argument.
-  bool parseArgs(char** argv, int argc, int& i)
+  bool parseArg(const char* argv) override
   {
-    if (!strcmp(argv[i],"-ignore"))
-      while (i < argc-1 && isdigit(argv[i+1][0]))
-        utl::parseIntegers(ignoredPatches,argv[++i]);
-    else if (!strcmp(argv[i],"-free"))
+    if (!strcmp(argv,"-free"))
       SIMbase::ignoreDirichlet = true;
-    else if (!strcmp(argv[i],"-checkRHS"))
+    else if (!strcmp(argv,"-checkRHS"))
       checkRHS = true;
-    else if (!strcmp(argv[i],"-vizRHS"))
+    else if (!strcmp(argv,"-vizRHS"))
       vizRHS = true;
-    else if (!strcmp(argv[i],"-fixDup"))
+    else if (!strcmp(argv,"-fixDup"))
       fixDup = true;
-    else if (!strcmp(argv[i],"-dumpASC"))
+    else if (!strcmp(argv,"-dumpASC"))
       dumpASCII = true;
-    else if (!strncmp(argv[i],"-dualadap",9))
+    else if (!strncmp(argv,"-dualadap",9))
       adap = 'd';
     else
-      return this->parseArg(argv[i]);
+      return this->SIMargsBase::parseArg(argv);
 
     return true;
   }
@@ -88,7 +85,7 @@ public:
 */
 
 template<class Dim, template<class T> class Solver=SIMSolverStat>
-int runSimulator(char* infile, const PoissonArgs& arg)
+int runSimulator (char* infile, const PoissonArgs& arg)
 {
   SIMPoisson<Dim> model(arg.checkRHS,arg.dualSol);
   Solver<SIMPoisson<Dim>> solver(model);
@@ -172,26 +169,22 @@ int main (int argc, char** argv)
   Profiler prof(argv[0]);
   utl::profiler->start("Initialization");
 
-  char* infile = nullptr;
+  IFEM::Init(argc,argv,"Poisson solver");
+
   PoissonArgs args;
 
-  IFEM::Init(argc,argv,"Poisson solver");
-  for (int i = 1; i < argc; i++)
-    if (argv[i] == infile || args.parseArgs(argv,argc,i))
-      ; // ignore the input file on the second pass
-    else if (SIMoptions::ignoreOldOptions(argc,argv,i))
-      ; // ignore the obsolete option
-    else if (!infile) {
-      infile = argv[i];
-      if (strcasestr(infile,".xinp")) {
-        if (!args.readXML(infile,false))
-          return 1;
-        i = 0;
-      }
-    }
+  // Lambda function for parsing the options not parsed by PoissonArgs.
+  auto external_args = [argc,argv,&args](int& i) -> bool
+  {
+    if (!strcmp(argv[i],"-ignore"))
+      while (i < argc-1 && isdigit(argv[i+1][0]))
+        utl::parseIntegers(args.ignoredPatches,argv[++i]);
     else
-      std::cerr <<"  ** Unknown option ignored: "<< argv[i] << std::endl;
+      return false;
+    return true;
+  };
 
+  char* infile = args.preParse(argc,argv,external_args);
   if (!infile)
   {
     std::cout <<"usage: "<< argv[0]
